@@ -41,22 +41,12 @@ run(L) ->
 compress(L) ->
 compress(lists:reverse(L), 0, 0).
 
-%%% N must be initially 1
 compress([], Acc, _N) ->
     Acc;
 compress([0|T], Acc, N)->
     compress(T, Acc, N + 1);
 compress([H|T], Acc, N) ->
-    io:format("~nH: ~p~n", [H]),
-    io:format("Acc: ~p~n", [Acc]),
     Nr = trunc(math:log10(H))+1,
-    io:format("N: ~p, Nr: ~p~n", [N, Nr]),
-    Zrs = trunc(math:pow(10, N)) ,
-    io:format("math:pow(10, ~p)~n", [N]),
-    io:format("Zrs: ~p~n", [Zrs]),
-    NewAcc = Acc + H * Zrs,
-    io:format("New Acc: ~p~n", [NewAcc]),
-    NewN = Nr +N, 
-    io:format("NewN: ~p~n", [NewN]),
-    compress(T, NewAcc,  NewN).
+    Zrs = trunc(math:pow(10, N)),
+    compress(T,  Acc + H * Zrs,  Nr + N).
 
