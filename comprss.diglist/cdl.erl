@@ -2,6 +2,16 @@
 -include_lib("eunit/include/eunit.hrl").
 -export([run/1]).
 
+compress_lastDg0_test()->
+    ?assertEqual(120, run([1,2,0])).
+compress_lastDg0_2_test()->
+    ?assertEqual(120, run([1,20])).
+compress_lastDg0_3_test()->
+    ?assertEqual(120, run([120])).
+compress_first_and_lastDg0_test()->
+    ?assertEqual(120, run([0,1,20])).
+compress_all0_test()->
+    ?assertEqual(0, run([000000,0000,0,0,0,000000])).
 compress_otwice_10th_test()->
     ?assertEqual(343, run([3, 43])).
 compress_twice_10th_test()->
