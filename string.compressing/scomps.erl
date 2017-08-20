@@ -34,7 +34,7 @@ compress(Curr, [Next|T], Occ, MSG) ->
 compress(Last, [], 1, MSG) ->
     list_to_atom(string:join(reverse([to_list(Last)|MSG]), ""));
 compress(Last, [], Occ, MSG)->
-    list_to_atom(string:join(reverse([to_list(Occ), to_list(Last)|MSG]), "")).
+    list_to_atom(string:join(reverse([integer_to_list(Occ), to_list(Last)|MSG]), "")).
 
 to_list(X) when is_integer(X) ->
     integer_to_list(X);
