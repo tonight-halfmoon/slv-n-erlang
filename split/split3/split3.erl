@@ -11,10 +11,10 @@ split3_empty_test() ->
 split3_10elm_lst_test() ->
     ?assertEqual({[a,d,g,j],[b,e,h],[c,f,i]}, split3([a,b,c,d,e,f,g,h,i,j])).
 
-split3_7elm_lst_test() ->
+split3_8elm_lst_test() ->
     ?assertEqual({[0,3,6],[1,4,7],[2,5]}, split3([0,1,2,3,4,5,6,7])).
 
-split32_test() ->
+split3_5elm_lst_test() ->
     ?assertEqual({[a,d],[b,e],[c]}, split3([a,b,c,d,e])).
 
 split3_long_test() ->
