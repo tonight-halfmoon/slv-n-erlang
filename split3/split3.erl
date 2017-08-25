@@ -1,6 +1,6 @@
 -module(split3).
--export([split3/1]).
 -include_lib("eunit/include/eunit.hrl").
+-export([split3/1]).
 
 split3_test() ->
     ?assertEqual({[a,d],[b],[c]}, split3([a,b,c,d])).
@@ -8,10 +8,10 @@ split3_test() ->
 split3_empty_test() ->
     ?assertEqual({[],[],[]}, split3([])).
 
-split3_10elem_list_test() ->
+split3_10elm_lst_test() ->
     ?assertEqual({[a,d,g,j],[b,e,h],[c,f,i]}, split3([a,b,c,d,e,f,g,h,i,j])).
 
-split3_7elem_list_test() ->
+split3_7elm_lst_test() ->
     ?assertEqual({[0,3,6],[1,4,7],[2,5]}, split3([0,1,2,3,4,5,6,7])).
 
 split32_test() ->
@@ -23,7 +23,7 @@ split3_long_test() ->
 split3_abitlonger_test() ->
     ?assertEqual({[a,d,g,j,m,o],[b,e,h,k,n,o],[c,f,i,l,o]}, split3([a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,o,o])).
 
-split3_one_test() ->
+split3_one_elm_lst_test() ->
     ?assertEqual({[a],[],[]}, split3([a])).
 
 split3_allsame3_test() ->
