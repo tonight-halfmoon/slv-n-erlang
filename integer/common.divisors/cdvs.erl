@@ -23,6 +23,15 @@ cdvs_of_minus_and_minus_is_test() ->
 cdvs_of_zeros_is_test() ->
     ?assertEqual({unlimited, infinity}, cmndvsrs(0,0)).
 
+cdvs_of_zero_and_integer_test() ->
+    ?assertEqual({6,[1,2,3,4,6,12]}, cmndvsrs(0, 12)).
+
+cdvs_of_zero_and_neg_integer_test() ->
+    ?assertEqual({6,[1,2,3,4,6,12]}, cmndvsrs(0, -12)).
+
+cdvs_of_1_and_neg_integer_test() ->
+    ?assertEqual({1,[1]}, cmndvsrs(1, -12)).
+
 cmndvsrs(X,Y) ->
     GCD = gcd(X,Y),
     case GCD of 
