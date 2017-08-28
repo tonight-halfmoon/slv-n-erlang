@@ -165,7 +165,7 @@ distrib(Xs, [[H|T]|LPerms], U) when is_list(H) ->
 distrib(Xs, [P|LPerms], U) ->  
     distrib(Xs, LPerms, [union(P, Xs)|U]).
 
-%%% Union two lists. Transforms two lists into one list w.r.t the definition of Union.
+%%% Union two lists. Transforms two lists into one list w.r.t the definition of Union. However, the problem is on lists and not on sets.
 %%% Perm must be a list of elements. Element must not be a list. Therefore, A list of lists is not expected.
 %%% Xs must be a list of elements. Element must not be a list. Therefore, a list of lists is not expected. 
 union(Perm, Xs) -> 
