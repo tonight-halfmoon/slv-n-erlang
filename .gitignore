@@ -1,4 +1,5 @@
 .eunit
+TEST*.xml
 deps
 *.o
 *.beam
