@@ -1,0 +1,4 @@
+-define(pop(L), {stack:pop(L), ok}).
+-define(push(Elm, L), stack:push(Elm, L)).
+-define(empty(L), stack:empty(L)).
+-define(top(L), stack:top(L)).
