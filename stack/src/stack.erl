@@ -18,10 +18,11 @@ top_of_empty_test_() ->
     ?_assertEqual({nil, ok}, top([])).
 
 top_of_non_empty_test_() ->
-    Stack = [a,b], 
     [
-     {"When top is invoked on a non-empty stack '[a,b]', the stack should have the same elements afterwards.", ?_assertEqual(a, top(Stack))},
-     {"When push 'c' is invoked after top on '[a,b]', then the stack must contain '[c,a,b]'", ?_assertEqual([c,a,b], push(c, Stack))}
+     {"When top is invoked on '[a,b]', then it must return 'a'", ?_assertEqual(a, top([a,b]))},
+     {"When push 'c' is invoked on '[a,b]', then it must reutnr '[c,a,b]'", ?_assertEqual([c,a,b], push(c, [a,b]))},
+     {"When pop is invoked on '[t,u,i]', then the stack must contain only '[u,i]'", ?_assertEqual([u,i], pop([t,u,i]))},
+     {"And when pop is invoked on '[6,4]', then the stack must contain only '[4]'", ?_assertEqual([4], pop([6,4]))}
     ].
 
 empty([]) ->
