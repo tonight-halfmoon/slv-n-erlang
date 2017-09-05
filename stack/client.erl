@@ -13,10 +13,9 @@ use_top_test_() ->
     ?_assertEqual({nil, ok}, use_top([])).
 
 use_top_a_test() ->
-    L = [a],
     [
-     {"When client invokes methods 'top' of '[a]', then Stack must return 'a'", ?assertEqual(a, use_top(L))},
-     {"After that, when the client invokes method 'push' 'b' to '[a]', then Stack must return '[b,a]'", ?assertEqual([b,a], use_push(b, L))}
+     {"When client invokes methods 'top' of '[a]', then Stack must return 'a'", ?assertEqual(a, use_top([a]))},
+     {"When the client invokes method 'push' 'b' to '[a]', then Stack must return '[b,a]'", ?assertEqual([b,a], use_push(b, [a]))}
     ].
 
 use_empty_test_() ->
