@@ -9,10 +9,10 @@ gcd_1_0_test_() ->
     ?_assertEqual(1, gcd:gcd(1,0)).
 
 gcd_0_1_test_() ->
-    ?_assertEqual(infinity, gcd:gcd(0,1)).
+    ?_assertEqual(1, gcd:gcd(0,1)).
 
 gcd_0_x_test_() ->
-    ?_assertEqual(infinity, gcd:gcd(0,9)).
+    ?_assertEqual(9, gcd:gcd(0,9)).
 
 gcd_x_0_test_() ->
     ?_assertEqual(9, gcd:gcd(9,0)).
@@ -37,3 +37,15 @@ gcd_neg24800_neg8_test_() ->
 
 gcd_456_9197989699992_test_() ->
     ?_assertEqual(24, gcd:gcd(456, 9197989699992)).
+
+gcd_24_568312_test_() ->
+    {"'gcd(24, 568312)' must yield in '8'", ?_assertEqual(8, gcd:gcd(24, 568312))}.
+
+gcd_9_99999999999_test_() ->
+    {"'gcd(9,99999999999) must yield in '9'", ?_assertEqual(9, gcd:gcd(9,99999999999))}.
+
+gcd_9_lots_of9s_test_() ->
+    {"'gcd(9,99999999999) must yield in '9'", ?_assertEqual(9, gcd:gcd(9,9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999))}.
+
+%%gcd_2_2pow64_test_() ->
+%%    {"'gcd(2, 1.8446744073709552e19)' must yield in '1'", ?_assertEqual(1, gcd:gcd(2, 1.8446744073709552e19))}.
