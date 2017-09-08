@@ -20,16 +20,12 @@ digits_test() ->
 digits_8902393_test() ->
     ?assertEqual([8,9,0,2,3,9,3], digits(8902393)).
 
-main() ->
-    {ok, [N]} = io:fread("", "~d"),
-    Digits = digits(N),
-    io:fwrite("~w", [Digits]),
-    true.
-
 digits(N) when 0 > N ->
     digits(abs(N));
 digits(N) when N >= 0 andalso N =< 9 ->
     [N];
+digits(N) when not is_integer(N) ->
+    <<"N must be an integer">>;
 digits(N) ->
     digitize(N, []).
 
@@ -37,3 +33,9 @@ digitize(0, Ds)->
     Ds;
 digitize(N, Ds)->
     digitize(trunc(N/10), [trunc(N rem 10)|Ds]).
+
+main() ->
+    {ok, [N]} = io:fread("", "~d"),
+    Digits = digits(N),
+    io:fwrite("~w", [Digits]),
+    true.
