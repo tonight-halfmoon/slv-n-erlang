@@ -1,5 +1,6 @@
 -module(gcd_tests).
 -include_lib("eunit/include/eunit.hrl").
+-import(pow, [int_pow/2]).
 
 %%  eunit:test([{inparallel, gcd}, gcd_tests], [{report, {eunit_surefire, [{dir, "."}]}}, verbose]).	
 gcd_1_1_test_() ->
