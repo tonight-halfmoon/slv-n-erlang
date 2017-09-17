@@ -1,7 +1,7 @@
 %% Final revision on the 21st April 16; Jeddah; SA
 
 -module(prmts).
--export([main/0, main2/0, intperms/1]).
+-export([main/0, main2/0, intperms/1, rm_duplicates/1, reverse/1, exists/2]).
 -include_lib("eunit/include/eunit.hrl").
 
 %%% Open Question:
@@ -19,114 +19,7 @@ intger_perms_2elms_test() ->
 intger_perms_r2elms_test() ->
     ?assertEqual([[2,1],[1,2]], intperms(21)).
 
-integer_perms_123_test() ->
-    ?assertEqual([[1,2,3],
-                  [1,3,2],
-                  [2,1,3],
-		  [2,3,1],
-		  [3,1,2],
-		  [3,2,1]], reverse(intperms(123))).
-
-integer_perms_960_test() ->
-    ?assertEqual([[0,6,9],
-		  [0,9,6],
-		  [6,0,9],
-		  [6,9,0],
-		  [9,0,6],
-		  [9,6,0]], intperms(960)).
-
-%%% Contracdicting tests to assure that intperms does not return duplicate permutation lists.
-integer_perms_8516_test() ->
-    Perms = intperms(8516),
-    NoDupsPerms = rm_duplicates(Perms),
-    ?assertEqual(Perms, NoDupsPerms).
-
-intperms_8516_test() ->
-    ?assertEqual([[6,8,5,1],
-		  [6,8,1,5],
-		  [6,5,8,1],
-		  [6,5,1,8],
-		  [6,1,8,5],
-		  [6,1,5,8],
-		  [1,8,5,6],
-		  [1,8,6,5],
-		  [1,5,8,6],
-		  [1,5,6,8],
-		  [1,6,8,5],
-		  [1,6,5,8],
-		  [5,8,1,6],
-		  [5,8,6,1],
-		  [5,1,8,6],
-		  [5,1,6,8],
-		  [5,6,8,1],
-		  [5,6,1,8],
-		  [8,5,1,6],
-		  [8,5,6,1],
-		  [8,1,5,6],
-		  [8,1,6,5],
-		  [8,6,5,1],
-		  [8,6,1,5]], intperms(8516)).
-
-integer_perms_19876_test() ->
-    Perms = intperms(19876),
-    NoDupsPerms = rm_duplicates(Perms),
-    ?assertEqual(Perms, NoDupsPerms).
-
-intperms_19876_test() ->
-    ?assertEqual([[6,1,7,8,9],
-		  [6,1,7,9,8],
-		  [6,1,8,7,9],
-		  [6,1,8,9,7],
-		  [6,1,9,7,8],
-		  [6,1,9,8,7],
-		  [6,9,7,8,1],
-		  [6,9,7,1,8],
-		  [6,9,8,7,1],
-		  [6,9,8,1,7],
-		  [6,9,1,7,8],
-		  [6,9,1,8,7],
-		  [6,8,7,9,1],
-		  [6,8,7,1,9],
-		  [6,8,9,7,1],
-		  [6,8,9,1,7],
-		  [6,8,1,7,9],
-		  [6,8,1,9,7],
-		  [6,7,8,9,1],
-		  [6,7,8,1,9],
-		  [6,7,9,8,1],
-		  [6,7,9,1,8],
-		  [6,7,1,8,9],
-		  [6,7,1,9,8],
-		  [7,1,6,8,9],
-		  [7,1,6,9,8],
-		  [7,1,8,6,9],
-		  [7,1,8,9,6],
-		  [7,1,9,6,8],
-		  [7,1,9,8,6],
-		  [7,9,6,8,1],
-		  [7,9,6,1,8],[7,9,8,6,1],[7,9,8,1,6],[7,9,1,6,8],[7,9,1,8,6],[7,8,6,9,1],[7,8,6,1,9],[7,8,9,6,1],
-		  [7,8,9,1,6],[7,8,1,6,9],[7,8,1,9,6],[7,6,8,9,1],[7,6,8,1,9],[7,6,9,8,1],[7,6,9,1,8],[7,6,1,8,9],
-		  [7,6,1,9,8],[8,1,6,7,9],[8,1,6,9,7],[8,1,7,6,9],[8,1,7,9,6],[8,1,9,6,7],[8,1,9,7,6],[8,9,6,7,1],
-		  [8,9,6,1,7],[8,9,7,6,1],[8,9,7,1,6],[8,9,1,6,7],[8,9,1,7,6],[8,7,6,9,1],[8,7,6,1,9],[8,7,9,6,1],
-		  [8,7,9,1,6],[8,7,1,6,9],[8,7,1,9,6],[8,6,7,9,1],[8,6,7,1,9],[8,6,9,7,1],[8,6,9,1,7],[8,6,1,7,9],
-		  [8,6,1,9,7],[9,1,6,7,8],[9,1,6,8,7],[9,1,7,6,8],[9,1,7,8,6],[9,1,8,6,7],[9,1,8,7,6],[9,8,6,7,1],
-		  [9,8,6,1,7],[9,8,7,6,1],[9,8,7,1,6],[9,8,1,6,7],[9,8,1,7,6],[9,7,6,8,1],[9,7,6,1,8],[9,7,8,6,1],
-		  [9,7,8,1,6],[9,7,1,6,8],[9,7,1,8,6],[9,6,7,8,1],[9,6,7,1,8],[9,6,8,7,1],[9,6,8,1,7],[9,6,1,7,8],
-		  [9,6,1,8,7],[1,9,6,7,8],[1,9,6,8,7],[1,9,7,6,8],[1,9,7,8,6],[1,9,8,6,7],[1,9,8,7,6],[1,8,6,7,9],
-		  [1,8,6,9,7],[1,8,7,6,9],[1,8,7,9,6],[1,8,9,6,7],[1,8,9,7,6],[1,7,6,8,9],[1,7,6,9,8],[1,7,8,6,9],
-		  [1,7,8,9,6],[1,7,9,6,8],[1,7,9,8,6],[1,6,7,8,9],[1,6,7,9,8],[1,6,8,7,9],[1,6,8,9,7],[1,6,9,7,8],
-		  [1,6,9,8,7]], intperms(19876)).
-
-integer_perms_719036_test() ->
-    Perms = intperms(719036),
-    NoDupsPerms = rm_duplicates(Perms),
-    ?assertEqual(Perms, NoDupsPerms).
-
-integer_perms_9870651_test() ->
-    Perms = intperms(9870651),
-    NoDupsPerms = rm_duplicates(Perms),
-    ?assertEqual(Perms, NoDupsPerms).
-
+%%% Compute Permutations of an integer having n distinct digits
 intperms(Integer) when is_integer(Integer) -> 
     Digits = digits(Integer), 
     intperms_divide(Digits, [], length(Digits), 0, []);
@@ -181,26 +74,14 @@ union(Perm, [X|Xs], U) ->
 	    union(Perm, Xs, U)
     end.
 
-exists(_, []) -> 
+exists(_, []) ->
     false;
-exists(X, [X|_]) -> 
+exists(X, [X|_]) ->
     true;
-exists(X, [_|T]) -> 
+exists(X, [_|T]) ->
     exists(X, T).
 
-digits(N) when 0 > N ->
-    digits(abs(N));
-digits(N) when N >= 0 andalso N =< 9 -> 
-    [N];
-digits(N) -> 
-    digits(N, []).
-
-digits(0, Ds) -> 
-    Ds;
-digits(N, Ds) -> 
-    digits(trunc(N/10), [trunc(N rem 10)|Ds]).
-
-rm_duplicates(L) -> 
+rm_duplicates(L) ->
     rm_duplicates(L, []).
 
 rm_duplicates([H|T], Nodups) ->
@@ -210,15 +91,27 @@ rm_duplicates([H|T], Nodups) ->
 	false ->
 	    rm_duplicates(T, lists:append([Nodups, [H]]))
     end;
-rm_duplicates([], Nodups) -> 
+rm_duplicates([], Nodups) ->
     Nodups.
 
-reverse(S) -> 
+reverse(S) ->
     reverse(S, []).
-reverse([], R) -> 
+reverse([], R) ->
     R;
-reverse([X|Xs], R) -> 
+reverse([X|Xs], R) ->
     reverse(Xs, [X|R]).
+
+digits(N) when 0 > N ->
+    digits(abs(N));
+digits(N) when N >= 0 andalso N =< 9 ->
+    [N];
+digits(N) ->
+    digits(N, []).
+
+digits(0, Ds) ->
+    Ds;
+digits(N, Ds) ->
+    digits(trunc(N/10), [trunc(N rem 10)|Ds]).
 
 main() ->
     {ok, [Int]} = io:fread("", "~d"),
