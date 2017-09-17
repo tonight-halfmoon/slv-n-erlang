@@ -2,6 +2,8 @@
 %%% In case client module does not care about the original order then using sets library would be the optimal decision
 %%% For example: 
 %%% sets:to_list(sets:from_list(sets:to_list( sets:umerge( sets:from_list([1,5]) , sets:from_list([6,5,9,10,0]))))).
+%%% Another method is to utilise list comprehension, for example:
+%%% 84> lists:flatten([case lists:subtract(X,Y) of X -> [X,Y]; Diff -> lists:append(Diff,Y) end || X<-[[1,2,3,8]], Y <-[[4,5,9,1,2,8]]]).
 
 -module(umerge).
 -include_lib("eunit/include/eunit.hrl").
@@ -43,7 +45,6 @@ umerge(L1, [Hl2|Tl2], U) ->
 	    true ->
 	   	 umerge(L1, Tl2, U)
 	   end.
-
 
 exists(_, []) -> 
     false;
