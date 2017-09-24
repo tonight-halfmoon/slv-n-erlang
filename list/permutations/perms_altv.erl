@@ -1,4 +1,4 @@
--module(perms).
+-module(perms_altv).
 -export([permute/1]).
 -import(dist, [dist/2]).
 -import(swap, [swap/1]).
@@ -9,7 +9,7 @@
 permute([X,Y]) ->
     [[X,Y],[Y,X]];
 permute(L) ->
-    [[dist:dist([HS], Prmtd) || Prmtd <- permute(SL)] || [HS|SL] <- swap(L)].
+   lists:map(fun([XS|SL]) -> [dist:dist([Xxs], Prmtd) || Prmtd <- permute(SL), Xxs <- [XS]] end, swap(L)).
 
 
 perms_test_() ->

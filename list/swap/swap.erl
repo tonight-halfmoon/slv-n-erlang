@@ -1,26 +1,17 @@
 -module(swap).
+-export([swap/1]).
 -include_lib("eunit/include/eunit.hrl").
--export([swap_adjacent/1]).
 
-swap_adjacent_test() ->
-    ?assertEqual([b,a], swap_adjacent([a,b])).
+swap_test_() ->
+    {"swapping '[1,2,3]' must result in '[1,2,3], [2,3,1] , [3,2,1]'", ?_assertEqual([[1,2,3], [2,3,1], [3,2,1]], swap([1,2,3]))}.
 
-swap_adjacent_empty_lst_test() ->
-    ?assertEqual([], swap_adjacent([])).
+swap(L) ->
+    swap(L, length(L), 1, []).
 
-swap_adjacent_1elm_lst_test() ->
-    ?assertEqual([a], swap_adjacent([a])).
-
-swap_adjacent_3elm_lst_test() ->
-    ?assertEqual([b,a,c], swap_adjacent([a,b,c])).
-
-swap_adjacent_5elm_lst_test() ->
-    ?assertEqual([b,a,d,c,e], swap_adjacent([a,b,c,d,e])).
-
-swap_adjacent([]) ->
-    [];
-swap_adjacent([A]) -> % to be able to consider non-even lists
-    [A];
-swap_adjacent([H, Next|T]) ->
-    [Next, H] ++ swap_adjacent(T).
-    
+swap(L, J, J, Slts) ->
+    [L|Slts];
+swap(L, M, J, Slts) ->
+    ElemJ = lists:nth(J, L), 
+    ElemM = lists:nth(M, L),
+    SwpdJ = lists:append([[ElemM], lists:delete(ElemM, lists:delete(ElemJ, L)), [ElemJ]]),
+    swap(L, M -1, J, [SwpdJ|Slts]).
