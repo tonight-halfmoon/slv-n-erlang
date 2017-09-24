@@ -9,7 +9,7 @@
 permute([X,Y]) ->
     [[X,Y],[Y,X]];
 permute(L) ->
-   lists:map(fun([XS|SL]) -> [dist:dist([Xxs], Prmtd) || Prmtd <- permute(SL), Xxs <- [XS]] end, swap(L)).
+   lists:map(fun([XS|SL]) -> [dist([Xxs], Prmtd) || Prmtd <- permute(SL), Xxs <- [XS]] end, swap(L)).
 
 
 perms_test_() ->

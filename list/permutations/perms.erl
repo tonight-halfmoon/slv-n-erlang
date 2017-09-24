@@ -9,7 +9,7 @@
 permute([X,Y]) ->
     [[X,Y],[Y,X]];
 permute(L) ->
-    [[dist:dist([HS], Prmtd) || Prmtd <- permute(SL)] || [HS|SL] <- swap(L)].
+    [[dist([HS], Prmtd) || Prmtd <- permute(SL)] || [HS|SL] <- swap(L)].
 
 
 perms_test_() ->
