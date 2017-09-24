@@ -1,5 +1,5 @@
 -module(perms_altv).
--export([permute/1]).
+-export([permute/1, permute_alt3/1]).
 -import(dist, [dist/2]).
 -import(swap, [swap/1]).
 -include_lib("eunit/include/eunit.hrl").
@@ -9,8 +9,13 @@
 permute([X,Y]) ->
     [[X,Y],[Y,X]];
 permute(L) ->
-   lists:map(fun([XS|SL]) -> [dist([Xxs], Prmtd) || Prmtd <- permute(SL), Xxs <- [XS]] end, swap(L)).
+    lists:map(fun([XS|SL]) -> [dist([Xxs], Prmtd) || Prmtd <- permute(SL), Xxs <- [XS]] end, swap(L)).
+   
 
+permute_alt3([X,Y]) ->
+    [[X,Y],[Y,X]];
+permute_alt3(L) ->
+ lists:map(fun([XS|SL]) -> lists:map(fun(Prmtd) -> dist([XS], Prmtd) end, permute_alt3(SL)) end, swap(L)).
 
 perms_test_() ->
     {"It must generate the corrent permutations", 
