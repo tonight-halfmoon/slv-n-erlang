@@ -139,13 +139,20 @@ intperms_19876_test() ->
 		  [1,7,8,9,6],[1,7,9,6,8],[1,7,9,8,6],[1,6,7,8,9],[1,6,7,9,8],[1,6,8,7,9],[1,6,8,9,7],[1,6,9,7,8],
 		  [1,6,9,8,7]], prmts:intperms(19876)).
 
-integer_perms_719036_test() ->
+integer_perms_719036_test_() ->
     Perms = prmts:intperms(719036),
     NoDupsPerms = prmts:rm_duplicates(Perms),
-    ?assertEqual(Perms, NoDupsPerms).
+    ?_assertEqual(Perms, NoDupsPerms).
 
-integer_perms_9870651_test() ->
+integer_perms_9870651_test_() ->
     Perms = prmts:intperms(9870651),
     NoDupsPerms = prmts:rm_duplicates(Perms),
-    ?assertEqual(Perms, NoDupsPerms).
+    ?_assertEqual(Perms, NoDupsPerms).
 
+
+%% 
+perms_for_10000_test() ->
+    {"permutations of '10000' is '?'", 
+     ?assertEqual(
+	[[1,0,0],[1,0,1],[1,1,0],[1,1,1],[0,0,0],[0,0,1],[0,1,0],[0,1,1]], 
+     prmts:intperms(10000))}.
