@@ -1,8 +1,8 @@
 -module(perms_profile_tests).
--export([profile/1]).
+-export([profile/3]).
 
-profile(L) ->
-    {Microseconds, _PermutationsList} = timer:tc(perms, permute, [L]),
+profile(Module, Fun, L) ->
+    {Microseconds, _PermutationsList} = timer:tc(Module, Fun, [L]),
     io:fwrite("Execution time: ~w microseconds~n", [Microseconds]).
 
 
@@ -42,3 +42,28 @@ profile(L) ->
 %%% 5> perms_profile_tests:profile([1,2,3,4,5,6,7,8,9,10,11]).
 %%% Execution time: 42892287 microseconds
 %%% ok
+
+%%% Erlang/OTP 20 [erts-9.0.1] [source] [64-bit] [smp:8:8] [ds:8:8:10] [async-threads:10] [hipe] [kernel-poll:false]
+
+%%% Eshell V9.0.1  (abort with ^G)
+%%% 1> perms_profile_tests:profile(prmts, intperms, [1,2,3,4,5,6]).
+%%% Execution time: 3939 microseconds
+%%% ok
+%%% 2> perms_profile_tests:profile(prmts, intperms, [1,2,3,4,5,6,7,8,9,10,11]).
+%%% Execution time: 166012789 microseconds
+%%% ok
+%%% 3> perms_profile_tests:profile(perms, permute, [1,2,3,4,5,6,7,8,9,10,11]). 
+%%% Execution time: 44458789 microseconds
+%%% ok
+%%% 4> perms_profile_tests:profile(prmts, intperms, [1,2,3,4,5,6,7,8,9,10,11]).
+%%% Execution time: 157238745 microseconds
+%%% ok
+%%% 5> perms_profile_tests:profile(perms, permute, [1,2,3,4,5,6,7,8,9,10,11]). 
+%%% Execution time: 74926472 microseconds
+%%% ok
+%%% 6> 
+%%% 6> perms_profile_tests:profile(prmts, intperms, [1,2,3,4,5,6,7,8,9,10,11,12]).
+%%% eheap_alloc: Cannot allocate 29247236448 bytes of memory (of type "heap").
+%%%
+%%% Crash dump is being written to: erl_crash.dump...done
+%%% rosemary@SCUBA:~/programming/erlang/slv-n-erlang/list/permutations$ 
