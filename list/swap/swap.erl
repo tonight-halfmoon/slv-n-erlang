@@ -13,5 +13,8 @@ swap(L, J, J, Slts) ->
 swap(L, M, J, Slts) ->
     ElemJ = lists:nth(J, L), 
     ElemM = lists:nth(M, L),
-    SwpdJ = lists:append([[ElemM], lists:delete(ElemM, lists:delete(ElemJ, L)), [ElemJ]]),
+    SwpdJ = concat(ElemM, lists:delete(ElemM, lists:delete(ElemJ, L)), ElemJ),
     swap(L, M -1, J, [SwpdJ|Slts]).
+
+concat(L1, L2, L3) when is_list(L2) ->
+    [L1|[L3|L2]].
