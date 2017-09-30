@@ -1,4 +1,4 @@
--module(countpairs_adjacents).
+-module(cp_adjacents).
 -export([cp_adj/1, cp_adj2/1]). 
 -include_lib("eunit/include/eunit.hrl"). 
 -include("include/testcase_input02_04.hrl").

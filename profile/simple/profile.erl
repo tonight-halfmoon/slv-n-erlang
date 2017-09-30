@@ -3,5 +3,6 @@
 
 profile(Module, Fun, L) ->
     {Microseconds, _out} = timer:tc(Module, Fun, [L]),
-    io:fwrite("Execution time: ~w microseconds~n", [Microseconds]).
+    io:fwrite("Execution time: ~w microseconds~n", [Microseconds]),
+    Microseconds.
 
