@@ -17,7 +17,7 @@ countpairs_in(_Hi, [] , AAcc) ->
 countpairs_in(Hi, L, AAcc) ->
     case countoccs:coccs(Hi, L) of
 	{XOccs, []} ->
-	    AAcc +  choose:choose(XOccs, 2)  * 2;
+	    AAcc +  choose:choose(XOccs, 2) * 2;
 	{XOccs, [NewHj|NewT]} ->
 	    countpairs_in(NewHj, [NewHj|NewT], AAcc + choose:choose(XOccs, 2) * 2) 
     end.
