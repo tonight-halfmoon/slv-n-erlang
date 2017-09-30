@@ -29,3 +29,15 @@ profile(Module, Fun, L) ->
 %% {cp_adj,10000,8873.3834,'microseconds in average'}
 %% 16> benchmarking:benchmark_adj(). 
 %% {cp_adj,10000,8806.539,'microseconds in average'}
+
+
+%% 1000000
+%% Erlang/OTP 20 [erts-9.0.1] [source] [64-bit] [smp:8:8] [ds:8:8:10] [async-threads:10] [hipe] [kernel-poll:false]
+
+%% Eshell V9.0.1  (abort with ^G)
+%% 1> benchmarking:benchmark().
+%% 7130.203656
+%% (search)`1': 
+%% 2> ().
+%% * 1: syntax error before: ')'
+%% 2>   
