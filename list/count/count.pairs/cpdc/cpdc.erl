@@ -18,7 +18,6 @@ cpdc(L) ->
 cpdc([], C) ->
     Fun = fun(_K, V, AccIn) -> case V of 1 -> AccIn; _ -> AccIn + choose:choose(V,2) * 2 end end,
     maps:fold(Fun, 0, C);
-
 cpdc([H|T], C) ->
     CurrOcc = maps:get(H, C, 0),
     case CurrOcc of
@@ -27,7 +26,4 @@ cpdc([H|T], C) ->
 	_ ->
 	    NewC = maps:update(H, CurrOcc + 1, C)
     end,
-    cpdc(T, NewC);
-cpdc(L, C) ->
-    {Fh, Sh} = lists:split(trunc(length(L) / 2), L),
-    cpdc(Fh, C) + cpdc(Sh, C).
+    cpdc(T, NewC).
