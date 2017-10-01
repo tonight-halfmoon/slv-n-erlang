@@ -37,7 +37,5 @@ profile(Module, Fun, L) ->
 %% Eshell V9.0.1  (abort with ^G)
 %% 1> benchmarking:benchmark().
 %% 7130.203656
-%% (search)`1': 
-%% 2> ().
-%% * 1: syntax error before: ')'
-%% 2>   
+%% 2> benchmarking:benchmark().
+%% 7162.850537
