@@ -1,25 +1,26 @@
 -module(countpairs).
--export([main/0, countpairs_in/1]).
+-export([main/0, countpairs/1]).
 -import(countoccs, [coccs/2]).
--import(choose, [choose/2]).
 -include_lib("eunit/include/eunit.hrl"). 
 
 %%% Problem Statement
 %%% Count the total number of pairs of indices (i, j) where Ai = Aj and i =/= j.
+%%% Since Choose(N,2) is equivalent to N*(N -1). Then, no need to compute with a time-consuming choose implementation.
+%%% Replaced 'choose:choose(V, 2) * 2' , or 'choose:choose(V, 2) bsl 1' with V*(V-1). 
 
-countpairs_in([])->
+countpairs([])->
     0;
-countpairs_in([H|T]) ->
-    countpairs_in(H, [H|T], 0).
+countpairs([H|T]) ->
+    countpairs(H, [H|T], 0).
 
-countpairs_in(_Hi, [] , AAcc) ->
+countpairs(_Hi, [] , AAcc) ->
     AAcc;
-countpairs_in(Hi, L, AAcc) ->
+countpairs(Hi, L, AAcc) ->
     case countoccs:coccs(Hi, L) of
 	{XOccs, []} ->
-	    AAcc +  choose:choose(XOccs, 2) * 2;
+	    AAcc +  XOccs * (XOccs - 1);
 	{XOccs, [NewHj|NewT]} ->
-	    countpairs_in(NewHj, [NewHj|NewT], AAcc + choose:choose(XOccs, 2) * 2) 
+	    countpairs(NewHj, [NewHj|NewT], AAcc + XOccs * (XOccs - 1)) 
     end.
 
 %%% How 2 use the main function
@@ -44,7 +45,7 @@ run_test_cases_on(0, PL) ->
 run_test_cases_on(Countdown, PL) ->
     {ok, [List_size]} = io:fread("", "~d"),
     {ok, L} = io:fread("", string:join(replicate(List_size, "~d"), " ")),
-    run_test_cases_on(Countdown-1, lists:append(PL, [countpairs_in(L)])).
+    run_test_cases_on(Countdown-1, lists:append(PL, [countpairs(L)])).
 
 display([]) -> 
     ok;
@@ -63,16 +64,16 @@ replicate(Bndry, O) -> [O|replicate(Bndry-1, O)].
 
 
 sherlok_pairs_1_1_1_test_() ->
-    {"Total pairs in '[1,1,1]' is '6'", ?_assertEqual(6, countpairs_in([1,1,1]))}.
+    {"Total pairs in '[1,1,1]' is '6'", ?_assertEqual(6, countpairs([1,1,1]))}.
 
 sherlok_pairs_1_1_1_1_test_() ->
-    {"Total pairs in '[1,1,1,1]' is '12'", ?_assertEqual(12, countpairs_in([1,1,1,1]))}.
+    {"Total pairs in '[1,1,1,1]' is '12'", ?_assertEqual(12, countpairs([1,1,1,1]))}.
 
 sherlok_pairs_test_() ->
-    {"Total pairs in '[1,1,2]' is '2'", ?_assertEqual(2, countpairs_in([1,1,2]))}.
+    {"Total pairs in '[1,1,2]' is '2'", ?_assertEqual(2, countpairs([1,1,2]))}.
 
 sherlok_pairs_1_2_1_test_() ->
-    {"Total pairs in '[1,2,1]' is '2'", ?_assertEqual(2, countpairs_in([1,2,1]))}.
+    {"Total pairs in '[1,2,1]' is '2'", ?_assertEqual(2, countpairs([1,2,1]))}.
 
 sherlok_pairs_empty_test_() ->
-    {"Total pairs in '[]' is '0'", ?_assertEqual(0, countpairs_in([]))}.
+    {"Total pairs in '[]' is '0'", ?_assertEqual(0, countpairs([]))}.
