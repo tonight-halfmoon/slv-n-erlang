@@ -8,4 +8,4 @@
 permute([X,Y]) ->
     [[X,Y],[Y,X]];
 permute(L) ->
-    [[dist(HS, Prmtd) || Prmtd <- permute(SL)] || [HS|SL] <- swap(L)].
+    [[dist(H, P) || P <- permute(T)] || [H|T] <- swap(L)].
