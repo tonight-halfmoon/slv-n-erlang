@@ -49,3 +49,6 @@ nas_3elm_lst_test() ->
 nas_5elm_lst_test() ->
     ?assertEqual([[b,a,d,e,c], [a,b,c,d,e]], nas([a,b,c,d,e],1)).
 
+swap_2500_test_() ->
+    {"N Adjacent swapping '[1..2500]' must halt", 
+    ?_assertMatch([L|_] when length(L) == 2500, nas(lists:seq(1, 2500), 2500))}.

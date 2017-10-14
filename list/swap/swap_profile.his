@@ -1,0 +1,24 @@
+6> swap:swap_2500_profile().       
+Profile: 300814 microsends
+ok
+7> swap:swap_2500_profile().
+Profile: 172908 microsends
+ok
+8> swap:swap_2500_profile().
+Profile: 143755 microsends
+ok
+9> swap:swap_2500_profile().
+Profile: 79156 microsends
+ok
+10> swap:swap_2500_profile().
+Profile: 161912 microsends
+ok
+11> swap:swap_2500_profile().
+Profile: 157625 microsends
+ok
+12> swap:swap_2500_profile().
+Profile: 172677 microsends
+ok
+13> swap:swap_2500_profile().
+Profile: 156405 microsends
+ok

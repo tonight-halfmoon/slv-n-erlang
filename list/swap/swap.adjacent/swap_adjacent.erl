@@ -36,3 +36,7 @@ swap_adjacent_9elm_lst_test() ->
 
 swap_adjacent_ghielm_lst_test() ->
     ?assertEqual([h,i,g], swp([g,h,i])).
+
+swap_2500_test_() ->
+    {"Adjacent swapping '[1..2500]' must halt", 
+    ?_assertMatch(L when length(L) == 2500, swp(lists:seq(1, 2500)))}.
