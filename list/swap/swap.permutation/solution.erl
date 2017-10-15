@@ -22,14 +22,12 @@ swp_perms_test_() ->
 
 swap_2500_test_() ->
     {"N Swap Permutations '[1..2500], 2500' must halt", 
-    ?_assertMatch([L|_] when length(L) == 2500, swp_perms(lists:seq(1, 2500), 2500))}.
-
+    ?_assertEqual({2501, 7500}, swp_perms(lists:seq(1, 2500), 2500))}.
 
 swp_perms(L, K) ->
     S1 = length(nas(L, K)),
     S2 = length(swp(L, K)),
     {mod(S1, ?MOD), mod(S2, ?MOD)}.
-
 
 nas(L, 0) ->
     L;

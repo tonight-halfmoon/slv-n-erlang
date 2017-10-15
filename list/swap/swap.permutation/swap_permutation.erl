@@ -26,13 +26,6 @@ swp_perms(L, K) ->
     S2 = length(n_swaps:nswp(L, K)),
     {mod(S1, ?MOD), mod(S2, ?MOD)}.
 
-permute([X,Y], _K) ->
-    [[X,Y],[Y,X]];
-permute(L, 1) ->
-    L;
-permute(L, K) ->
-    [[dist(H, P) || P <- permute(T, K-1)] || [H|T] <- n_swaps:nswp(L, K)].
-
 main() ->
     {ok, [N, K]} = io:fread("", "~d~d"),
     [io:fwrite("~p ", [Fet]) || Fet <- tuple_to_list(swp_perms(lists:seq(1, N), K))],
@@ -46,4 +39,4 @@ swp_perms_2500_2500_test_() ->
 
 swap_2500_test_() ->
     {"N Swap Permutations '[1..2500], 2500' must halt", 
-    ?_assertMatch([L|_] when length(L) == 2500, swp_perms(lists:seq(1, 2500), 2500))}.
+    ?_assertEqual({2501, 7500}, swp_perms(lists:seq(1, 2500), 2500))}.
