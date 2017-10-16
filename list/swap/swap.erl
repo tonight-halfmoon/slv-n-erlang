@@ -2,26 +2,23 @@
 -export([swap/1, swap_2500_profile/0]).
 -include_lib("eunit/include/eunit.hrl").
 -import(dist, [dist/2]).
+-import(umerge, [umerge/2]).
 
-swap([]) ->
-    [];
-swap([X, Y, Z]) ->
-    [[Y, X, Z], [Z, Y, X], [X, Z, Y]];
-swap([X,Y]) ->
-    [[Y,X], [X,Y]];
-swap([X,Y,Z|[T]]) ->
-    dist(T, swap([X,Y,Z]));
-%swap([X, Y, Z|T]) ->
-%    [[dist(dist(H, P), swap(T)) || P <- swap(T2)] || [H|T2] <- swap([X, Y, Z])];
-swap([X, Y, Z|T]) ->
-    [concat(St, S) || St <- swap(T), S <- swap([X,Y,Z])];
-swap([A]) ->
-    [A].
+swap(L) ->
+    swap(L, []).
 
-concat([], L) ->
-    L;
-concat([HoL|ToL], L) ->
-    concat(ToL, [HoL|L]).
+swap([], P) ->
+    P;
+swap([X,Y], []) ->
+    [[Y,X],[X,Y]];
+swap([X,Y], P) ->
+    dist:dist(P, [[Y,X], [X,Y]]);
+swap([X,Y,Z|T], []) ->
+    swap(T, [[Y, X, Z], [Z, Y, X], [X, Z, Y]]);
+swap([X,Y,Z|T], P) ->
+    swap(T, dist:dist(P, [[X,Z,Y],[Y,X,Z],[Z,Y,X]]));
+swap([A], P) ->
+    dist([A], P).
 
 swap_test_() ->
     {"swapping '[1,2,3]' must result in '[2,1,3], [3,2,1], [1,3,2]'", 
@@ -51,3 +48,28 @@ swap_7_elem_list_test_() ->
 	 [6,4,5,7,3,2,1],
 	 [6,4,5,7,1,3,2]],
 	swap:swap([1,2,3,4,5,6,7]))}.
+
+swap_8_elem_list_test_() ->
+{"swap [1,2,3,4,5,6,7,8] must halt and match certain expectation",
+ ?_assertMatch([H|_] when H == [4,5,6,2,1,3,8,7], swap([1,2,3,4,5,6,7,8]))}.
+
+
+%% swap([]) ->
+%%     [];
+%% swap([X, Y, Z]) ->
+%%     [[Y, X, Z], [Z, Y, X], [X, Z, Y]];
+%% swap([X,Y]) ->
+%%     [[Y,X], [X,Y]];
+%% swap([X,Y,Z|[T]]) ->
+%%     dist(T, swap([X,Y,Z]));
+%% %swap([X, Y, Z|T]) ->
+%% %    [[dist(dist(H, P), swap(T)) || P <- swap(T2)] || [H|T2] <- swap([X, Y, Z])];
+%% swap([X, Y, Z|T]) ->
+%%     [concat(St, S) || St <- swap(T), S <- swap([X,Y,Z])];
+%% swap([A]) ->
+%%     [A].
+
+%% concat([], L) ->
+%%     L;
+%% concat([HoL|ToL], L) ->
+%%     concat(ToL, [HoL|L]).
