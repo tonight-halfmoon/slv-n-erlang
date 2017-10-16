@@ -16,11 +16,20 @@ dist_2deeplists_test_() ->
      ?_assertEqual([[1,9,2,3],[1,9,5,6],[9,1,2,3],[9,1,5,6]], 
 		   dist([[1,9],[9,1]], [[2,3],[5,6]]))}.
 
-
 dist_ListOfA_and_deeplists_test_() ->
 {"Must distribute [7] to a List of Lists and first match",
  ?_assertMatch([X|_] when X == [7,3,1,2,6,5,4], dist([7],
 [[2,3,1,4,6,5],[2,3,1,5,4,6],[2,3,1,6,5,4],[1,2,3,4,6,5],[1,2,3,5,4,6],[1,2,3,6,5,4],[3,1,2,4,6,5],[3,1,2,5,4,6],[3,1,2,6,5,4]]))}.
+
+dist_2500_must_halt_test_() ->
+    LoLs2500 = [lists:seq(1, 2500) || _ <- lists:seq(1, 2500)], 
+    {"distrbue a list of 2500 lists to a list of 2 lists  must halt; Each sublist is a 2500-element list", 
+     ?_assertMatch([L|_] when length(L) == 5000, dist(LoLs2500, [lists:seq(1,2500),lists:seq(1,2500)]))}.
+
+%dist_2500x2500_must_halt_test_() ->
+%    LoLs2500 = [lists:seq(1, 2500) || _ <- lists:seq(1, 2500)], 
+%    {"distrbue a list of 2500 lists to a list of 2500 lists  must halt; Each sublist is a 2500-element list", 
+%     ?_assertMatch([L|_] when length(L) == 5000, dist(LoLs2500, LoLs2500))}.
 
 dist([], L) ->
     L;
