@@ -2,6 +2,9 @@
 -include_lib("eunit/include/eunit.hrl").
 -export([dist/2]).
 
+dist_one_with_empty_test_() ->
+    {"Distribue [a] to an empty list must yield to [a]", ?_assertEqual([a], dist([a], []))}.
+
 dist_test_() ->
     {"Must distribute [1] to [2,3] and [3,2] and that yields in '[1,3,2],[1,2,3]'", ?_assertEqual([[1,3,2], [1,2,3]], dist([1],[[2,3],[3,2]]))}.
 
@@ -19,6 +22,10 @@ dist_ListOfA_and_deeplists_test_() ->
  ?_assertMatch([X|_] when X == [7,3,1,2,6,5,4], dist([7],
 [[2,3,1,4,6,5],[2,3,1,5,4,6],[2,3,1,6,5,4],[1,2,3,4,6,5],[1,2,3,5,4,6],[1,2,3,6,5,4],[3,1,2,4,6,5],[3,1,2,5,4,6],[3,1,2,6,5,4]]))}.
 
+dist([], L) ->
+    L;
+dist(X, []) ->
+    X;
 dist(X, ListOfLists) ->
     case is_list(X) of
 	true ->
