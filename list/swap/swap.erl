@@ -2,8 +2,6 @@
 -export([swap_tail2/1, swap2/1, swap/1, swap_2500_profile/0]).
 -include_lib("eunit/include/eunit.hrl").
 -import(dist_tail, [dist_tail/2]).
--import(dist, [dist/2]).
--import(umerge, [umerge/2]).
 
 swap_tail2([]) ->
    [];
@@ -20,8 +18,9 @@ swap_tail2([], S) ->
     S;
 swap_tail2(L, S) ->
     {Left, Right} = split(L),
-    %{Left, Right} = lists:split(trunc(length(L)/2), L),
-    swap_tail2([], concat(dist_tail:dist_tail(swap_tail2(Left), swap_tail2(Right)), S)).
+    %swap_tail2([], [lists:map(fun(X) -> lists:map(fun(Y) -> lists:flatten( [X,Y]) end, swap_tail2(Left)) end, swap_tail2(Right))|S]).
+    swap_tail2([], concat(lists:map(fun(Z) -> lists:flatten(Z) end, [[X|Y] || X <-  swap_tail2(Left), Y <-  swap_tail2(Right)]),S)).
+    %swap_tail2([], [dist_tail:dist_tail(swap_tail2(Left), swap_tail2(Right))|S]).
 
 swap([]) ->
     [];
@@ -34,7 +33,7 @@ swap([X,Y,Z]) ->
     [[Y, X, Z], [Z, Y, X], [X, Z, Y]];
 swap(L) ->
     {Left, Right} = split(L),
-    dist:dist(swap(Left), swap(Right)).
+    dist_tail:dist_tail(swap(Left), swap(Right)).
     
 swap2(L) ->
     swap(L, []).
@@ -44,13 +43,13 @@ swap([], P) ->
 swap([X,Y], []) ->
     [[Y,X],[X,Y]];
 swap([X,Y], P) ->
-    dist:dist(P, [[Y,X], [X,Y]]);
+    dist_tail:dist_tail(P, [[Y,X], [X,Y]]);
 swap([X,Y,Z|T], []) ->
     swap(T, [[Y, X, Z], [Z, Y, X], [X, Z, Y]]);
 swap([X,Y,Z|T], P) ->
-    swap(T, dist:dist(P, [[Y,X,Z],[Z,Y,X],[X,Z,Y]]));
+    swap(T, dist_tail:dist_tail(P, [[Y,X,Z],[Z,Y,X],[X,Z,Y]]));
 swap([A], P) ->
-    dist([A], P).
+    dist_tail:dist_tail([A], P).
 
 split([]) ->
     [];
@@ -125,9 +124,10 @@ swap_tail2_8_elem_list_test_() ->
      ?_assertMatch([H|_] when H == [7,8,5,6,3,4,2,1], swap_tail2([1,2,3,4,5,6,7,8]))}.
 
 
-%swap_2500_test_() ->
-%    {"Swap '[1..2500]' must halt", 
-%    ?_assertMatch([[L|_]|_] when length(L) == 2500, swap_tail2(lists:seq(1, 2500)))}.
+swap_2500_test_() ->
+    {"Swap '[1..2500]' must halt", 
+    ?_assertMatch([[L|_]|_] when length(L) == 14520, swap_tail2(lists:seq(1, 2500)))}.
+  %?_assertMatch([[[L|_]|_]] when length(L) == 14520, swap_tail2(lists:seq(1, 2500)))}.
 
 
 %% swap([]) ->
