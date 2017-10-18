@@ -22,15 +22,14 @@ swp_perms_test_() ->
 
 swap_2500_test_() ->
     {"N Swap Permutations '[1..2500], 2500' must halt", 
-    ?_assertEqual({2501, 7500}, swp_perms(lists:seq(1, 2500), 2500))}.
+   ?_assertEqual({2501, 229904293}, swp_perms(lists:seq(1, 2500), 2500))}.
 
 swp_perms_1_to_19_4k_test_() ->
-    {"swp perms of '[1..19] and 4' must yield in '{22, 88}'", ?_assertEqual({5,12}, swp_perms(lists:seq(1, 19), 4))}.
-
+    {"swp perms of '[1..19] and 4' must yield in '{22, 88}'", ?_assertEqual({5,15552}, swp_perms(lists:seq(1, 19), 4))}.
 
 swp_perms(L, K) ->
     S1 = length(nas(L, K)),
-    S2 = length(swp(L, K)),
+    S2 = swap_tail2(L, K),
     {mod(S1, ?MOD), mod(S2, ?MOD)}.
 
 nas(L, 0) ->
@@ -43,7 +42,6 @@ nas(_L, K, K, S) ->
 nas(L, K, I, S) ->
     Swpith = swap_adjacent(L), 
     nas(Swpith, K - 1, I, [Swpith|S]).
-
 
 swap_adjacent([]) ->
     [];
@@ -58,48 +56,49 @@ swap_adjacent([H, Hn|[Th, Tn]]) ->
 swap_adjacent([H, Hn|T]) ->
     [Hn, H| swap_adjacent(T)].
 
-swp(L, K) ->
-    nswp(L, K, 0, []). 
-
-nswp([], _, _, S) ->
+swap_tail2_i([], S) ->
     S;
-%nswp(L, 0, _, []) ->
-%    L;
-nswp(_L, K, K, S) ->
-    S;
-%% This logic consumes a lot of memory yields in a runtime error
-nswp([L|T], K, I, S) when is_list(L) ->
-    nswp(T, K, I, concat(S, nswp(L, K, I, S)));
-nswp(L, K, I, _S) ->
-    Swpd = swp(L),
-    nswp(Swpd, K, I + 1, Swpd).
+swap_tail2_i([_], S) ->
+     1 + S;
+swap_tail2_i([_,_], S) ->
+    2 + S;
+swap_tail2_i([_,_,_], S) ->
+    3 + S;
+swap_tail2_i(L, S) ->
+    swap_tail2(L, S).
 
-concat([], L) ->
-    L;
-concat([HoL|ToL], L) ->
-    concat(ToL, [HoL|L]).
+swap_tail2(L, K) ->
+    swap_tail2(L, K, 1).
 
-swp(L) ->
-    swp(L, length(L), 1, []).
+swap_tail2([], _, _) ->
+    0;
+swap_tail2([_], K, S)->
+    S*K;
+swap_tail2([_, _], K, S) ->
+    2 * S * K;
+swap_tail2([_, _, _], K, S) ->
+    3 * S * K;
+swap_tail2(L, _K, S) ->
+    {Left, Right} = split(L),
+    swap_tail2_i(Left, S) * swap_tail2_i(Right, S).
+    
+split([]) ->
+    {[],[]};
+split([X]) ->
+    {[X], []};
+split([H|T]) -> 
+    split(T, [H]).
 
-swp([], _, _, Slts) ->
-    Slts;
-swp(_L, M, M, Slts) ->
-    Slts;
-swp(L, M, J, Slts) ->
-    ElemJ = lists:nth(J, L), 
-    ElemM = lists:nth(M, L),
-    SwpdJ = concat(ElemM, lists:delete(ElemM, lists:delete(ElemJ, L)), ElemJ),
-    swp(L, M, J + 1, [SwpdJ|Slts]).
-
-concat(L1, L2, L3) when is_list(L2) ->
-    [L1|[L3|L2]].
+split(L, R) when length(L) =:= length(R);
+		 length(L) =:= length(R) + 1 ->
+    {R, L};
+split([H|T], R) ->
+    split(T, [H|R]).
 
 main() ->
     {ok, [N, K]} = io:fread("", "~d~d"),
     [io:fwrite("~p ", [Fet]) || Fet <- tuple_to_list(swp_perms(lists:seq(1, N), K))],
     true.
-
 
 mod(0,0) ->
     undefined; %% The divisor must not be 0.
