@@ -24,6 +24,10 @@ swap_2500_test_() ->
     {"N Swap Permutations '[1..2500], 2500' must halt", 
     ?_assertEqual({2501, 7500}, swp_perms(lists:seq(1, 2500), 2500))}.
 
+swp_perms_1_to_19_4k_test_() ->
+    {"swp perms of '[1..19] and 4' must yield in '{22, 88}'", ?_assertEqual({5,12}, swp_perms(lists:seq(1, 19), 4))}.
+
+
 swp_perms(L, K) ->
     S1 = length(nas(L, K)),
     S2 = length(swp(L, K)),
