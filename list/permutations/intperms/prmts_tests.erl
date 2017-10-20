@@ -149,14 +149,19 @@ integer_perms_9870651_test_() ->
     NoDupsPerms = prmts:rm_duplicates(Perms),
     ?_assertEqual(Perms, NoDupsPerms).
 
-
 %% 
 perms_for_10000_test() ->
-    {"permutations of '10000' is '?'", 
-     ?assertEqual(
-	[[1,0,0],[1,0,1],[1,1,0],[1,1,1],[0,0,0],[0,0,1],[0,1,0],[0,1,1]], 
-     prmts:intperms(10000))}.
+    {
+      "permutations of '10000' is '?'", 
+      ?assertMatch(L when 5*4*3*2 == length(L),
+			  prmts:intperms(10000))
+    }.
 
 perms_1234567_must_return_5040_lenlist_test_() ->
     {"Permutations of 1234567 yields in 5040-list permutations",
-    ?_assertEqual(7*6*5*4*3*2, prmts:intperms(1234567))}.
+    ?_assertMatch(L when 7*6*5*4*3*2 == length(L), prmts:intperms(1234567))}.
+
+
+perms_123456789_must_return_362880_lenlist_test_() ->
+    {"Permutations of 1234567 yields in 5040-list permutations",
+    ?_assertMatch(L when 362880 == length(L), prmts:intperms(123456789))}.
