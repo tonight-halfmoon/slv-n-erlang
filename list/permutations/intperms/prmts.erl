@@ -21,8 +21,7 @@ intger_perms_r2elms_test() ->
 
 %%% Compute Permutations of an integer having n distinct digits
 intperms(Integer) when is_integer(Integer) -> 
-    Digits = digits(Integer), 
-    intperms_divide(Digits, [], length(Digits), 0, []);
+    intperms(digits(Integer));
 intperms(Digits) ->  
     intperms_divide(Digits, [], length(Digits), 0, []).
 
@@ -40,7 +39,7 @@ intperms_conquer(Xs, Tents) ->
 
 intperms_conquer(Xs, [], Perms) ->
     distrib(Xs, Perms);
-intperms_conquer(Xs, [T|Tents], Perms) -> 
+intperms_conquer(Xs, [T|Tents], Perms) ->
     intperms_conquer(Xs, Tents, lists:append(intperms(T), Perms)).
 
 %%% Copy each element from the first input list into every list in the second input list of lists
