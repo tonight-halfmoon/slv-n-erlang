@@ -156,3 +156,7 @@ perms_for_10000_test() ->
      ?assertEqual(
 	[[1,0,0],[1,0,1],[1,1,0],[1,1,1],[0,0,0],[0,0,1],[0,1,0],[0,1,1]], 
      prmts:intperms(10000))}.
+
+perms_1234567_must_return_5040_lenlist_test_() ->
+    {"Permutations of 1234567 yields in 5040-list permutations",
+    ?_assertEqual(7*6*5*4*3*2, prmts:intperms(1234567))}.
