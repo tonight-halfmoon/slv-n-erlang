@@ -53,11 +53,6 @@ swap_tail2_test_() ->
     {"swapping '[1,2,3]' must result in '[2,1,3], [3,2,1], [1,3,2]'", 
      ?_assertEqual([[2,1,3], [3,2,1], [1,3,2]], swap_tail2([1,2,3]))}.
 
-swap2_test_() ->
-    {"swapping '[1,2,3]' must result in '[2,1,3], [3,2,1], [1,3,2]'", 
-     ?_assertEqual([[2,1,3], [3,2,1], [1,3,2]], swap_tail2([1,2,3]))}.
-
-
 swap_empty_test_() ->
     {"swapping '[]' must result in '[]'", 
      ?_assertEqual([], swap_tail2([]))}.
