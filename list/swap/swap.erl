@@ -30,9 +30,9 @@ concat([HoL|ToL], L) ->
      concat(ToL, [HoL|L]).
 
 split([]) ->
-    [];
-split([_]) ->
-    [];
+    {[],[]};
+split([S]) ->
+    {[S],[]};
 split([H|T]) -> 
     split(T, [H]).
 
