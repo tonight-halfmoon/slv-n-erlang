@@ -7,7 +7,7 @@
 
 -module(solution).
 -author('rosemary@SCUBA').
--export([main/0, swp_perms/2]).
+-export([main/0, swp_perms/2, skw/2, ski/2, fct/1]).
 -include_lib("eunit/include/eunit.hrl").
 -define(MOD, 1000000007).
 
@@ -20,16 +20,20 @@
 swp_perms_test_() ->
     {"swp perms of '[1,2,3] and 2' must yield in '{3, 6}'", ?_assertEqual({3,6}, swp_perms([1,2,3], 2))}.
 
+swp5_5_perms_case_1_test_() ->
+%41 120
+    {"swp perms of '[1,2,3,4,5] and 2' must yield in '{41, 120}'", ?_assertEqual({41,120}, swp_perms([1,2,3,4,5], 5))}.
+
 swap_2500_test_() ->
     {"N Swap Permutations '[1..2500], 2500' must halt", 
-   ?_assertEqual({2501, 229904293}, swp_perms(lists:seq(1, 2500), 2500))}.
+   ?_assertEqual({2501, 572}, swp_perms(lists:seq(1, 2500), 2500))}.
 
 swp_perms_1_to_19_4k_test_() ->
-    {"swp perms of '[1..19] and 4' must yield in '{22, 88}'", ?_assertEqual({5,15552}, swp_perms(lists:seq(1, 19), 4))}.
+    {"swp perms of '[1..19] and 4' must yield in '{5, 5}'", ?_assertEqual({5,5}, swp_perms(lists:seq(1, 19), 4))}.
 
 swp_perms(L, K) ->
     S1 = length(nas(L, K)),
-    S2 = swap_tail2(L, K),
+    S2 = skw(L, K),
     {mod(S1, ?MOD), mod(S2, ?MOD)}.
 
 nas(L, 0) ->
@@ -56,32 +60,45 @@ swap_adjacent([H, Hn|[Th, Tn]]) ->
 swap_adjacent([H, Hn|T]) ->
     [Hn, H| swap_adjacent(T)].
 
-swap_tail2_i([], S) ->
-    S;
-swap_tail2_i([_], S) ->
+%%% Count k-Swaps
+ skw(L, K) -> 
+     skw(L, K, 0).
+
+skw([], _, S) ->
+     S;
+skw([_], _K, S) ->
+     S;
+skw([_,_], _K, S) ->
      1 + S;
-swap_tail2_i([_,_], S) ->
-    2 + S;
-swap_tail2_i([_,_,_], S) ->
-    3 + S;
-swap_tail2_i(L, S) ->
-    swap_tail2(L, S).
+skw([X,Y,Z], K, S) ->
+    ski([X,Y,Z], K) + S;
+skw(L, K, S) ->
+     {Left, Right} = split(L),
+     skw([], K, skw(Left, K, S) + skw(Right, K, S)).
 
-swap_tail2(L, K) ->
-    swap_tail2(L, K, 1).
-
-swap_tail2([], _, _) ->
+ski(L, K) when K > length(L) ->
     0;
-swap_tail2([_], K, S)->
-    S*K;
-swap_tail2([_, _], K, S) ->
-    2 * S * K;
-swap_tail2([_, _, _], K, S) ->
-    3 * S * K;
-swap_tail2(L, _K, S) ->
-    {Left, Right} = split(L),
-    swap_tail2_i(Left, S) * swap_tail2_i(Right, S).
-    
+ski(L, K) ->
+    ski(length(L), K, 1, 0).
+
+ski(_M, I, I, S) ->
+    trunc(S);
+ski(M, K, I, S) ->
+    %io:fwrite("***~nM: ~w~n", [M]),
+    %io:fwrite("K: ~w~n", [K]),
+    %io:fwrite("I: ~w~n", [I]),
+    %io:fwrite("S: ~w~n", [S]),
+    Fct = fct(M) / fct(M - K),
+    ski(M - 1, K - 1, I,  Fct + S).
+
+fct(N) -> 
+    fact(N, 1).
+
+fact(0, Acc) -> 
+    Acc;
+fact(N, Acc) when N > 0 -> 
+    fact(N - 1, N * Acc).
+
 split([]) ->
     {[],[]};
 split([X]) ->
