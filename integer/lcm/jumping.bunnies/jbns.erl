@@ -37,3 +37,9 @@ jmp_bns_5148_test() ->
 
 jmp_bns_testcase7_test() ->
     ?assertEqual(890969009638765049, jmp_bns([997,991,983,977,971,967])).
+
+jmp_bns_testcase10_test() ->
+    ?assertEqual(3, jmp_bns([1,3])).
+
+jmp_bns_testcase8_test() ->
+    ?assertEqual(126459568506372769, jmp_bns([157, 151, 149, 139, 137, 131, 127, 113])).
