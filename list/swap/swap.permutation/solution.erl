@@ -37,6 +37,13 @@ swp_1000_94_perms_case_7_test_() ->
 		    swp_perms(lists:seq(1, 1000), 94))
     }.
 
+swp_2200_2340_perms_case_8_test_() ->
+    {
+      "swp perms of '[1..1000] and 2' must yield in '{48676404, 680805768}'", 
+      ?_assertEqual({48676404, 680805768}, 
+		    swp_perms(lists:seq(1, 2200), 2340))
+    }.
+
 swap_2500_test_() ->
     {
       "N Swap Permutations '[1..2500], 2500' must halt", 
@@ -50,36 +57,22 @@ swp_perms_1_to_19_4k_test_() ->
     }.
 
 swp_perms(L, K) ->
-    S1 = length(nas(L, K)),
+    S1 = ski_c2(L, K),
     S2 = ski(L, K),
     {mod(S1, ?MOD), mod(S2, ?MOD)}.
 
-nas(L, 0) ->
-    L;
-nas(L, K) ->
-    nas(L, K, 0, [L]).
 
-nas(_L, K, K, S) ->
+ski_c2(L,K) ->
+    M = length(L),
+    ski_c2(M, K, 2, (M-1) * (M-2) + M ).
+
+ski_c2(_M, Mi, Mi, S) ->
     S;
-nas(L, K, I, S) ->
-    Swpith = swap_adjacent(L), 
-    nas(Swpith, K - 1, I, [Swpith|S]).
-
-swap_adjacent([]) ->
-    [];
-swap_adjacent([A]) ->
-    [A];
-swap_adjacent([H, Next]) ->
-    [Next, H];
-swap_adjacent([H, Hn|[T]]) ->
-    [Hn, T|[H]];
-swap_adjacent([H, Hn|[Th, Tn]]) ->
-    [Hn, Th| swap_adjacent([H, Tn])];
-swap_adjacent([H, Hn|T]) ->
-    [Hn, H| swap_adjacent(T)].
+ski_c2(M, K, I, S) ->
+    ski_c2(M, K, I + 1, S + (M-1)*(M-I)).
 
 ski(L, K) when K > length(L) ->
-    0;
+    1;
 ski(L, K) ->
     M = length(L),
     ski(M, K, 1, M).
@@ -94,7 +87,7 @@ main() ->
     [io:fwrite("~p ", [Fet]) || Fet <- tuple_to_list(swp_perms(lists:seq(1, N), K))],
     true.
 
-mod(0,0) ->
+mod(0,0) -> 
     undefined; %% The divisor must not be 0.
 mod(_,0) ->
     undefined; %% The divisor must not be 0.
