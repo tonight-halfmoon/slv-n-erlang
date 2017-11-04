@@ -1,46 +1,51 @@
-%% Final revision on the 21st April 16; Jeddah; SA
+%%%-------------------------------------------------------------------
+%%% @author  <rosemary@SCUBA>
+%%% @copyright (C) 2017, 
+%%% @doc
+%%% Original implementation on the 21st April 16; Jeddah; SA
+%%% 4th Oct. 2017 -> Removed length(L) as considered expensive. Utilising two copies of the original list for the entry. Then, recurring with the Tail. X will be derived from the L--[X], while X is the head the T from the former round.
 
--module(prmts).
--export([main/0, main2/0, intperms/1, rm_duplicates/1, reverse/1, exists/2]).
+%%% Another problem to solve here is All Permutations divisible by 8. Check fun 'main2'. 
+%%% @end
+%%%------------------------------------------------------------------- 
+-module(perms).
+-export([main/0, main2/0, permute/1, rm_duplicates/1, reverse/1, exists/2]).
 -include_lib("eunit/include/eunit.hrl").
 
-%%% Open Question:
-%% Which is true: permutations of a digit is an empty list or is a list of that digit?
+permute_1_test() ->
+    ?assertEqual([[1]], permute(1)).
 
-%integer_perms_1elm_test()->
-%    ?assertEqual([[1]], intperms(1)).
+permute_empty_test() ->
+    ?assertEqual([], permute([])).
 
-integer_perms_1elm_test()->
-    ?assertEqual([], intperms(1)).
+permute_2_test() ->
+    ?assertEqual([[1,2],[2,1]], permute(12)).
 
-intger_perms_2elms_test() ->
-    ?assertEqual([[1,2],[2,1]], intperms(12)).
-
-intger_perms_r2elms_test() ->
-    ?assertEqual([[2,1],[1,2]], intperms(21)).
+permute_r2_test() ->
+    ?assertEqual([[2,1],[1,2]], permute(21)).
 
 %%% Compute Permutations of an integer having n distinct digits
-intperms(Integer) when is_integer(Integer) -> 
-    intperms(digits(Integer));
-intperms(Digits) ->  
-    intperms_divide(Digits, [], length(Digits), 0, []).
+permute(I) when is_integer(I) -> 
+    permute(digits(I));
+permute(L) ->  
+    permute_divide(L, L, [], []).
 
-intperms_divide([X,Y], _, 2, _, _) -> 
+permute_divide([X], _, _, _) ->
+    [[X]];
+permute_divide([X,Y], _,  _, _) -> 
     [[X,Y],[Y,X]];
-intperms_divide(_, Xs, M, M, Tents) -> 
-    intperms_conquer(Xs, Tents);
-intperms_divide(Digits, Xs, M, Nex, Tents) ->
-    X = lists:nth(Nex+1, Digits),
-    Rest = lists:subtract(Digits, [X]),
-    intperms_divide(Digits, [X|Xs], M, Nex+1, [Rest|Tents]).
+permute_divide(_, [], Xs, Tents) -> 
+    permute_conquer(Xs, Tents);
+permute_divide(L, [X|T], Xs, Tents) ->
+    permute_divide(L, T, [X|Xs], [L--[X]|Tents]).
 
-intperms_conquer(Xs, Tents) -> 
-    intperms_conquer(Xs, Tents, []).
+permute_conquer(Xs, Tents) -> 
+    permute_conquer(Xs, Tents, []).
 
-intperms_conquer(Xs, [], Perms) ->
-    distrib(Xs, Perms);
-intperms_conquer(Xs, [T|Tents], Perms) ->
-    intperms_conquer(Xs, Tents, lists:append(intperms(T), Perms)).
+permute_conquer(_, [], Perms) ->
+    Perms;
+permute_conquer(Xs, [T|Tents], Perms) ->
+    permute_conquer(Xs, Tents, distrib(Xs, lists:append(permute(T), Perms))).
 
 %%% Copy each element from the first input list into every list in the second input list of lists
 %%% If the target list already has the same element, then the function won't duplicate
@@ -114,7 +119,7 @@ digits(N, Ds) ->
 
 main() ->
     {ok, [Int]} = io:fread("", "~d"),
-    println(intperms(digits(Int))),
+    println(permute(digits(Int))),
     true.
 
 println([]) -> 
@@ -178,7 +183,7 @@ pow(N, K, I, R) ->
 
 main2() ->
     {ok, [Int]} = io:fread("", "~d"),
-    print_divisible_by_8(intperms(digits(Int))),
+    print_divisible_by_8(permute(digits(Int))),
     true.
 
 print_divisible_by_8([]) -> 
