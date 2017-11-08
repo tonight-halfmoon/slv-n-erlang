@@ -19,8 +19,8 @@ permute([X,Y]) ->
 permute(L) when is_list(L) ->
     permute(L, L, []).
 permute(L, [X|T], Tents) ->
-    Tent = L--[X],
-    permute(L, T, [lists:map(fun(Y) -> conq(X, Y) end, permute(Tent))
+    permute(L, T, [
+		   lists:map(fun(Y) -> conq(X, Y) end, permute(L--[X]))
 		   |Tents
 		  ]);
 permute(_, [], Permutations) ->
