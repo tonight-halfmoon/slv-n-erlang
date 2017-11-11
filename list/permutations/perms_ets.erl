@@ -92,7 +92,7 @@ permute_k2ets(_, _, [], File, Tab) ->
 conq_2ets(File, Tab) ->
     case ets:file2tab(File) of
 	{ok, Rt} ->
-            %file:delete(File),
+            file:delete(File),
 	    L = ets:tab2list(Rt),
 	    ets:delete(Rt),
 	    conq_k2ets(L, File, Tab);
@@ -152,11 +152,11 @@ permute_500elem_list_test_() ->
       ?_assertMatch(Pid when is_pid(Pid), perms_ets:start(lists:seq(1, 500)))
     }.
 
-%% permute_1499elem_list_test_() ->
-%%     {
-%%       "Permute 1499-element list must pass",
-%%       ?_assertMatch(Pid when is_pid(Pid), perms_ets:start(lists:seq(1, 1499)))
-%%     }.
+permute_1399elem_list_test_() ->
+    {
+      "Permute 1399-element list must pass",
+      ?_assertMatch(Pid when is_pid(Pid), perms_ets:start(lists:seq(1, 1399)))
+    }.
 
 %% permute_1599elem_list_test_() ->
 %%     {
