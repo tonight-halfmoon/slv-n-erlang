@@ -7,8 +7,11 @@
 %%% On the 7th of November 2017 
 %%%-------------------------------------------------------------------
 -module(perms_e).
--export([permute/1]).
+-export([start/1, permute/1]).
 -include_lib("eunit/include/eunit.hrl").
+
+start(L) ->
+    spawn(?MODULE, permute, [L]).
 
 permute([]) ->
     [[]];
@@ -76,5 +79,5 @@ permute_10elem_list_test_() ->
 %% permute_2500elem_list_test_() ->
 %%     {
 %%       "Permute 2500-element list must pass",
-%%       ?_assertMatch(_ when true, permute(lists:seq(1,2500)))
+%%       ?_assertMatch(Pid when is_pid(Pid), permute(lists:seq(1,2500)))
 %%     }.
