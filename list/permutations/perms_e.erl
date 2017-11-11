@@ -18,6 +18,7 @@ permute([X,Y]) ->
     [[X,Y],[Y,X]];
 permute(L) when is_list(L) ->
     permute(L, L, []).
+
 permute(L, [X|T], Tents) ->
     permute(L, T, [
 		   lists:map(fun(Y) -> conq(X, Y) end, permute(L--[X]))
@@ -63,11 +64,17 @@ perms_r2_test_() ->
 permute_10elem_list_test_() ->
     {
       "Permute 10-element list must pass",
-      ?_assertMatch(_ when true, perms_ets:start(lists:seq(1,10)))
+      ?_assertMatch(_ when true, permute(lists:seq(1,10)))
     }.
 
-permute_11elem_list_test_() ->
-    {
-      "Permute 11-element list must pass",
-      ?_assertMatch(_ when true, perms_ets:start(lists:seq(1,11)))
-    }.
+%% permute_11elem_list_test_() ->
+%%     {
+%%       "Permute 11-element list must pass",
+%%       ?_assertMatch(L when 11 == length(L), permute(lists:seq(1,11)))
+%%     }.
+
+%% permute_2500elem_list_test_() ->
+%%     {
+%%       "Permute 2500-element list must pass",
+%%       ?_assertMatch(_ when true, permute(lists:seq(1,2500)))
+%%     }.
