@@ -26,20 +26,20 @@ swp_perms_test_() ->
 swp5_5_perms_case_1_test_() ->
 %41 120
     {
-      "swp perms of '[1,2,3,4,5] and 2' must yield in '{41, 120}'", 
+      "swp perms of '[1,2,3,4,5] and 5' must yield in '{41, 120}'", 
       ?_assertEqual({41,120}, swp_perms([1,2,3,4,5], 5))
     }.
 
 swp_1000_94_perms_case_7_test_() ->
     {
-      "swp perms of '[1..1000] and 2' must yield in '{375743556, 19585936}'", 
+      "swp perms of '[1..1000] and 94' must yield in '{375743556, 19585936}'", 
       ?_assertEqual({375743556, 19585936}, 
 		    swp_perms(lists:seq(1, 1000), 94))
     }.
 
 swp_2200_2340_perms_case_8_test_() ->
     {
-      "swp perms of '[1..1000] and 2' must yield in '{48676404, 680805768}'", 
+      "swp perms of '[1..2200] and 2340' must yield in '{48676404, 680805768}'", 
       ?_assertEqual({48676404, 680805768}, 
 		    swp_perms(lists:seq(1, 2200), 2340))
     }.
@@ -47,13 +47,13 @@ swp_2200_2340_perms_case_8_test_() ->
 swap_2500_test_() ->
     {
       "N Swap Permutations '[1..2500], 2500' must halt", 
-      ?_assertEqual({2501, 572}, swp_perms(lists:seq(1, 2500), 2500))
+      ?_assertEqual({2501, fact(2500)}, swp_perms(lists:seq(1, 2500), 2500))
     }.
 
 swp_perms_1_to_19_4k_test_() ->
     {
       "swp perms of '[1..19] and 4' must yield in '{5, 5}'",
-      ?_assertEqual({5,5}, swp_perms(lists:seq(1, 19), 4))
+      ?_assertEqual({5, 5}, swp_perms(lists:seq(1, 19), 4))
     }.
 
 swp_perms(L, K) ->
@@ -101,3 +101,11 @@ mod(_, 1) ->
     0;
 mod(X, Y) ->
     ((X rem Y) + Y) rem Y.
+
+fact(N) -> 
+    fact(N, 1).
+
+fact(0, Acc) -> 
+    Acc;
+fact(N, Acc) when N > 0 -> 
+    fact(N - 1, N * Acc).
