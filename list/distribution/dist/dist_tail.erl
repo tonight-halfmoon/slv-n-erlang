@@ -56,8 +56,8 @@ dist_tail(L1, L2, D) ->
 
 concat([], L) ->
     L;
-concat(X, [H|T]) when not is_list(X) andalso not is_list(H) ->
-    [X|[H|T]];
+concat(X, [H|_] = L) when not is_list(X) andalso not is_list(H) ->
+    [X|L];
 concat([H|T], L) ->
     concat(T, [H|L]).
 

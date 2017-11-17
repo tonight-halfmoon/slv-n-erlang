@@ -66,8 +66,8 @@ udist(List, ListOfLists) ->
 
 udist(_Xs, [], U) -> 
     lists:reverse(U); 
-udist(Xs, [[H|T]|OtherLists], U) when is_list(H) -> 
-    udist(Xs, OtherLists, [udist(Xs, [H|T])|U]);
+udist(Xs, [[H|_T] = L|OtherLists], U) when is_list(H) -> 
+    udist(Xs, OtherLists, [udist(Xs, L)|U]);
 udist(Xs, [P|OtherLists], U) ->  
     udist(Xs, OtherLists, [umerge:umerge(P, Xs)|U]).
 

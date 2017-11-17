@@ -58,8 +58,7 @@ read_list(false, L) ->
 
 print([]) ->
     ok;
-print(L) when is_list(L) ->
-    [H|T] = L,
+print([H|T] = L) when is_list(L) ->
     print(H),
     print(T);
 print(X) ->
