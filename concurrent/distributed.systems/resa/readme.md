@@ -1,6 +1,6 @@
 # Prototype on Distributed System
 
-In Erlang a beautiful game on how processes on distributed network nodes communicate
+In Erlang a beautiful game on how processes on distributed nodes communicate
 
 ## Goal
 
@@ -30,7 +30,5 @@ Nodes reside on machines of different domain.
 
 ### OTP
 
-This is a pure Erlang implementation without pursuing OTP. The purpose is to cover many topics like net_kernel, net_adm and etc. Applyin OTP will come with a prototype on Internet of Things IoT soon, with MQTT broker.
-
-## License
+This is a pure Erlang implementation without pursuing OTP. The purpose is to cover many topics like net_kernel, net_adm and etc. Applying OTP will come with a prototype on Internet of Things IoT soon, with MQTT broker.
 
