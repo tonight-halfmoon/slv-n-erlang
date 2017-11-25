@@ -1,0 +1,3 @@
+-define(server, resa_server).
+-define(client_name, resa_client).
+-define(stats, stats_provider).

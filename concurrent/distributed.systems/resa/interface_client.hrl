@@ -1,0 +1,3 @@
+-define(server_node, 'resa_server@localhost.jpat.org').
+-define(server_node_short, 'resa_server@localhost').
+-record(attempt2free, {resource}).
