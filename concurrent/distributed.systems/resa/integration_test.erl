@@ -9,7 +9,7 @@
 -include("config.hrl").
 -include("interface_client.hrl").
 -include("intercommunication.hrl").
--define(toyzres, '<0.12.0>').
+-define(toyzres, 'ab.12.0').
 -define(monitor_active, monitor_active).
 -define(client_node, resa_client_node).
 
@@ -39,7 +39,7 @@ cleanup() ->
 
 start_server_atnode() ->
     net_kernel:stop(),
-    net_kernel:start([?server, shortnames]),
+    net_kernel:start([?server, names]), % shortnames
     ?assertEqual(true, resa_server:start([?toyzres])),
     true.
 
@@ -48,7 +48,7 @@ start_server_atnode() ->
 %%% If you want to handle monitoring newly connected nodes, that needs another treatment.
 start_client_node() ->
     net_kernel:stop(),
-    net_kernel:start([?client_node, shortnames]),
+    net_kernel:start([?client_node, names]), % shortnames
     register(?monitor_active, spawn(?MODULE, client_node_active, [self()])).
 
 client_node_active(Pid) ->

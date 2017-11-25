@@ -6,6 +6,7 @@
 -include("intercommunication.hrl").
 -import(handler, [handle/2]).
 -import(stats_provider, [mk_stats/0]).
+-define(all_registered, [?server, ?handler, ?stats]).
 
 %%% A single server may actually be a large network of communicating processes 
 %%% which implement a service, all of which would be hidden from the user by
@@ -27,10 +28,18 @@ stop() ->
 	undefined ->
 	    server_not_running;
 	_ ->
-	    unregister(?server),
-	    unregister(?handler),
-	    unregister(?stats),
-	    ok
+	    unregister_all(?all_registered)
+    end.
+
+unregister_all([]) ->
+    true;
+unregister_all([H|T]) ->
+    case whereis(H) of 
+	undefined ->
+	    unregister_all(T);
+	_ ->
+	    unregister(H),
+	    unregister_all(T)
     end.
 
 %%% The interface functions.
@@ -71,7 +80,11 @@ active() -> %% Server won't bather to hold data
 	    await_handler(FromPid);
 	{From, Msg} ->
 	    io:format("Received ~p from ~p~n", [From, Msg]),
-	    From ! {reply, node(), nothing_special}
+	    unregister_all(?all_registered),
+	    From ! {reply, node(), nothing_special};
+	_ ->
+	    unregister_all(?all_registered),
+	    not_interested
     end,
     active().
 
