@@ -32,7 +32,7 @@ interact(Server_node) ->
     interact(Server_node).
 
 %%% Experience
-%%% Obviouse! Client has no knowledge about the real data structure of the server.
+%%% Obvious! Client has no knowledge about the real data structure of the server.
 
 await_result() ->
     receive
