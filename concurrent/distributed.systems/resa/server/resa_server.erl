@@ -16,11 +16,11 @@
 %%% be published, thiat is to say made available to users, as hese functions provide
 %%% the only legal means of accessing the services provided by a server. [Reference: Concurrent Programming in Erlang, Joe Armstrong et. al., 2nd Edt., Ericsson].
 
-start(Resources) ->
+start(Free) ->
     case whereis(?server) of
 	undefined ->
 	    register(?server, spawn(?MODULE, server, [])), 
-	    register(?handler, spawn(handler, handle, [Resources, []])),
+	    register(?handler, spawn(handler, handle, [Free, []])),
 	    register(?stats, spawn(stats_provider, mk_stats, []));
 	  _ ->
 	    server_running
