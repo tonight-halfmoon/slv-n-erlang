@@ -67,7 +67,7 @@ server() ->
 %%% has been delegated. [Reference: Concurrent Programming in Erlang, Joe Armstrong et. al., 2nd Edt., Ericsson].
 %%% 
 %%% And, once again, we hide the protocol of how server communicate with handlers and providers
-active() -> %% Server won't bather to hold data
+active() -> %%% Server wouldn't bother to deal with data
     receive %%% Experience
             %%% See the flexibility here! Handling the server request is delegated
             %%% to another process without a need to change the interface functions.
