@@ -15,15 +15,20 @@ interact(Server_node) ->
 	    {?server, Server_node} ! #cask2alloc{client_pid=self()},
 	    await_result();
 	#attempt2free{resource=Resource} ->
-	    {?server, Server_node} ! #cask2free{client_pid=self(), resource=Resource},
-	    await_result();
+	    case screening(Resource) of
+		ok ->
+		    {?server, Server_node} ! #cask2free{client_pid=self(), resource=term_to_binary(Resource)},
+		    await_result();
+		_ ->
+		    io:format("Unacceptable data type provided~n", []),
+		    true
+	    end;
 	attempt4stats ->
 	    {?server, Server_node} ! #cask4stats{client_pid=self()},
 	    await_result();
 	disconnect ->
 	    exit(normal)
     end,
-    
     interact(Server_node).
 
 await_result() ->
@@ -42,3 +47,8 @@ await_result() ->
 	    io:format("No response from server~n", []),
 	    exit(timeout)
     end.
+
+screening(R) when not is_atom(R) ->
+    unacceptable;
+screening(_) ->
+    ok.

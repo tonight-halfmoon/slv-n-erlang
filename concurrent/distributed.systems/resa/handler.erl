@@ -11,9 +11,13 @@ handle(_Free, _Allocated) ->
     not_interested.
 
 handle_hashed(Free, Allocated) ->
-    receive  % Only Server can request to free/allocate resources 
-	#free_resource{server=?server, from_pid=FromPid, resource=Resource} ->
-	    case free(Free, Allocated, FromPid, Resource) of
+    receive  % Only Server can request to free/allocate resources
+	#free_resource{server=?server, from_pid=FromPid, resource=Tent_bin} ->
+	    Ress = fun(X) -> case is_binary(X) of
+				 true -> binary_to_term(X);
+				 false -> io:format("Unexpected~p~n", [X]),
+					  handle_hashed(Free, Allocated) end end,
+	    case free(Free, Allocated, FromPid, Ress(Tent_bin)) of
 		{ok, NewFree, NewAllocated} ->
 		    ?server ! #handler_reply{message=freed},
 		    handle_hashed(NewFree, NewAllocated);
