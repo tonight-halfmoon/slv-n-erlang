@@ -14,7 +14,7 @@ handle(_Free, _Allocated) ->
     not_interested.
 
 handle_hashed(Free, Allocated) ->
-    receive  % Only Server can request to free/allocate resources
+    receive  %% Only Server can request to free/allocate resources
 	#free_resource{server=?server, from_pid=FromPid, resource=Tent_bin} ->
 	    Ress = fun(X) -> case is_binary(X) of
 				 true -> binary_to_term(X);
@@ -37,8 +37,8 @@ handle_hashed(Free, Allocated) ->
 		    ?server ! #handler_reply{message=no},
 		    handle_hashed([], Allocated)
 	    end;
-	#server_request_data{server=?server} ->  % Only Server can request data structure
-	    DS = #data_structure{free=Free, allocated=Allocated},  %%% Much better to take out the values from Free/Allocated and send it to stats provider in order to keep internal data structure unknown
+	#server_request_data{server=?server} ->  %% Only Server can request data structure
+	    DS = #data_structure{free=Free, allocated=Allocated},  %% Much better to take out the values from Free/Allocated and send it to stats provider in order to keep internal data structure unknown
 	    ?server ! #handler_reply_data{data=DS},
 	    handle_hashed(Free, Allocated);
 	{'EXIT', From, Reason} ->
