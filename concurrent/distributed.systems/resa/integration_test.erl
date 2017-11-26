@@ -13,6 +13,9 @@
 -define(monitor_active, monitor_active).
 -define(client_node, resa_client_node).
 
+%%% Experience:
+%%% Integration Test monitors both RESA's nodes, in order to insure testing coverage is progressing on healthy run.
+
 run() ->
     start_server_atnode(),
     start_client_node(),

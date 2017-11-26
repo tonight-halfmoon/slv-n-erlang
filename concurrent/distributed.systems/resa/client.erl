@@ -31,6 +31,9 @@ interact(Server_node) ->
     end,
     interact(Server_node).
 
+%%% Experience
+%%% Obviouse! Client has no knowledge about the real data structure of the server.
+
 await_result() ->
     receive
 	#abort_client{message=Why} ->
@@ -47,6 +50,9 @@ await_result() ->
 	    io:format("No response from server~n", []),
 	    exit(timeout)
     end.
+
+%%% Experience
+%%% No one will be happy with a request against the server carrying unchecked data.
 
 screening(R) when not is_atom(R) ->
     unacceptable;

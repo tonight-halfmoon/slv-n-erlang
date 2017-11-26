@@ -8,11 +8,13 @@
 -import(stats_provider, [mk_stats/0]).
 -define(all_registered, [?server, ?handler, ?stats]).
 
+%%% Knowledge
 %%% A single server may actually be a large network of communicating processes
 %%% which implement a service, all of which would be hidden from the user by
 %%% the interface functions. It is the set of interface functions which should
 %%% be published, thiat is to say made available to users, as hese functions provide
-%%% the only legal means of accessing the services provided by a server. [Reference: Erlang/OTP System Documentaion, Ericsson AB, December 15, 2015]
+%%% the only legal means of accessing the services provided by a server. [Reference: Concurrent Programming in Erlang, Joe Armstrong et. al., 2nd Edt., Ericsson].
+
 start(Resources) ->
     case whereis(?server) of
 	undefined ->
@@ -42,6 +44,7 @@ unregister_all([H|T]) ->
 	    unregister_all(T)
     end.
 
+%%% Knowledge
 %%% The interface functions.
 %%% The purpose of the interface functions is to create abstractions which hide
 %%% the specific details of the protocols used between the clients and the server.
@@ -49,20 +52,22 @@ unregister_all([H|T]) ->
 %%% to implement the service, or the internal data structures and algorithms
 %%% used in the server. An implementor of the service is then free to change any
 %%% of these internal details at any time while maintaining the same user
-%%% interface.
-%%% check user_interface.erl
+%%% interface. [Reference: Concurrent Programming in Erlang, Joe Armstrong et. al., 2nd Edt., Ericsson].
+%%%
+%%% Experience: check user_interface.erl
 
 server() ->
     process_flag(trap_exit, true),
     active().
 
+%%% Knowledge
 %%% The process which replies to the server request may not 
 %%% be the actual server itself, but a different process to which the request
-%%% has been delegated.
+%%% has been delegated. [Reference: Concurrent Programming in Erlang, Joe Armstrong et. al., 2nd Edt., Ericsson].
 %%% 
 %%% And, once again, we hide the protocol of how server communicate with handlers and providers
 active() -> %% Server won't bather to hold data
-    receive
+    receive %%% Experience
             %%% See the flexibility here! Handling the server request is delegated
             %%% to another process without a need to change the interface functions.
 	#connect{client_pid=FromPid} ->
