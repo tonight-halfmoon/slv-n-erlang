@@ -10,6 +10,14 @@ To learn building a distributed system. The prototype shows how processes on dif
 
 The Server / client design assume they are on nodes of the same domain. 
 
+## Protocols
+
+Client is given certain public protocols to send requests to Server. No knowledge is given to client about Server's internal Communication protocols.
+
+## Server Internal Data Model
+
+Server's data model and data structure are kept hidden from client. One occasion for example, the record '#res_ds'. It is defined in 'interface_server.hrl' and only utilised by module 'resa_server' and the internal data handler, i.e., module 'handler'.
+
 ## Integration Test
 
 To ensure the communication happens between the client and server, an integration test module is provided.
@@ -22,7 +30,7 @@ It must confirm the server's internal modules. It still lacks to assert the inte
 
 ### Security
 
-This prototype is not aware of any security concept, but one. Internal protocols are hidden from the User Interface of client. Only internal server's processes can request data models.
+This prototype is not aware of any security concept, but one. Internal protocols are hidden from the User Interface of client. Only server's internal processes can request data models.
 
 ### Internet 
 
