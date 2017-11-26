@@ -26,7 +26,7 @@ handle_hashed(Free, Allocated) ->
 		{{allocated, Resource}, NewFree, NewAllocated} ->
 		    ?server ! #handler_reply{message={yes, Resource}},
 		    handle_hashed(NewFree, NewAllocated);
-		{no, []} ->
+		{no_free_resource, []} ->
 		    ?server ! #handler_reply{message=no},
 		    handle_hashed([], Allocated)
 	    end;
@@ -43,16 +43,10 @@ handle_hashed(Free, Allocated) ->
     end.
 
 free(Free, Allocated, FromPid, Resource) ->
-    io:format("Allocated: ~p~n", [Allocated]),
-    io:format("Free: ~p~n", [Free]),
     case keymember(erlang:phash2(Resource), Allocated) of
 	true ->
 	    Phashed = pairwith_hash(Resource),
-	    NewFree = [Phashed|Free],
-	    io:format("New Free: ~p~n", [NewFree]),
-	    NewAllocated = lists:delete({Phashed, FromPid}, Allocated),
-	    io:format("New Allocated: ~p~n", [NewAllocated]),
-	    {ok, NewFree, NewAllocated};
+	    {ok, [Phashed|Free], lists:delete({Phashed, FromPid}, Allocated)};
 	false ->
 	    io:format("Not found ~n", []),
 	    error
@@ -62,7 +56,7 @@ allocate([R|Free], Allocated, FromPid) ->
     io:format("FromPid: ~p; Resource allocated: ~p~n", [FromPid, R]),
     {{allocated, R#res_ds.value}, Free, [{R, FromPid}|Allocated]};
 allocate([], _Allocated, _FromPid) ->
-    {no, []}.
+    {no_free_resource, []}.
 
 pairwith_hash(H) when not is_list(H) ->
     #res_ds{hash=erlang:phash2(H), value=H};

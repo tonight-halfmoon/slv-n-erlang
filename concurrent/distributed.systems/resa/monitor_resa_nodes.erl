@@ -31,7 +31,8 @@ monitor_node_client() ->
     net_kernel:connect(client@localhost),
     receive
 	{'EXIT', FromPid, Reason} ->
-	    io:format("Trapped an 'EXIT' flag by '~p' for reason '~p'~n", [FromPid, Reason]);
+	    io:format("Trapped an 'EXIT' flag by '~p' for reason '~p'~n", [FromPid, Reason]),
+	    exit(Reason);
 	M ->
 	    io:format("Client node says '~p'~n", [M])
     end,
