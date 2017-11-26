@@ -3,6 +3,7 @@
 -include("../config/config.hrl").
 -include("interface_server.hrl").
 -include("../config/telecommunication.hrl").
+-include_lib("eunit/include/eunit.hrl").
 
 handle(Free, []) when not is_list(Free) ->
     list_expected;
@@ -54,8 +55,8 @@ handle_hashed(Free, Allocated) ->
 free(Free, Allocated, _FromPid, Resource) ->
     case keymember(erlang:phash2(Resource), Allocated) of
 	true ->
-	    Phashed = pairwith_hash(Resource),
-	    {ok, [Phashed|Free], keydelete(Phashed#res_ds.hash, Allocated)};
+	    Resds = pairwith_hash(Resource),
+	    {ok, [Resds|Free], keydelete(Resds#res_ds.hash, Allocated)};
 	false ->
 	    io:format("Either resource has not been allocated or different process is freeing it up, which has been allocated by another process. ~n", []),
 	    error
@@ -67,8 +68,8 @@ allocate([R|Free], Allocated, FromPid) ->
 allocate([], _Allocated, _FromPid) ->
     {no_free_resource, []}.
 
-pairwith_hash(H) when not is_list(H) ->
-    #res_ds{hash=erlang:phash2(H), value=H};
+pairwith_hash(R) when not is_list(R) ->
+    #res_ds{hash=erlang:phash2(R), value=R};
 pairwith_hash(L) ->
     pairwith_hash(L, []).
 
@@ -93,3 +94,24 @@ keydelete(Hash, [{#res_ds{hash=Hash, value=_}, _}|T], RM) ->
     lists:append(RM, T);
 keydelete(Hash, [H|T], RM) ->
     keydelete(Hash, T, [H|RM]).
+
+%%% Unit Tests
+
+allocate_test_() ->
+    Res = 'ab.12.0',
+    [R|Free] = [pairwith_hash(Res)],
+    Pid = spawn(fun() -> [] end),
+    {
+      "When there is at least one free resource, then one resource must be allocted. Allocate: move the resource from Free list to Allocated list.",
+     ?_assertEqual({{allocated, Res}, Free, [{R, Pid}]}, allocate([R|Free], [], Pid))
+    }.
+
+free_test_() ->
+    Res = 'ab.12.0',
+    Resds = pairwith_hash(Res),
+    Pid = spawn(fun() -> [] end),
+    Allocated = [{Resds, Pid}],
+    {
+      "When there is at least one allocated resource, then one resource must be freed up. Free up: Move it from Allocated list to Free list. Must not exist any more in Allocated list.",
+      ?_assertEqual({ok, [Resds], []}, free(_Free=[], Allocated, Pid, Res))
+    }.
