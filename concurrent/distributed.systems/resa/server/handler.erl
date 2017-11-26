@@ -44,8 +44,8 @@ handle_hashed(Free, Allocated) ->
 	{'EXIT', From, Reason} ->
 	    io:format("Received 'EXIT' flag from ~p for reason ~p~n", [From, Reason]),
 	    exit(Reason);
-	_ ->
-	    io:foramt("unknown!~n", []),
+	Unknown ->
+	    io:format("Received unconsidered message ~p~n", [Unknown]),
 	    handle_hashed(Free, Allocated)
     end.
 
@@ -58,7 +58,7 @@ free(Free, Allocated, _FromPid, Resource) ->
 	    Resds = pairwith_hash(Resource),
 	    {ok, [Resds|Free], keydelete(Resds#res_ds.hash, Allocated)};
 	false ->
-	    io:format("Either resource has not been allocated or different process is freeing it up, which has been allocated by another process. ~n", []),
+	    io:format("The resource is not allocated~n", []),
 	    error
     end.
 

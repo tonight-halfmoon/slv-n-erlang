@@ -83,14 +83,7 @@ active() -> %%% Server wouldn't bother to deal with data
 	    await_handler(FromPid);
 	#cask4stats{client_pid=FromPid} ->
 	    ?handler ! #server_request_data{server=?server},
-	    await_handler(FromPid);
-	{From, Msg} ->
-	    io:format("Received ~p from ~p~n", [From, Msg]),
-	    unregister_all(?all_registered),
-	    From ! {reply, node(), nothing_special};
-	_ ->
-	    unregister_all(?all_registered),
-	    not_interested
+	    await_handler(FromPid)
     end,
     active().
 
