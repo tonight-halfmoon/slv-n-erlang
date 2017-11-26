@@ -18,7 +18,7 @@ handle_hashed(Free, Allocated) ->
 	    Ress = fun(X) -> case is_binary(X) of
 				 true -> binary_to_term(X);
 				 false -> io:format("Unexpected~p~n", [X]),
-					  handle_hashed(Free, Allocated) end end,
+					  ?server ! #handler_refused{reason=unexpected_data} end end,
 	    case free(Free, Allocated, FromPid, Ress(Tent_bin)) of
 		{ok, NewFree, NewAllocated} ->
 		    ?server ! #handler_reply{message=freed},

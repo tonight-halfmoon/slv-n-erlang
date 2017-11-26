@@ -98,7 +98,9 @@ await_handler(FromPid) ->
 	#handler_reply_data{data=#data_structure{free=Free, allocated=Allocated}} ->
 	    ?stats ! #request_stats{from_pid=FromPid, free=Free, allocated=Allocated};
 	#handler_reply{message=Message} ->
-	    FromPid ! #server_reply{message=Message}
+	    FromPid ! #server_reply{message=Message};
+	#handler_refused{reason=Reason} ->
+	    FromPid ! #server_reply{message=lists:concat([request_not_carried_out, Reason])}
     end.
 
 connect_client(ClientPid) ->
