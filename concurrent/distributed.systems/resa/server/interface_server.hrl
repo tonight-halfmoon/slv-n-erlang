@@ -6,4 +6,3 @@
 -record(handler_reply, {message}).
 -record(handler_reply_data, {data=#data_structure{}}).
 -record(handler_refused, {reason}).
--record(request_stats, {from_pid, free, allocated}).

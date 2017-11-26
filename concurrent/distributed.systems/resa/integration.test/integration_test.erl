@@ -6,9 +6,9 @@
 -import(resa_server, [start/1]).
 -import(monitor_resa_nodes, [monitor/1]).
 -include_lib("eunit/include/eunit.hrl").
--include("config.hrl").
--include("interface_client.hrl").
--include("intercommunication.hrl").
+-include("../config/config.hrl").
+-include("../client/interface_client.hrl").
+-include("../config/telecommunication.hrl").
 -define(toyzres, 'ab.12.0').
 -define(monitor_active, monitor_active).
 -define(client_node, resa_client_node).

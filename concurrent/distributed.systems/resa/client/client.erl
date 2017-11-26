@@ -1,8 +1,8 @@
 -module(client).
 -export([client/1]).
--include("config.hrl").
+-include("../config/config.hrl").
 -include("interface_client.hrl").
--include("intercommunication.hrl").
+-include("../config/telecommunication.hrl").
 
 client(Server_node) ->
     {?server, Server_node} ! #connect{client_pid=self()},

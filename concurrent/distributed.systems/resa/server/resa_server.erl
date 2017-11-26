@@ -1,9 +1,10 @@
 -module(resa_server).
 -export([start/1, stop/0, server/0]).
--include("config.hrl").
+-include("../config/config.hrl").
 -include("config_internal.hrl").
 -include("interface_server.hrl").
--include("intercommunication.hrl").
+-include("interface_provider.hrl").
+-include("../config/telecommunication.hrl").
 -import(handler, [handle/2]).
 -import(stats_provider, [mk_stats/0]).
 -define(all_registered, [?server, ?handler, ?stats]).

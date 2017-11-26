@@ -1,7 +1,7 @@
 -module(stats_provider).
 -export([mk_stats/0]).
--include("interface_server.hrl").
--include("intercommunication.hrl").
+-include("../interface_provider.hrl").
+-include("../../config/telecommunication.hrl").
 
 %%% Experience
 %%% Another method of message flow. Stats provider is free to send back it is transformation result to the client. Since it does not carry anything about the server's data models.

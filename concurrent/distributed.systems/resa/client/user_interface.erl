@@ -1,7 +1,7 @@
 -module(user_interface).
 -export([allocate/0, free/1, stats/0, connect/0, disconnect/0]).
 -include("interface_client.hrl").
--include("config.hrl").
+-include("../config/config.hrl").
 
 connect() ->
     case whereis(?client_name) of 

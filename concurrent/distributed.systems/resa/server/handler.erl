@@ -1,8 +1,8 @@
 -module(handler).
 -export([handle/2]).
--include("config.hrl").
+-include("../config/config.hrl").
 -include("interface_server.hrl").
--include("intercommunication.hrl").
+-include("../config/telecommunication.hrl").
 
 handle(Free, []) when not is_list(Free) ->
     list_expected;
