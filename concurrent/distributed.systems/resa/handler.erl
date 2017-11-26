@@ -48,13 +48,16 @@ handle_hashed(Free, Allocated) ->
 	    handle_hashed(Free, Allocated)
     end.
 
-free(Free, Allocated, FromPid, Resource) ->
+%%% Different clients can free up / allocate resources. For simolicity no constraints who allocate/freeup which.
+%%% Future Work: Freeup/allocation provide more realistic solution.
+
+free(Free, Allocated, _FromPid, Resource) ->
     case keymember(erlang:phash2(Resource), Allocated) of
 	true ->
 	    Phashed = pairwith_hash(Resource),
-	    {ok, [Phashed|Free], lists:delete({Phashed, FromPid}, Allocated)};
+	    {ok, [Phashed|Free], keydelete(Phashed#res_ds.hash, Allocated)};
 	false ->
-	    io:format("Not found ~n", []),
+	    io:format("Either resource has not been allocated or different process is freeing it up, which has been allocated by another process. ~n", []),
 	    error
     end.
 
@@ -80,3 +83,13 @@ keymember(Hash, [{#res_ds{hash=Hash, value=_}, _}|_]) ->
     true;
 keymember(Hash, [_H|T]) ->
     keymember(Hash, T).
+
+keydelete(Hash, L) ->
+    keydelete(Hash, L, []).
+
+keydelete(_Hash, [], RM) ->
+    RM;
+keydelete(Hash, [{#res_ds{hash=Hash, value=_}, _}|T], RM) ->
+    lists:append(RM, T);
+keydelete(Hash, [H|T], RM) ->
+    keydelete(Hash, T, [H|RM]).

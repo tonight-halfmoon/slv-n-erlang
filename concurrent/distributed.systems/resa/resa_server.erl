@@ -106,6 +106,7 @@ await_handler(FromPid) ->
 connect_client(ClientPid) ->
     ClientPid ! #server_reply{message=connected},
     link(ClientPid),
+    io:format("Client ~p connected.~n", [ClientPid]),
     true.
 
 disconnect_client(FlientPid) ->
