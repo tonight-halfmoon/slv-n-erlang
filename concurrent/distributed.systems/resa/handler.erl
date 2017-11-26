@@ -4,6 +4,8 @@
 -include("interface_server.hrl").
 -include("intercommunication.hrl").
 
+handle(Free, []) when not is_list(Free) ->
+    list_expected;
 handle(Free, []) ->
     process_flag(trap_exit, true),
     handle_hashed(pairwith_hash(Free), []);

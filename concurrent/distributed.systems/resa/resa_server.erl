@@ -8,11 +8,11 @@
 -import(stats_provider, [mk_stats/0]).
 -define(all_registered, [?server, ?handler, ?stats]).
 
-%%% A single server may actually be a large network of communicating processes 
+%%% A single server may actually be a large network of communicating processes
 %%% which implement a service, all of which would be hidden from the user by
-%%% the interface functions. It is the set of interface finctions which should 
+%%% the interface functions. It is the set of interface functions which should
 %%% be published, thiat is to say made available to users, as hese functions provide
-%%% the only legal means of accessing the services provided by a server.
+%%% the only legal means of accessing the services provided by a server. [Reference: Erlang/OTP System Documentaion, Ericsson AB, December 15, 2015]
 start(Resources) ->
     case whereis(?server) of
 	undefined ->
