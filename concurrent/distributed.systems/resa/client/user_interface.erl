@@ -6,9 +6,10 @@
 connect() ->
     case whereis(?client_name) of 
 	undefined ->
-	    register(?client_name, spawn(client, client, [?server_node])); %% short names vs. fully qualified names. Dynamic configuration /check at runtime needed. Check Integration Test. 
+	    register(?client_name, spawn(client, client, [?server_node])), %% short names vs. fully qualified names. Dynamic configuration needed. Check Integration Test.
+	    {ok, whereis(?client_name)};
 	_ ->
-	    already_connected
+	    {already_connected, whereis(?client_name)}
     end.
 
 disconnect() ->

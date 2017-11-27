@@ -21,9 +21,10 @@ start(Free) ->
 	undefined ->
 	    register(?server, spawn(?MODULE, server, [])), 
 	    register(?handler, spawn(handler, handle, [Free, []])),
-	    register(?stats, spawn(stats_provider, mk_stats, []));
+	    register(?stats, spawn(stats_provider, mk_stats, [])),
+	    {ok, whereis(?server)};
 	  _ ->
-	    server_running
+	    {server_running, whereis(?server)}
     end.
 
 stop() ->
