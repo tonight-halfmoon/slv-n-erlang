@@ -37,7 +37,7 @@ interact(Server_node) ->
 await_result() ->
     receive
 	#abort_client{message=Why} ->
-	    io:format("~p~n", [Why]),
+	    io:format("Received abort message for reason: ~p~n", [Why]),
 	    exit(normal);
 	#server_reply{message=What} ->
 	    io:format("~p~n", [What]),

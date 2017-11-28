@@ -74,8 +74,8 @@ active() -> %%% Server wouldn't bother to deal with data
             %%% to another process without a need to change the interface functions.
 	#connect{client_pid=FromPid} ->
 	    connect_client(FromPid);
-	{'EXIT', FromPid, _} ->
-	    disconnect_client(FromPid);
+	{'EXIT', FromPid, Reason} ->
+	    io:format("Client ~p disconnected; reason: ~p~n", [FromPid, Reason]);
 	#cask2alloc{client_pid=FromPid} ->
 	    ?handler ! #allocate_resource{server=?server, from_pid=FromPid},
 	    await_handler(FromPid);
@@ -102,8 +102,4 @@ connect_client(ClientPid) ->
     ClientPid ! #server_reply{message=connected},
     link(ClientPid),
     io:format("Client ~p connected.~n", [ClientPid]),
-    true.
-
-disconnect_client(FlientPid) ->
-    FlientPid ! #abort_client{message='no_specific_reason!'},
     true.
