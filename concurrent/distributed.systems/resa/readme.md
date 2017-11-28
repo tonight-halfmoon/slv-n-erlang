@@ -18,9 +18,13 @@ Client is given certain public protocols to send requests to Server. No knowledg
 
 Server's data model and data structure are kept hidden from client. One occasion for example, the record '#res_ds'. It is defined in 'interface_server.hrl' and only utilised by module 'resa_server' and the internal data handler, i.e., module 'handler'.
 
+## Server As a Network of Communicating Processes
+
+Server is composed of service implementors. The server receives messages from client. Then, the different business interfaces are implemented by internally defined modules. For example, Handler module's process manages the server's data and implements the allocate and free resources. Another example, Stats provider which implements the process which is responsible to compute some kind of statistics on the data model. Server delegates such requests and these implementors do the job and sends back the relevant message.
+
 ## Integration Test
 
-To ensure the communication happens between the client and server, an integration test module is provided.
+To ensure the communication happens between the client and server, an integration test module is provided. In addition, the integration test checks the messages passing between Server's internal processes.
 
 ## Future Work
 
