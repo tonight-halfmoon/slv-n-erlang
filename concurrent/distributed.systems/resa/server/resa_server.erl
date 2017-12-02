@@ -13,22 +13,23 @@
 %%% A single server may actually be a large network of communicating processes
 %%% which implement a service, all of which would be hidden from the user by
 %%% the interface functions. It is the set of interface functions which should
-%%% be published, thiat is to say made available to users, as hese functions provide
-%%% the only legal means of accessing the services provided by a server. [Reference: Concurrent Programming in Erlang, Joe Armstrong et. al., 2nd Edt., Ericsson].
+%%% be published, as these functions provide the only legal means of accessing
+%%% the services provided by a server. [Reference: Concurrent Programming in Erlang, Joe Armstrong et. al., 2nd Edt., Ericsson].
 
 start(Free) ->
     case whereis(?server) of
 	undefined ->
-	    register(?server, spawn(?MODULE, server, [])), 
+	    register(?server, spawn(?MODULE, server, [])),
 	    register(?handler, spawn(handler, handle, [Free, []])),
 	    register(?stats, spawn(stats_provider, mk_stats, [])),
+	    io:format("RESA Server started with free resources: ~p~n", [Free]),
 	    {ok, whereis(?server)};
-	  _ ->
+	_ ->
 	    {server_running, whereis(?server)}
     end.
 
 stop() ->
-    case whereis(?server) of 
+    case whereis(?server) of
 	undefined ->
 	    server_not_running;
 	_ ->
@@ -38,7 +39,7 @@ stop() ->
 unregister_all([]) ->
     true;
 unregister_all([H|T]) ->
-    case whereis(H) of 
+    case whereis(H) of
 	undefined ->
 	    unregister_all(T);
 	_ ->

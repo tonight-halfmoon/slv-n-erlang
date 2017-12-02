@@ -16,7 +16,7 @@ start_node(Name, Fully_qualified_name, NameType) ->
 	    {Fully_qualified_name, Pid};
 	{error, {already_started, Pid}} ->
 	    io:format("The distributed node ~p already started with Pid ~p~n", [Fully_qualified_name, Pid]),
-	    {Fully_qualified_name, Pid}
+	    {Fully_qualified_name, Pid};
+	M ->
+	    io:format("Failed to start a distributed node. ~p~n", [M])
     end.
-
-

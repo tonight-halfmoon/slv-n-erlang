@@ -10,15 +10,24 @@
 -include("../../server/config_internal.hrl").
 -include("../../server/interface_server.hrl").
 -include("../../config/telecommunication.hrl").
+-include("../../server/interface_provider.hrl").
 -define(resource_example, 'ab.12.0').
 
 %%% Future Work:
 %%% Integration Test monitors both RESA's nodes, in order to insure testing coverage is progressing on healthy run.
 
+%%% To simulate Client/Server interaction and test the API and Protocols with Integration Testing
+%%% 1) start integration test server node (this module)
+%%% 2) start integration test client_node
+%%% 3) run in any order this module and integration test client node
+%%% 4) when done stop the integration test client node and then this module.
+
 start() ->
     start_server_node(),
     start_server().
 
+%%% Precondition:
+%%% client_node of Integration Test has started.
 run() ->
     eunit:test([?MODULE],[verbose]).
 
@@ -32,7 +41,7 @@ start_server_node() ->
 start_server() ->
     case resa_server:start([?resource_example]) of
 	{ok, Pid}->
-	    io:format("RESA Server started with Pid ~p~n", [Pid]),
+	    io:format("RESA Server's Pid: ~p~n", [Pid]),
 	    global:register_name(?server, Pid);
 	{server_running, Pid} ->
 	    io:format("RESA Server is running with Pid ~p~n", [Pid])
@@ -55,5 +64,5 @@ handler_freeup_test_() ->
     ?assertNotEqual(undefined, whereis_client()),
     {
       "When 'Data Handler' process receives free_resource message, and the provided resource is allocated, then it must free up the resource.",
-      ?_assertEqual({free_resource,resa_server, whereis_client(),<<131,100,0,7,97,98,46,49,50,46,48>>}, R)
+      ?_assertEqual({free_resource, resa_server, whereis_client(),<<131,100,0,7,97,98,46,49,50,46,48>>}, R)
     }.

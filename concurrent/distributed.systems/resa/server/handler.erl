@@ -16,22 +16,25 @@ handle(_Free, _Allocated) ->
 handle_hashed(Free, Allocated) ->
     receive  %% Only Server can request to free/allocate resources
 	#free_resource{server=?server, from_pid=FromPid, resource=Tent_bin} ->
-	    Ress = fun(X) -> case is_binary(X) of
+	    ResFun = fun(X) -> case is_binary(X) of
 				 true -> binary_to_term(X);
 				 false -> io:format("Unexpected~p~n", [X]),
 					  ?server ! #handler_refused{reason=unexpected_data} end end,
-	    case free(Free, Allocated, FromPid, Ress(Tent_bin)) of
+	    Ress = ResFun(Tent_bin),
+	    case free(Free, Allocated, FromPid, Ress) of
 		{ok, NewFree, NewAllocated} ->
-		    ?server ! #handler_reply{message=freed},
+		    io:format("FromPid: ~p; Resource successfully freed up: ~p~n", [FromPid, Ress]),
+		    ?server ! #handler_reply{message={freed, Ress}},
 		    handle_hashed(NewFree, NewAllocated);
-		error ->
-		    ?server ! #handler_reply{message=error},
+		{error, Reason} ->
+		    ?server ! #handler_reply{message={error, Reason}},
 		    handle_hashed(Free, Allocated)
 	    end;
 	#allocate_resource{server=?server, from_pid=FromPid} ->
 	    case allocate(Free, Allocated, FromPid) of
 		{{allocated, Resource}, NewFree, NewAllocated} ->
-		    ?server ! #handler_reply{message={yes, Resource}},
+		    io:format("FromPid: ~p; Resource successfully allocated: ~p~n", [FromPid, Resource]),
+		    ?server ! #handler_reply{message={allocated, Resource}},
 		    handle_hashed(NewFree, NewAllocated);
 		{no_free_resource, []} ->
 		    ?server ! #handler_reply{message=no},
@@ -58,12 +61,11 @@ free(Free, Allocated, _FromPid, Resource) ->
 	    Resds = pairwith_hash(Resource),
 	    {ok, [Resds|Free], keydelete(Resds#res_ds.hash, Allocated)};
 	false ->
-	    io:format("The resource is not allocated~n", []),
-	    error
+	    io:format("Resource not allocated: ~p~n", [Resource]),
+	    {error, not_allocated}
     end.
 
 allocate([R|Free], Allocated, FromPid) ->
-    io:format("FromPid: ~p; Resource allocated: ~p~n", [FromPid, R]),
     {{allocated, R#res_ds.value}, Free, [{R, FromPid}|Allocated]};
 allocate([], _Allocated, _FromPid) ->
     {no_free_resource, []}.
