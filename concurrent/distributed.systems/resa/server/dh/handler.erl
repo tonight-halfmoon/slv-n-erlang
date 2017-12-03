@@ -1,5 +1,5 @@
 -module(handler).
--import(dh_lib, [pairwith_hash/1, keymember/2, keydelete/2]).
+-import(dh_lib, [pairwith_hash/1, keymember/2, keydelete/2, values/1]).
 -export([handle/2]).
 -include("../../config/config.hrl").
 -include("../interface_server.hrl").
@@ -20,9 +20,9 @@ handle_hashed(Free, Allocated) ->
     receive  %% Only Server can request to free/allocate resources
 	#free_resource{server=?server, from_pid=FromPid, resource=Tent_bin} ->
 	    ResFun = fun(X) -> case is_binary(X) of
-				 true -> binary_to_term(X);
-				 false -> io:format("Unexpected~p~n", [X]),
-					  ?server ! #handler_refused{reason=unexpected_data} end end,
+				   true -> binary_to_term(X);
+				   false -> io:format("Unexpected~p~n", [X]),
+					    ?server ! #handler_refused{reason=unexpected_data} end end,
 	    Ress = ResFun(Tent_bin),
 	    case free(Free, Allocated, FromPid, Ress) of
 		{ok, NewFree, NewAllocated} ->
@@ -43,9 +43,10 @@ handle_hashed(Free, Allocated) ->
 		    ?server ! #handler_reply{message=no},
 		    handle_hashed([], Allocated)
 	    end;
-	#server_request_data{server=?server} ->  %% Only Server can request data structure
-	    DS = #data_structure{free=Free, allocated=Allocated},  %% it would be much better to take out the values from Free/Allocated and
-	    ?server ! #handler_reply_data{data=DS},                %% send it to stats provider in order to keep internal data structure hidden
+	#server_request_data{server=?server} ->  %% Only Server can request the data
+	    % 'handler' replies with only a list or resources names without showing the actual data structure
+	    DS = #data_structure{free=values(Free), allocated=values(Allocated)},
+	    ?server ! #handler_reply_data{data=DS},
 	    handle_hashed(Free, Allocated);
 	{'EXIT', From, Reason} ->
 	    io:format("Received 'EXIT' flag from ~p for reason ~p~n", [From, Reason]),

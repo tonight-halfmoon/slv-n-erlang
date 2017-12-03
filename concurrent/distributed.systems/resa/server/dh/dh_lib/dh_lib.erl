@@ -6,7 +6,7 @@
 %%% On the 2 Dec 2017
 
 -module(dh_lib).
--export([pairwith_hash/1, keymember/2, keydelete/2, is_string/1]).
+-export([pairwith_hash/1, keymember/2, keydelete/2, values/1]).
 -include_lib("eunit/include/eunit.hrl").
 -include("../../interface_server.hrl").
 
@@ -97,7 +97,6 @@ keydelete_test_() ->
       ?_assertEqual([], keydelete(Hash, [{#res_ds{hash=Hash, value=any}, pid}]))
     }.
 
-
 keydelete_key_not_exist_test_() ->
     Hash = erlang:phash2('asv.32'),
     Hash2 = erlang:phash2('ab.bb.r'),
@@ -125,3 +124,27 @@ is_string(I) ->
 	error:badarg ->
 	    false
     end.
+
+values_free_list_test_() ->
+    L = [#res_ds{hash=any, value=ab}, #res_ds{hash=any, value=rt}, #res_ds{hash=any, value=pl}],
+    {
+      "When function 'values' is invoked with a list of record #res_ds{hash, value}, then it must return a list of all values without the keys",
+      ?_assertEqual([pl, rt, ab], values(L))
+    }.
+
+values_allocated_list_test_() ->
+    L = [{#res_ds{hash=any, value=ab}, any}, {#res_ds{hash=any, value=rt}, any}, {#res_ds{hash=any, value=pl}, any}],
+    {
+      "When function 'values' is invoked with a list of {#res_ds{hash, value}, Pid}, then it must return a list of all values without the keys",
+      ?_assertEqual([pl, rt, ab], values(L))
+    }.
+
+values(L) ->
+    values(L, []).
+
+values([], Vs) ->
+    Vs;
+values([#res_ds{hash=_, value=V}|T], Vs) ->
+    values(T, [V|Vs]);
+values([{#res_ds{hash=_, value=V}, _}|T], Vs) ->
+    values(T, [V|Vs]).

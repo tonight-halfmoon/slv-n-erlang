@@ -10,6 +10,7 @@
 mk_stats() ->
     receive
 	M = #request_stats{from_pid=FromPid, free=Free, allocated=Allocated} ->
+	    io:format("Stats provider received message ~p~n", [M]),
 	    FromPid ! #stats_reply{stats_free=#stats{name=free, length=length(Free)}, stats_allocated=#stats{name=allocated, length=length(Allocated)}}
     end,
     mk_stats().
