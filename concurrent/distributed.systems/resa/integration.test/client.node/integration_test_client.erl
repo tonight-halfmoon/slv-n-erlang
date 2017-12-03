@@ -76,7 +76,7 @@ ui_stats_test_() ->
       ?_assertEqual(attempt4stats, user_interface:stats())
     }.
 
-%%% Integration Test's Client node acts as a client and overrides published API by requesting services from the server using protocols.
+%%% Integration Test's Client node acts as a client and overrides published API by requesting services from the server using the defined protocols.
 %%% Overriding the API is for the purpose of Integration Testing.
 
 client_ask4stats_test_() ->
@@ -84,7 +84,7 @@ client_ask4stats_test_() ->
     receive
 	M = #stats_reply{stats_free=#stats{name=_, length=FL}, stats_allocated=#stats{name=_, length=AL}}  ->
 	    {
-	      "When Client asks the server for stats on resources, then the server must delegate the request to the stats provider which in turn it must reply to the client",
+	      "When a client asks the server for stats on resources, then the server must delegate the request to the stats provider which in turn it must reply to the client",
 	      ?_assertMatch({stats_reply, {stats, free, FL},{stats, allocated, AL}} when {true, true} =:= {is_integer(FL), is_integer(AL)}, M)
 	    }
     end.
@@ -99,7 +99,7 @@ client_ask2freeup_test_() ->
     receive
 	M = #server_reply{message=_} ->
 	    {
-	      "When Client asks the server to free up a resource and that resource is allocated, then the server must free up the resource and reply with 'freed'.", 
+	      "When a client asks the server to free up a resource and that resource is allocated, then the server must free up the resource and reply with message 'freed'.", 
 	      ?_assertEqual({server_reply, {freed, ?resource_example}}, M)
 	    }
     end.
@@ -114,7 +114,7 @@ client_ask2allocate_test_() ->
     receive
 	M = #server_reply{message=_} ->
 	    {
-	      "",
+	      "When a client asks the server to allocate a resource and there is at least one free resource, then the server must allocate the resource and reply to the client with message 'allocated' and the name of the resource.",
 	      ?_assertEqual({server_reply, {allocated, ?resource_example}}, M)
 	    }
     end.
