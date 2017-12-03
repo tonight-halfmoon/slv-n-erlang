@@ -60,7 +60,7 @@ disconnect_client() ->
 
 ui_allocate_test_() ->
     {
-      "User Interface's function 'Aalocate' must send the right protocol to the server",
+      "User Interface's function 'Allocate' must send the right protocol to the server",
       ?_assertEqual(attempt2allocate, user_interface:allocate())
     }.
 

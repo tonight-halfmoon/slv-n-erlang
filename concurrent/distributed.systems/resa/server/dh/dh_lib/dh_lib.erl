@@ -123,8 +123,5 @@ is_string(I) ->
 	    true
     catch
 	error:badarg ->
-	    false;
-	Anything_else ->
-	    io:format("Caught Class:Exception ~p~n", [Anything_else]),
 	    false
     end.

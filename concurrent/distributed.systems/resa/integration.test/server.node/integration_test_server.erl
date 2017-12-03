@@ -52,17 +52,5 @@ whereis_client() ->
     ?assertNotEqual(undefined, P),
     P.
 
-handler_allocate_test_() ->
-    R = ?handler ! #allocate_resource{server=?server, from_pid=whereis_client()},
-    {
-      "When 'Data Handler' receives 'allocate_resource' message, and there is at least one free resource, then it must allocate the free resource.",
-      ?_assertEqual({allocate_resource,?server, whereis_client()}, R)
-    }.
-
-handler_freeup_test_() ->
-    R = ?handler ! #free_resource{server=?server, from_pid=whereis_client(), resource=term_to_binary(?resource_example)},
-    ?assertNotEqual(undefined, whereis_client()),
-    {
-      "When 'Data Handler' process receives free_resource message, and the provided resource is allocated, then it must free up the resource.",
-      ?_assertEqual({free_resource, resa_server, whereis_client(),<<131,100,0,7,97,98,46,49,50,46,48>>}, R)
-    }.
+whereis_client_test_() ->
+    {"Client must be globally registered ", ?_assertMatch(Pid when is_pid(Pid), whereis_client())}.
