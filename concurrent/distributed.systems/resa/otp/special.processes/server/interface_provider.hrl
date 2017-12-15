@@ -1,0 +1,4 @@
+-record(request_stats, {from_pid, free, allocated}).
+-record(sp_started, {pid, name, parent, state}).
+-record(sp_stopped, {event, reason, from}).
+-record(sp_processing, {data}).

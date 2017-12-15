@@ -1,0 +1,1 @@
+-define(ssp, service_stats_provider).

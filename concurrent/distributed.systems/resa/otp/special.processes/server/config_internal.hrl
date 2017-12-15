@@ -1,0 +1,5 @@
+-define(handler, handler).
+-record(server_started,  {pid, name, state}).
+-record(server_stopped, {event, reason, from}).
+-record(dh_started, {pid, name, state}).
+-record(dh_stopped, {event, reason, from}).
