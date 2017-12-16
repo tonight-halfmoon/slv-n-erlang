@@ -47,6 +47,9 @@ init(Parent, Free) ->
     process_flag(trap_exit, true),
     active(Parent, Deb2).
 
+%%% Assumptions:
+%%% Function 'active' assumes that service providers have been started by Service Manager
+
 active(Parent, Deb) -> 
     receive 
 	{system, From, Request} ->
@@ -66,22 +69,32 @@ active(Parent, Deb) ->
 			     ?MODULE, #server_stopped{event='EXIT', reason=Reason, from=FromPid})
 	    %unregister_all(?all_registered);
 	   ;
-	#cask2alloc{client_pid=FromPid} ->
+	Msg = #cask2alloc{client_pid=FromPid} ->
+	    Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
+				   ?MODULE, {in, #server_received{from=FromPid, msg=Msg}}),
 	    ?handler ! #allocate_resource{server=?server, from_pid=FromPid},
-	    await_handler(FromPid),
-	    active(Parent, Deb);
+	    Deb3 = await_handler(FromPid, Deb2),
+	    active(Parent, Deb3);
 
-	#cask2free{client_pid=FromPid, resource=Resource} ->
+	Msg = #cask2free{client_pid=FromPid, resource=Resource} ->
+	    Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
+				   ?MODULE, {in, #server_received{from=FromPid, msg=Msg}}),
 	    ?handler ! #free_resource{server=?server, from_pid=FromPid, resource=Resource},
-	    await_handler(FromPid),
-	    active(Parent, Deb);
+	    Deb3 = await_handler(FromPid, Deb2),
+	    active(Parent, Deb3);
 
-	#cask4stats{client_pid=FromPid} ->
+	Msg = #cask4stats{client_pid=FromPid} ->
+	    Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
+				   ?MODULE, {in, #server_received{from=FromPid, msg=Msg}}),
 	    ?handler ! #server_request_data{server=?server},
 	    receive
 		#handler_reply_data{data=#data_structure{free=Free, allocated=Allocated}} ->
 		    ?ssp ! #request_stats{from_pid=FromPid, free=Free, allocated=Allocated},
-		    active(Parent, Deb)
+		    active(Parent, Deb2);
+		Msg ->
+		    Deb3 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
+					    ?MODULE, {in, #server_received_unexpected{from=?handler, msg=Msg}}),
+		    active(Parent, Deb3)
 	    end
     end.
 
@@ -106,18 +119,22 @@ unregister_all([H|T]) ->
 	    unregister_all(T)
     end.
 
-await_handler(FromPid) ->
+await_handler(From_pid, Deb) ->
     receive
 	#handler_reply{message=Message} ->
-	    FromPid ! #server_reply{message=Message};
+	    From_pid ! M = #server_reply{message=Message},
+	    sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
+			    ?MODULE, {out, #server_has_sent{msg=M, to=From_pid}});
 	#handler_refused{reason=Reason} ->
-	    FromPid ! #server_reply{message=lists:concat([request_not_carried_out, Reason])}
+	    From_pid ! M = #server_reply{message=lists:concat([request_not_carried_out, Reason])},
+	    sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
+			     ?MODULE, {out, #server_has_sent{msg=M, to=From_pid}})
     end.
 
 connect_client(ClientPid, Deb) ->
-    ClientPid ! #server_reply{message=client_connected},
+    ClientPid ! M = #server_reply{message=client_connected},
     Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
-			    ?MODULE, {out,  #server_reply{message=client_connected}, ClientPid}),
+			    ?MODULE, {out, M, ClientPid}),
     link(ClientPid),
     Deb2.
 

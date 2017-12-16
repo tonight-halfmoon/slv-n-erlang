@@ -1,6 +1,9 @@
 -define(handler, handler).
 -record(server_started,  {pid, name, state}).
 -record(server_stopped, {event, reason, from}).
+-record(server_received, {from, msg}).
+-record(server_received_unexpected, {from, msg}).
+-record(server_has_sent, {msg, to}).
 -record(dh_started, {pid, name, state}).
 -record(dh_stopped, {event, reason, from}).
 -record(allocate_resource, {server, from_pid}).
