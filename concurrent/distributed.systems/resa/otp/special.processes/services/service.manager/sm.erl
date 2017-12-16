@@ -15,8 +15,8 @@
 -import(stats_provider, [init_sp/1]).
 -define(sm, ?MODULE).
 -define(all_registered, [?sm, ?ssp]).
--include("interface_sm.hrl").
--include("config.hrl").
+-include("config_internal.hrl").
+-include("../../config/config.hrl").
 
 spawn_link() ->
     case whereis(?sm) of

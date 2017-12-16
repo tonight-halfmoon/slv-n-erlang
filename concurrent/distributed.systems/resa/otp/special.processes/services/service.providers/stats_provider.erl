@@ -3,14 +3,14 @@
 -export([system_continue/3, system_terminate/4,
 	 write_debug/3,
 	system_get_state/1]).
--include("../interface_provider.hrl").
+-include("config_internal.hrl").
 -include("../../config/telecommunication.hrl").
 -include("../../config/config.hrl").
 
 init_sp(Parent) ->
     Deb = sys:debug_options([statistics, trace]),
     Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
-			   ?MODULE, #sp_started{pid=self(), name=?stats, parent=Parent, state={}}),
+			   ?MODULE, #sp_started{pid=self(), name=?ssp, parent=Parent, state={}}),
     process_flag(trap_exit, true),
     active({}, Parent, Deb2).
 

@@ -4,14 +4,12 @@
 -export([system_continue/3, system_terminate/4,
 	write_debug/3,
 	system_get_state/1, system_replace_state/2]).
--include("../config/config.hrl").
 -include("config_internal.hrl").
--include("interface_server.hrl").
--include("interface_provider.hrl").
+-include("../config/config.hrl").
 -include("../config/telecommunication.hrl").
 -import(handler, [init_dh/2]).
 -import(stats_provider, [init_sp/1]).
--define(all_registered, [?server, ?handler, ?stats]).
+-define(all_registered, [?server, ?handler, ?ssp]).
 
 %%% Special Processes
 %%% A Process that complies to the OTP design principles, without using a standard 
@@ -42,7 +40,7 @@ init(Parent, Free) ->
 	{error, Reason} ->
 	    exit(Reason)
     end,   
-    register(?stats, proc_lib:spawn_link(stats_provider, init_sp, [self()])),
+    register(?ssp, proc_lib:spawn_link(stats_provider, init_sp, [self()])),
 
     Deb = sys:debug_options([statistics, trace]),
     Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
@@ -67,9 +65,9 @@ active(Parent, Deb) ->
 	
 	{'EXIT', FromPid, Reason} ->
 	    sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
-			     ?MODULE, #server_stopped{event='EXIT', reason=Reason, from=FromPid}),
-	    unregister_all(?all_registered);
-	   
+			     ?MODULE, #server_stopped{event='EXIT', reason=Reason, from=FromPid})
+	    %unregister_all(?all_registered);
+	   ;
 	#cask2alloc{client_pid=FromPid} ->
 	    ?handler ! #allocate_resource{server=?server, from_pid=FromPid},
 	    await_handler(FromPid),
@@ -84,7 +82,7 @@ active(Parent, Deb) ->
 	    ?handler ! #server_request_data{server=?server},
 	    receive
 		#handler_reply_data{data=#data_structure{free=Free, allocated=Allocated}} ->
-		    ?stats ! #request_stats{from_pid=FromPid, free=Free, allocated=Allocated},
+		    ?ssp ! #request_stats{from_pid=FromPid, free=Free, allocated=Allocated},
 		    active(Parent, Deb)
 	    end
     end.
@@ -95,6 +93,7 @@ stop() ->
 	    server_not_running;
 	_ ->
 	    ?server ! {'EXIT', self(), 'normal'},
+	    unregister_all(?all_registered),
 	    ok
     end.
 
