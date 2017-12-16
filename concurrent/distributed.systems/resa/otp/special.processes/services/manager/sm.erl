@@ -27,7 +27,7 @@ spawn_link() ->
     end.
 
 init(Parent) ->
-    %unregister_all(?all_registered),
+    unregister_all(?all_registered),
     register(?sm, self()),
     register(?ssp, proc_lib:spawn_link(stats_provider, init_sp, [self()])),
     Deb = sys:debug_options([statistics, trace]),

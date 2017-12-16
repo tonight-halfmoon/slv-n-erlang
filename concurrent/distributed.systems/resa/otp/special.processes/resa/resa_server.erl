@@ -8,8 +8,7 @@
 -include("../config/config.hrl").
 -include("../config/telecommunication.hrl").
 -import(handler, [init_dh/2]).
--import(stats_provider, [init_sp/1]).
--define(all_registered, [?server, ?handler, ?ssp]).
+-define(all_registered, [?server, ?handler]).
 
 %%% Special Processes
 %%% A Process that complies to the OTP design principles, without using a standard 
@@ -40,7 +39,6 @@ init(Parent, Free) ->
 	{error, Reason} ->
 	    exit(Reason)
     end,   
-    register(?ssp, proc_lib:spawn_link(stats_provider, init_sp, [self()])),
 
     Deb = sys:debug_options([statistics, trace]),
     Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
