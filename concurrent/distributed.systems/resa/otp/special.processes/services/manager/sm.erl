@@ -13,6 +13,7 @@
 	write_debug/3,
 	system_get_state/1, system_replace_state/2]).
 -import(stats_provider, [init_sp/1]).
+-import(name_lib, [unregister_all/1]).
 -define(sm, ?MODULE).
 -define(all_registered, [?sm, ?ssp]).
 -include("config_internal.hrl").
@@ -92,16 +93,6 @@ system_replace_state(StateFun, State) ->
     
 
 % TODO move this to lib (code clone from resa_server module).
-unregister_all([]) ->
-    true;
-unregister_all([H|T]) ->
-    case whereis(H) of
-	undefined ->
-	    unregister_all(T);
-	_ ->
-	    unregister(H),
-	    unregister_all(T)
-    end.
 
 stop() ->
     case whereis(?sm) of

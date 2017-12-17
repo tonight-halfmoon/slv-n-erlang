@@ -8,6 +8,7 @@
 -include("../config/config.hrl").
 -include("../config/telecommunication.hrl").
 -import(handler, [init_dh/2]).
+-import(name_lib, [unregister_all/1]).
 -define(all_registered, [?server, ?handler]).
 
 %%% Special Processes
@@ -106,17 +107,6 @@ stop() ->
 	    ?server ! {'EXIT', self(), 'normal'},
 	    unregister_all(?all_registered),
 	    ok
-    end.
-
-unregister_all([]) ->
-    true;
-unregister_all([H|T]) ->
-    case whereis(H) of
-	undefined ->
-	    unregister_all(T);
-	_ ->
-	    unregister(H),
-	    unregister_all(T)
     end.
 
 await_handler(From_pid, Deb) ->
