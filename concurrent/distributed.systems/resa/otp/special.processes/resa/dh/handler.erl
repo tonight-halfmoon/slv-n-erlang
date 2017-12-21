@@ -29,6 +29,8 @@ handle_hashed(State = {Free, Allocated}, Parent, Deb) ->
 	    sys:handle_system_msg(Request, From, Parent, ?MODULE, Deb, State);
 
 	#free_resource{server=?server, from_pid=FromPid, resource=Tent_bin} ->
+	    Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
+				    ?MODULE, {in, #free_resource{server=?server, from_pid=FromPid, resource=Tent_bin}, FromPid}),
 	    ResFun = fun(X) -> case is_binary(X) of
 				   true -> binary_to_term(X);
 				   false -> io:format("Unexpected term ~p~n", [X]),
@@ -36,12 +38,18 @@ handle_hashed(State = {Free, Allocated}, Parent, Deb) ->
 	    Ress = ResFun(Tent_bin),
 	    case free(Free, Allocated, FromPid, Ress) of
 		{ok, NewFree, NewAllocated} ->
-		    io:format("FromPid ~p; Resource successfully freed up: ~p~n", [FromPid, Ress]),
+		    Deb3 = sys:handle_debug(Deb2, fun ?MODULE:write_debug/3,
+					  ?MODULE, {{"Resource successfully freed up", Ress}, FromPid}),
 		    ?server ! #handler_reply{message={freed, Ress}},
-		    handle_hashed({NewFree, NewAllocated}, Parent, Deb);
+		    Deb4 = sys:handle_debug(Deb3, fun ?MODULE:write_debug/3,
+					    ?MODULE,  {#handler_reply{message={freed, Ress}}, ?server}),
+		    handle_hashed({NewFree, NewAllocated}, Parent, Deb4);
+		
 		{error, Reason} ->
 		    ?server ! #handler_reply{message={error, Reason}},
-		    handle_hashed(State, Parent, Deb)
+		    Deb3 = sys:handle_debug(Deb2, fun ?MODULE:write_debug/3,
+					    ?MODULE, {out, #handler_reply{message={error, Reason}}, ?server}),
+		    handle_hashed(State, Parent, Deb3)
 	    end;
 
 	#allocate_resource{server=?server, from_pid=FromPid} ->

@@ -1,10 +1,13 @@
 -module(protocol_tests).
--export([before_each/0, after_each/1]).
+-export([run_suite/0, after_each/1, before_each/0]).
 -include("../config/config.hrl").
 -include("../resa/config_internal.hrl").
 -include("../config/telecommunication.hrl").
 -include_lib("eunit/include/eunit.hrl").
 -define(sr, 'ab.12').
+
+run_suite() ->
+    eunit:test(?MODULE, [verbose]).
 
 before_each() ->
    [
