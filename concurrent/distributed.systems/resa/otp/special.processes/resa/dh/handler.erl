@@ -23,8 +23,8 @@ init_dh(_, {_Free, _Allocated}) ->
     {error, not_interested}.
 
 handle_hashed(State = {Free, Allocated}, Parent, Deb) ->
+    
     receive 
-
 	{system, From, Request} ->
 	    sys:handle_system_msg(Request, From, Parent, ?MODULE, Deb, State);
 
@@ -33,8 +33,13 @@ handle_hashed(State = {Free, Allocated}, Parent, Deb) ->
 				    ?MODULE, {in, #free_resource{server=?server, from_pid=FromPid, resource=Tent_bin}, FromPid}),
 	    ResFun = fun(X) -> case is_binary(X) of
 				   true -> binary_to_term(X);
-				   false -> io:format("Unexpected term ~p~n", [X]),
-					    ?server ! #handler_refused{reason=unexpected_data} end end,
+				   false -> Deb3 = sys:handle_debug(Deb2, fun ?MODULE:write_debug/3,
+								   ?MODULE, {{"Unexpected input term", X}, FromPid}),
+					    ?server ! #handler_refused{reason=unexpected_data},
+					    sys:handle_debug(Deb3, fun ?MODULE:write_debug/3,
+							     ?MODULE, {out, #handler_refused{reason=unexpected_data}, ?server})
+			       end
+		     end,
 	    Ress = ResFun(Tent_bin),
 	    case free(Free, Allocated, FromPid, Ress) of
 		{ok, NewFree, NewAllocated} ->
@@ -55,19 +60,28 @@ handle_hashed(State = {Free, Allocated}, Parent, Deb) ->
 	#allocate_resource{server=?server, from_pid=FromPid} ->
 	    case allocate(Free, Allocated, FromPid) of
 		{{allocated, Resource}, NewFree, NewAllocated} ->
-		    io:format("FromPid ~p; Resource successfully allocated: ~p~n", [FromPid, Resource]),
+		    Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
+					    ?MODULE, {{"Resource successfully allocated"}, FromPid, Resource}),
 		    ?server ! #handler_reply{message={allocated, Resource}},
-		    handle_hashed({NewFree, NewAllocated}, Parent, Deb);
+		    Deb3 = sys:handle_debug(Deb2, fun ?MODULE:write_debug/3,
+					    ?MODULE, {out, #handler_reply{message={allocated, Resource}}, ?server}),
+		    handle_hashed({NewFree, NewAllocated}, Parent, Deb3);
 		{no_free_resource, []} ->
 		    ?server ! #handler_reply{message=no},
-		    handle_hashed(State, Parent, Deb)
+		    Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
+					   ?MODULE, {out, #handler_reply{message=no}, ?server}),
+		    handle_hashed(State, Parent, Deb2)
 	    end;
 
-	#server_request_data{server=?server} -> 
+	#server_request_data{server=?server} ->
+	    Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
+				    ?MODULE, {in, #server_request_data{server=?server}, ?server}),
 	    % 'handler' replies with only a list or resources names without showing the actual data structure
 	    DS = #data_structure{free=values(Free), allocated=values(Allocated)},
 	    ?server ! #handler_reply_data{data=DS},
-	    handle_hashed(State, Parent, Deb);
+	    Deb3 = sys:handle_debug(Deb2, fun ?MODULE:write_debug/3,
+				   ?MODULE, {out, #handler_reply_data{data=DS}, ?server}),
+	    handle_hashed(State, Parent, Deb3);
 
 	{'EXIT', From, Reason} ->
 	    sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
