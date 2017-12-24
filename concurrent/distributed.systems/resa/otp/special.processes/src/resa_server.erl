@@ -5,8 +5,8 @@
 	write_debug/3,
 	system_get_state/1, system_replace_state/2]).
 -include("config_internal.hrl").
--include("../config/config.hrl").
--include("../config/telecommunication.hrl").
+-include("config.hrl").
+-include("telecommunication.hrl").
 -import(handler, [init_dh/2]).
 -import(name_lib, [unregister_all/1]).
 -define(all_registered, [?server, ?handler]).

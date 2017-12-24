@@ -3,9 +3,9 @@
 -export([init_dh/2]).
 -export([system_continue/3, system_terminate/4,
 	 write_debug/3]).
--include("../../config/config.hrl").
--include("../config_internal.hrl").
--include("../../config/telecommunication.hrl").
+-include("config.hrl").
+-include("config_internal.hrl").
+-include("telecommunication.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
 init_dh(_, {Free, []}) when not is_list(Free) ->

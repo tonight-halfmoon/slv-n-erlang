@@ -1,8 +1,8 @@
 -module(e2e_sim).
 -export([start/0, stop/0, freeup/0, alloc/0, stats/0, after_each/1, before_each/0]).
--include("../config/config.hrl").
--include("../resa/config_internal.hrl").
--include("../config/telecommunication.hrl").
+-include("../include/config.hrl").
+-include("../include/config_internal.hrl").
+-include("../include/telecommunication.hrl").
 -include_lib("eunit/include/eunit.hrl").
 -define(sr, 'ab.12').
 
