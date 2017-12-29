@@ -12,12 +12,12 @@
 -export([system_continue/3, system_terminate/4,
 	write_debug/3,
 	system_get_state/1, system_replace_state/2]).
--import(stats_provider, [init_sp/1]).
+-import(sp, [init_sp/1]).
 -import(name_lib, [unregister_all/1]).
 -define(sm, ?MODULE).
 -define(all_registered, [?sm, ?ssp]).
--include("config_internal.hrl").
--include("../../config/config.hrl").
+-include("sm.hrl").
+-include("config.hrl").
 
 spawn_link() ->
     case whereis(?sm) of
@@ -30,7 +30,7 @@ spawn_link() ->
 init(Parent) ->
     unregister_all(?all_registered),
     register(?sm, self()),
-    register(?ssp, proc_lib:spawn_link(stats_provider, init_sp, [self()])),
+    register(?ssp, proc_lib:spawn_link(sp, init_sp, [self()])),
     Deb = sys:debug_options([statistics, trace]),
     State = [?ssp],
     Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3,

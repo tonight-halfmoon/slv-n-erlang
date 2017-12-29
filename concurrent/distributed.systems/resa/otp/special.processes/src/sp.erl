@@ -1,11 +1,11 @@
--module(stats_provider).
+-module(sp).
 -export([init_sp/1]).
 -export([system_continue/3, system_terminate/4,
 	 write_debug/3,
 	system_get_state/1]).
--include("config_internal.hrl").
--include("../../config/telecommunication.hrl").
--include("../../config/config.hrl").
+-include("sp.hrl").
+-include("telecommunication.hrl").
+-include("config.hrl").
 
 init_sp(Parent) ->
     Deb = sys:debug_options([statistics, trace]),

@@ -1,10 +1,10 @@
--module(handler).
+-module(rh).
 -import(dh_lib, [pairwith_hash/1, keymember/2, keydelete/2, values/1]).
 -export([init_dh/2]).
 -export([system_continue/3, system_terminate/4,
 	 write_debug/3]).
 -include("config.hrl").
--include("config_internal.hrl").
+-include("resa_server.hrl").
 -include("telecommunication.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
@@ -15,7 +15,7 @@ init_dh(_, {[], []}) ->
 init_dh(Parent, {Free, []}) ->
     Deb = sys:debug_options([statistics, trace]),
     Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
-			   ?MODULE, #dh_started{pid=self(), name=?handler, state={Free, []}}),
+			   ?MODULE, #rh_started{pid=self(), name=?handler, state={Free, []}}),
     proc_lib:init_ack(Parent, {ok, self()}),
     process_flag(trap_exit, true),
     handle_hashed({pairwith_hash(Free), []}, Parent, Deb2);
@@ -35,9 +35,9 @@ handle_hashed(State = {Free, Allocated}, Parent, Deb) ->
 				   true -> binary_to_term(X);
 				   false -> Deb3 = sys:handle_debug(Deb2, fun ?MODULE:write_debug/3,
 								   ?MODULE, {{"Unexpected input term", X}, FromPid}),
-					    ?server ! #handler_refused{reason=unexpected_data},
+					    ?server ! #rh_refused{reason=unexpected_data},
 					    sys:handle_debug(Deb3, fun ?MODULE:write_debug/3,
-							     ?MODULE, {out, #handler_refused{reason=unexpected_data}, ?server})
+							     ?MODULE, {out, #rh_refused{reason=unexpected_data}, ?server})
 			       end
 		     end,
 	    Ress = ResFun(Tent_bin),
@@ -45,15 +45,15 @@ handle_hashed(State = {Free, Allocated}, Parent, Deb) ->
 		{ok, NewFree, NewAllocated} ->
 		    Deb3 = sys:handle_debug(Deb2, fun ?MODULE:write_debug/3,
 					  ?MODULE, {{"Resource successfully freed up", Ress}, FromPid}),
-		    ?server ! #handler_reply{message={freed, Ress}},
+		    ?server ! #rh_reply{message={freed, Ress}},
 		    Deb4 = sys:handle_debug(Deb3, fun ?MODULE:write_debug/3,
-					    ?MODULE,  {#handler_reply{message={freed, Ress}}, ?server}),
+					    ?MODULE,  {#rh_reply{message={freed, Ress}}, ?server}),
 		    handle_hashed({NewFree, NewAllocated}, Parent, Deb4);
 		
 		{error, Reason} ->
-		    ?server ! #handler_reply{message={error, Reason}},
+		    ?server ! #rh_reply{message={error, Reason}},
 		    Deb3 = sys:handle_debug(Deb2, fun ?MODULE:write_debug/3,
-					    ?MODULE, {out, #handler_reply{message={error, Reason}}, ?server}),
+					    ?MODULE, {out, #rh_reply{message={error, Reason}}, ?server}),
 		    handle_hashed(State, Parent, Deb3)
 	    end;
 
@@ -62,14 +62,14 @@ handle_hashed(State = {Free, Allocated}, Parent, Deb) ->
 		{{allocated, Resource}, NewFree, NewAllocated} ->
 		    Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
 					    ?MODULE, {{"Resource successfully allocated"}, FromPid, Resource}),
-		    ?server ! #handler_reply{message={allocated, Resource}},
+		    ?server ! #rh_reply{message={allocated, Resource}},
 		    Deb3 = sys:handle_debug(Deb2, fun ?MODULE:write_debug/3,
-					    ?MODULE, {out, #handler_reply{message={allocated, Resource}}, ?server}),
+					    ?MODULE, {out, #rh_reply{message={allocated, Resource}}, ?server}),
 		    handle_hashed({NewFree, NewAllocated}, Parent, Deb3);
 		{no_free_resource, []} ->
-		    ?server ! #handler_reply{message=no},
+		    ?server ! #rh_reply{message=no},
 		    Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
-					   ?MODULE, {out, #handler_reply{message=no}, ?server}),
+					   ?MODULE, {out, #rh_reply{message=no}, ?server}),
 		    handle_hashed(State, Parent, Deb2)
 	    end;
 
@@ -78,18 +78,18 @@ handle_hashed(State = {Free, Allocated}, Parent, Deb) ->
 				    ?MODULE, {in, #server_request_data{server=?server}, ?server}),
 	    % 'handler' replies with only a list or resources names without showing the actual data structure
 	    DS = #data_structure{free=values(Free), allocated=values(Allocated)},
-	    ?server ! #handler_reply_data{data=DS},
+	    ?server ! #rh_reply_data{data=DS},
 	    Deb3 = sys:handle_debug(Deb2, fun ?MODULE:write_debug/3,
-				   ?MODULE, {out, #handler_reply_data{data=DS}, ?server}),
+				   ?MODULE, {out, #rh_reply_data{data=DS}, ?server}),
 	    handle_hashed(State, Parent, Deb3);
 
 	{'EXIT', From, Reason} ->
 	    sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
-			     ?MODULE, #dh_stopped{event='EXIT', reason=Reason, from=From});
+			     ?MODULE, #rh_stopped{event='EXIT', reason=Reason, from=From});
 
 	{stop, Reason, From} ->
 	    sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
-			     ?MODULE, #dh_stopped{event=stop, reason=Reason, from=From}),
+			     ?MODULE, #rh_stopped{event=stop, reason=Reason, from=From}),
 	    exit(Reason)
     end.
 

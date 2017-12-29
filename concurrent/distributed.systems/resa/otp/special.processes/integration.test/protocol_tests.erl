@@ -1,7 +1,7 @@
 -module(protocol_tests).
 -export([run_suite/0, after_each/1, before_each/0]).
 -include("../include/config.hrl").
--include("../include/config_internal.hrl").
+-include("../src/resa_server.hrl").
 -include("../include/telecommunication.hrl").
 -include_lib("eunit/include/eunit.hrl").
 -define(sr, 'ab.12').

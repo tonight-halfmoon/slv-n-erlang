@@ -4,13 +4,13 @@
 -record(server_received, {from, msg}).
 -record(server_received_unexpected, {from, msg}).
 -record(server_has_sent, {msg, to}).
--record(dh_started, {pid, name, state}).
--record(dh_stopped, {event, reason, from}).
+-record(rh_started, {pid, name, state}).
+-record(rh_stopped, {event, reason, from}).
 -record(allocate_resource, {server, from_pid}).
 -record(res_ds, {hash, value}).
 -record(free_resource, {server, from_pid, resource}).
 -record(data_structure, {free=#res_ds{}, allocated=#res_ds{}}).
 -record(server_request_data, {server}).
--record(handler_reply, {message}).
--record(handler_reply_data, {data=#data_structure{}}).
--record(handler_refused, {reason}).
+-record(rh_reply, {message}).
+-record(rh_reply_data, {data=#data_structure{}}).
+-record(rh_refused, {reason}).
