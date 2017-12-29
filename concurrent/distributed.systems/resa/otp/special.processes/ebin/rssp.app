@@ -1,9 +1,9 @@
-{application, resa_serversp,
+{application, rssp,
 	      [{description, "Resa Server implements OTP Special Processes"},
 	       {vsn, "1"},
-	       {registered, [resa_serversp]},
+	       {registered, [rsspa]},
 	       {applications, [kernel, stdlib]},
-	       {mod, {resa_serversp, []}},
+	       {mod, {resa_server, [['ap.r109']]}},
 	       {env, []},
 	       {modules, [resa_server, handler, stats_provider]}
 	      ]}.

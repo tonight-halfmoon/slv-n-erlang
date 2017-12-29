@@ -1,4 +1,6 @@
 -module(resa_server).
+-behaviour(application).
+-export([start/2, stop/1]).
 -export([start_link/1, stop/0]).
 -export([init/2]).
 -export([system_continue/3, system_terminate/4,
@@ -10,6 +12,12 @@
 -import(handler, [init_dh/2]).
 -import(name_lib, [unregister_all/1]).
 -define(all_registered, [?server, ?handler]).
+
+start(_Type, Args) ->
+    ?MODULE:start_link(Args).
+
+stop(_State) ->
+    ok.
 
 %%% Special Processes
 %%% A Process that complies to the OTP design principles, without using a standard 
