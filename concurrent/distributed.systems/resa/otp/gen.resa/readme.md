@@ -1,0 +1,1 @@
+## Resa Server implements OTP Design Principles - Generic Server
