@@ -11,12 +11,13 @@
 -behaviour(supervisor).
 
 %% API
--export([start_link/0]).
+-export([start_link/1]).
 
 %% Supervisor callbacks
 -export([init/1]).
 
 -define(SERVER, rssp_sup).
+
 
 %%%===================================================================
 %%% API functions
@@ -29,8 +30,8 @@
 %% @spec start_link() -> {ok, Pid} | ignore | {error, Error}
 %% @end
 %%--------------------------------------------------------------------
-start_link() ->
-    supervisor:start_link({local, ?SERVER}, ?MODULE, []).
+start_link(Args) ->
+    supervisor:start_link({local, ?SERVER}, ?MODULE, Args).
 
 %%%===================================================================
 %%% Supervisor callbacks
@@ -49,15 +50,16 @@ start_link() ->
 %%                     {error, Reason}
 %% @end
 %%--------------------------------------------------------------------
-init([]) ->
+init(Args) ->
 
     SupFlags = #{strategy => one_for_one,
 		 intensity => 1,
 		 period => 5},
 
-    AChild = #{id => resa_server,
-	       start => {resa_server, start_link, [ ['ab.from.sup19']]},
-	       shutdown => 5000
+    AChild = #{id => resas2,
+	       start => {resa_server, start_link, Args},
+	       shutdown => 5000,
+	       modules => [resa_server]
 	      },
 
     {ok, {SupFlags, [AChild]}}.

@@ -8,19 +8,13 @@
 -include("telecommunication.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
-init_dh(_, {Free, []}) when not is_list(Free) ->
-    {error, expected_data_type_list};
-init_dh(_, {[], []}) ->
-    {error, expected_non_empty_Free_list};
 init_dh(Parent, {Free, []}) ->
     Deb = sys:debug_options([statistics, trace]),
     Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
 			   ?MODULE, #rh_started{pid=self(), name=?handler, state={Free, []}}),
     proc_lib:init_ack(Parent, {ok, self()}),
     process_flag(trap_exit, true),
-    handle_hashed({pairwith_hash(Free), []}, Parent, Deb2);
-init_dh(_, {_Free, _Allocated}) ->
-    {error, not_interested}.
+    handle_hashed({pairwith_hash(Free), []}, Parent, Deb2).
 
 handle_hashed(State = {Free, Allocated}, Parent, Deb) ->
     

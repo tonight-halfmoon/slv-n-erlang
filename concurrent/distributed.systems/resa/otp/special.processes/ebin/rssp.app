@@ -3,7 +3,7 @@
 	       {vsn, "1"},
 	       {registered, [rsspa]},
 	       {applications, [kernel, stdlib]},
-	       {mod, {resa_server, [['ap.r109']]}},
+	       {mod, {resas_app, [['ap.rapp.109']]}},
 	       {env, []},
-	       {modules, [resa_server, rh, sp]}
+	       {modules, [resa_server, resas_app, resa_sup, rh]}
 	      ]}.
