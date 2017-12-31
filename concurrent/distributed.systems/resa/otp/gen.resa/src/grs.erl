@@ -33,8 +33,7 @@
 %% @end
 %%--------------------------------------------------------------------
 start_link(Free) ->
-    io:format("grs start_link has been invoked ~n", []),
-    gen_server:start_link({local, ?SERVER}, ?MODULE, [Free], []).
+    gen_server:start_link({local, ?SERVER}, ?MODULE, Free, []).
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -52,7 +51,6 @@ start_link(Free) ->
 %% @end
 %%--------------------------------------------------------------------
 init(Args) ->
-    io:format("grs init hasa been invokedjiöü#9+u, Args: ~p~n", [Args]),
     process_flag(trap_exit, true),
     {ok, #state{free=Args, allocated=[]}}.
 
