@@ -7,7 +7,7 @@
 -define(sr, 'ab.12').
 
 start() ->
-    sm:spawn_link(),
+    sm:start_link(),
     resa_server:start_link([?sr]).
 
 stop() ->

@@ -56,13 +56,16 @@ init(Args) ->
 		 intensity => 1,
 		 period => 5},
 
-    AChild = #{id => resas2,
+    Rscspecs = #{id => resas2,
 	       start => {resa_server, start_link, Args},
 	       shutdown => 5000,
 	       modules => [resa_server]
 	      },
-
-    {ok, {SupFlags, [AChild]}}.
+    SMsupcspecs = #{id => csmsup,
+		   start => {sm_sup, start_link, []},
+		   restart => transient,
+		   type => supervisor},
+    {ok, {SupFlags, [Rscspecs, SMsupcspecs]}}.
 
 %%%===================================================================
 %%% Internal functions

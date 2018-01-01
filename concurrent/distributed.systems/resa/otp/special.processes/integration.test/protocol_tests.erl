@@ -11,7 +11,7 @@ run_suite() ->
 
 before_each() ->
    [
-    sm:spawn_link(),
+    sm:start_link(),
     resa_server:start_link([?sr])
    ].
 
@@ -90,7 +90,7 @@ stop_stats_test_() ->
       "When protocol 'stop' has been received by 'service_stats_provider', then it must stop and Service Manager must stop, too",
       {setup,
       fun ?MODULE:before_each/0,
-       fun([Sm_pid, _]) ->
+       fun([{ok, Sm_pid}, _]) ->
 	       ?ssp ! {stop, protocol_tests, self()},
 	       receive
 		   _-> true after 100 -> true end,

@@ -7,7 +7,7 @@
 %%% On the 15th of December 2017
 %%%-------------------------------------------------------------------
 -module(sm).
--export([spawn_link/0, stop/0]).
+-export([start_link/0, stop/0]).
 -export([init/1]).
 -export([system_continue/3, system_terminate/4,
 	write_debug/3,
@@ -19,16 +19,17 @@
 -include("sm.hrl").
 -include("config.hrl").
 
-spawn_link() ->
+start_link() ->
     case whereis(?sm) of
 	undefined ->
-	    proc_lib:spawn_link(?MODULE, init, [self()]);
+	    proc_lib:start_link(?MODULE, init, [self()]);
 	_ ->
 	    {sm_running, whereis(?sm)}
     end.
 
 init(Parent) ->
     unregister_all(?all_registered),
+    proc_lib:init_ack(Parent, {ok, self()}),
     register(?sm, self()),
     register(?ssp, proc_lib:spawn_link(sp, init_sp, [self()])),
     Deb = sys:debug_options([statistics, trace]),
@@ -90,9 +91,6 @@ system_get_state(State) ->
 system_replace_state(StateFun, State) ->
     NState = StateFun(State),
     {ok, NState, NState}.
-    
-
-% TODO move this to lib (code clone from resa_server module).
 
 stop() ->
     case whereis(?sm) of
