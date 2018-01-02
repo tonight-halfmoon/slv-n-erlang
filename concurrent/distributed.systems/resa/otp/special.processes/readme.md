@@ -8,8 +8,14 @@
 3 - application:load(rssp).
 4 - application:start(rssp).
 
+### Application Integration Test
+1 - erl -make
+2 - erl -pa ebin/
+3 - ait:start().
+4 - ait:stop().
+
 ### Generate Boot Script
 0 - Compose a .rel file and save it in ebin/ dir
 1 - erl -make at root level
 2 - systools:make_script("rssp", [local]). at ebin/ dir
-3 - erl -boot rssp-1 
+3 - erl -boot rssp-1

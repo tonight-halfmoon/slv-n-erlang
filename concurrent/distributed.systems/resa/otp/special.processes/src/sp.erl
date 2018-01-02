@@ -17,6 +17,10 @@ init_sp(Parent) ->
 active(State, Parent, Deb) ->
     receive
 
+	{'EXIT', From, Reason} ->
+	    sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
+			    ?MODULE, #sp_stopped{event=stop, reason=Reason, from=From});
+
 	{system, From, Request} ->
 	    sys:handle_system_msg(Request, From, Parent, ?MODULE, Deb, State);
 
