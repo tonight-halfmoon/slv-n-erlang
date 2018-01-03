@@ -89,7 +89,7 @@ stop_stats_test_() ->
     {
       "When protocol 'stop' has been received by 'service_stats_provider', then it must stop and Service Manager must stop, too",
       {setup,
-      fun ?MODULE:before_each/0,
+       fun ?MODULE:before_each/0,
        fun([{ok, Sm_pid}, _]) ->
 	       ?ssp ! {stop, protocol_tests, self()},
 	       receive
