@@ -42,3 +42,6 @@
 5 - e2e_sim:freeup().
 6 - e2e_sim:stats().
 7 - e2e_sim:stop().
+* - e2e_sim:run_suite().
+
+! - check surefire report.
