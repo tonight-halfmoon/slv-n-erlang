@@ -14,7 +14,6 @@
 	system_get_state/1, system_replace_state/2]).
 -import(sp, [init_sp/1]).
 -import(name_lib, [unregister_all/1]).
--define(sm, ?MODULE).
 -define(all_registered, [?sm, ?ssp]).
 -include("sm.hrl").
 -include("config.hrl").

@@ -7,7 +7,7 @@
 -define(sr, 'ab.12').
 
 run_suite() ->
-    eunit:test(?MODULE, [verbose]).
+    eunit:test(?MODULE, [verbose, {report, {eunit_surefire, [{dir, "."}]}}]).
 
 before_each() ->
    [
