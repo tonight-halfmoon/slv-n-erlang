@@ -28,11 +28,11 @@ freeup_not_allocated_test_() ->
       {setup,
        fun() -> start(),
 		?server ! #cask2free{client_pid=self(),
-				    resource=term_to_binary('aitabit.19')},
+				     resource=term_to_binary('aitabit.19')},
 		receive
 		   Msg ->
 		       Msg
-	       end
+		end
        end,
        fun ?MODULE:after_each/1,
        fun(Actual) ->
@@ -43,7 +43,7 @@ freeup_test_() ->
     {
       "When Server receives protocol 'freeup' and a resource name and the resource is allocated, then Server must free up the allocated resource",
       {
-	setup, 
+	setup,
 	fun() -> start(),
 		 ?server ! #cask2alloc{client_pid=self()},
 		 receive
@@ -59,5 +59,46 @@ freeup_test_() ->
 	fun ?MODULE:after_each/1,
 	fun(Actual) ->
 		?_assertEqual({server_reply, {freed, ?res}}, Actual) end
+      }
+    }.
+
+alloc_no_free_test_() ->
+    {
+      "When protocol 'alloc' is sent to Server and there is no free resources, then Server must reply with an error message",
+      {
+	setup,
+	fun() -> start(),
+		 ?server ! #cask2alloc{client_pid=self()},
+		 receive
+		     _ ->
+			 true
+		 end,
+		 ?server ! #cask2alloc{client_pid=self()},
+		 receive
+		     Msg ->
+			 Msg
+		 end
+	end,
+	fun ?MODULE:after_each/1,
+	fun(Actual) ->
+		?_assertEqual({server_reply, no}, Actual) end
+      }
+    }.
+
+alloc_test_() ->
+    {
+      "When protocol 'alloc' is received by Server and there is a free resource, then Server must allocate the free resource",
+      {
+	setup,
+	fun() -> start(),
+		 ?server ! #cask2alloc{client_pid=self()},
+		 receive
+		     Msg ->
+			 Msg
+		 end
+	end,
+	fun ?MODULE:after_each/1,
+	fun(Actual) ->
+		?_assertEqual({server_reply, {allocated, 'ap.rapp.109'}}, Actual) end
       }
     }.
