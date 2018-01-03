@@ -22,8 +22,7 @@
 
 1 - erl -make
 2 - erl -pa ebin/
-3 - ait:start().
-4 - ait:stop().
+3 - ait:run_suite().
 
 ### Supervision Tree and Protocols
 
