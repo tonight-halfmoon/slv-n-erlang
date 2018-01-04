@@ -17,9 +17,9 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
          terminate/2, code_change/3]).
 
--define(SERVER, gen_rs_server).
-
 -record(state, {free, allocated}).
+
+-include("config.hrl").
 
 %%%===================================================================
 %%% API
@@ -33,7 +33,7 @@
 %% @end
 %%--------------------------------------------------------------------
 start_link(Free) ->
-    gen_server:start_link({local, ?SERVER}, ?MODULE, Free, []).
+    gen_server:start_link({local, ?server}, ?MODULE, Free, [{debug, [trace, statistics]}]).
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -68,7 +68,8 @@ init(Args) ->
 %%                                   {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
-handle_call(_Request, _From, State) ->
+handle_call(Request, From, State) ->
+    io:format("~p received ~p from ~p~n", [?server, Request, From]),
     Reply = ok,
     {reply, Reply, State}.
 
@@ -82,7 +83,8 @@ handle_call(_Request, _From, State) ->
 %%                                  {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
-handle_cast(_Msg, State) ->
+handle_cast(Msg, State) ->
+    io:format("~p received ~p~n", [?server, Msg]),
     {noreply, State}.
 
 %%--------------------------------------------------------------------
@@ -95,9 +97,11 @@ handle_cast(_Msg, State) ->
 %%                                   {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
-handle_info({'EXIT', _Pid, _Reason}, State) ->
+handle_info({'EXIT', Pid, Reason}, State) ->
+    io:format("~p received 'EXIT' from ~p for ~p~n", [?server, Pid, Reason]),
     {noreply, State};
-handle_info(_Info, State) ->
+handle_info(Info, State) ->
+    io:format("~p received ~p ~n", [?server, Info]),
     {noreply, State}.
 
 %%--------------------------------------------------------------------
