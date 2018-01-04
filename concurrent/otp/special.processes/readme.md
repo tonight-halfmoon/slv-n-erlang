@@ -7,7 +7,7 @@ An Erlang/OTP application defines a server that manages resources. The server is
 
 # Experience
 
-I learned how to define a OTP Supervision Tree. `resa_sup` supervises two children: the application `resa_server` and another supervisor called `sm_sup`. Service Manager supervisor `sm_sup` is responsible of service providers like process `sp`. Once the Erlang kernel `application ` loads and starts up RSSP application the supervision tree is built and all the necessary processes that make RSSP fully functioning in runtime will be ready. I see how `application` cleans everything when `stop` and `unload` are invoked on RSSP. I learned how to use Erlang STDLIB `proc_lib` to handle debugging and statistics about RSSP.
+I learned how to define a OTP Supervision Tree. Module `resa_sup` supervises two children: application module `resa_server` and another supervisor module `sm_sup`. Service Manager supervisor defined in module `sm_sup` is responsible of service providers like process of module `sp`. Once Erlang kernel `application ` loads and starts up RSSP application the supervision tree is built and all the necessary processes that make RSSP fully functioning in runtime will be ready. I see how `application` cleans everything when `stop` and `unload` are invoked on RSSP. I learned how to use Erlang STDLIB `proc_lib` to handle debugging and statistics about RSSP. The most significant part is that how RSSP processes defined as OTP Special Processes fit into the Supervision Tree. 
 
 # Future Work
 
