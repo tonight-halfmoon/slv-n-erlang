@@ -1,3 +1,2 @@
 -define(server, resa_server).
--define(client_name, resa_client).
 -define(ssp, service_stats_provider).
