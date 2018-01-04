@@ -1,41 +1,52 @@
 # RSSP - Prototype on Server System implements OTP Special Processes Design Principle
 
-#Description
+# Description
+
 An Erlang/OTP application defines a server that manages resources. The server is composed of independent modules each handle piece of work. In runtime they are  concurrent communicating processes which are organised with a Supervision Tree
 
-## Build up
+
+# Experience
+
+## Development Time
 
 ### Make
 
-0.  Compose an Emakefile and save it in root level
-0. Compose a .app file and save it in ebin/ dir
-1. erl -make at root level
-2. erl -pa ebin/ at root level
-3. application:load(rssp).
-4. application:start(rssp).
+0. Compose an Emakefile and save it at the application's root level
+0. Compose a .app file and save it in ebin/ directory
 
 ### Generate Boot Script
 
-0. Compose a .rel file and save it in ebin/ dir
-1. erl -make at root level
+0. Compose a .rel file and save it in ebin/ directory
+1. erl -make at the application's root level
 2. systools:make_script("rssp", [local]). at ebin/ dir
 3. erl -boot rssp-1
 
-## Integration Test
+## Build up
 
-### Application
+1. erl -make at the application's root level
+2. erl -pa ebin/ at the application's root level
+
+## Run
+
+1. application:load(rssp).
+2. application:start(rssp).
+3. application:stop(rssp).
+
+# Integration Test
+
+## Application
 
 1. erl -make
 2. erl -pa ebin/
 3. ait:run_suite().
 
-### Supervision Tree and Protocols
+## Supervision Tree and Protocols
 
 0 - erl -make
 0 - erl -pa ebin/
 1 - protocol_tests:run_suite().
 
-### Simulate Client Interaction
+## Simulate Client Interaction
 
 0. erl -make
 0. erl -pa ebin/
