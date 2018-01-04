@@ -42,5 +42,5 @@ Nodes reside on machines of different domain.
 
 ### OTP
 
-This is a pure Erlang implementation without pursuing OTP. The purpose is to cover many topics like net_kernel, net_adm and etc. Applying OTP will come with a prototype on Internet of Things IoT soon, with MQTT broker.
+This is a pure Erlang implementation without pursuing OTP. The purpose is to cover many topics like net_kernel, net_adm and etc. Applying OTP will come with a prototype on Internet of Things IoT soon, with MQTT broker. Check `otp`.
 

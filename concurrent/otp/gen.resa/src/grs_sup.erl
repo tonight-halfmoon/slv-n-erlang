@@ -9,11 +9,11 @@ start_link(Args) ->
 
 init(Args) ->
     SupFlags = #{strategy => one_for_one, intensity => 1, period => 5},
-    ChildSpecs = [#{id => grs3,
+    GrsChildSpecs = #{id => grs3,
 		   start => {grs, start_link, Args},
 		   restart => permanent,
 		   shutdown => brutal_kill,
 		   type => worker,
 		   modules => []
-		   }],
-    {ok, {SupFlags, ChildSpecs}}.
+		   },
+    {ok, {SupFlags, [GrsChildSpecs]}}.
