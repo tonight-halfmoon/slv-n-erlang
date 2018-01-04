@@ -60,7 +60,7 @@ I learned how to define a OTP Supervision Tree. `resa_sup` supervises two childr
 0. At the application's root level
 0. Execute `erl -make`
 0. Execute `erl -pa ebin/`
-1. Evaluaet `e2e_sim:start().`
+1. Evaluate `e2e_sim:start().`
 2. `e2e_sim:stats().`
 3. `e2e_sim:alloc().`
 4. `e2e_sim:stats().`
