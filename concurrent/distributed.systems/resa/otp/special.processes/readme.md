@@ -42,9 +42,9 @@ An Erlang/OTP application defines a server that manages resources. The server is
 
 ## Supervision Tree and Protocols
 
-0 - erl -make
-0 - erl -pa ebin/
-1 - protocol_tests:run_suite().
+0. erl -make
+0. erl -pa ebin/
+1. protocol_tests:run_suite().
 
 ## Simulate Client Interaction
 
