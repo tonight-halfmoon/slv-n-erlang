@@ -3,9 +3,9 @@
 
 
 start() ->
-    application:load(grsa),
-    application:start(grsa).
+    application:load(genrs),
+    application:start(genrs).
 
 stop() ->
-    application:stop(grsa),
-    application:unload(grsa).
+    application:stop(genrs),
+    application:unload(genrs).

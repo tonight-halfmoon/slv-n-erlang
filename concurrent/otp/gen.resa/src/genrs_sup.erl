@@ -1,4 +1,4 @@
--module(grs_sup).
+-module(genrs_sup).
 -behaviour(supervisor).
 
 -export([start_link/1]).
@@ -9,8 +9,8 @@ start_link(Args) ->
 
 init(Args) ->
     SupFlags = #{strategy => one_for_one, intensity => 1, period => 5},
-    GrsChildSpecs = #{id => grs3,
-		   start => {grs, start_link, Args},
+    GrsChildSpecs = #{id => genrs_1st,
+		   start => {genrs, start_link, Args},
 		   restart => permanent,
 		   shutdown => brutal_kill,
 		   type => worker,
