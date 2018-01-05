@@ -5,7 +5,7 @@
 -export([init/1]).
 
 start_link(Args) ->
-    supervisor:start_link(?MODULE, Args).
+    supervisor:start_link({local, ?MODULE}, ?MODULE, Args).
 
 init(Args) ->
     SupFlags = #{strategy => one_for_one, intensity => 1, period => 5},
@@ -14,6 +14,11 @@ init(Args) ->
 		   restart => permanent,
 		   shutdown => brutal_kill,
 		   type => worker,
-		   modules => []
+		   modules => [genrs]
 		   },
-    {ok, {SupFlags, [GrsChildSpecs]}}.
+    SMsupspecs = #{id => csmsup,
+		   start => {sm_sup, start_link, []},
+		   restart => transient,
+		   type => supervisor
+		  },
+    {ok, {SupFlags, [GrsChildSpecs, SMsupspecs]}}.
