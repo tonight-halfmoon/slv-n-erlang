@@ -10,6 +10,19 @@ A lot of things have changed the way to implement the server. First, no need to 
 
 # Future Work
 
+## Testing
+
+```
+Utilise Erlang Common Test.
+```
+
+```
+Convert it to a Distributed System: Processes on Nodes
+```
+
+```
+Simultaneous multiple client requests: Simulate the case when multiple clients sending GenRS requests at the same time
+```
 
 ## Application
 
