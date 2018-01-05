@@ -9,16 +9,22 @@ start_link(Args) ->
 
 init(Args) ->
     SupFlags = #{strategy => one_for_one, intensity => 1, period => 5},
-    GrsChildSpecs = #{id => genrs_1st,
-		   start => {genrs, start_link, Args},
-		   restart => permanent,
-		   shutdown => brutal_kill,
-		   type => worker,
-		   modules => [genrs]
-		   },
+    GenRSChildSpecs = #{id => genrs_1st,
+		      start => {genrs, start_link, Args},
+		      restart => permanent,
+		      shutdown => brutal_kill,
+		      type => worker,
+		      modules => [genrs]
+		     },
+    Rhchildspecs = #{id => rhcp,
+		     start => {rh, start_link, Args},
+		     restart => permanent,
+		     shutdown => 5000,
+		     modules => [rh, dh_lib]
+		    },
     SMsupspecs = #{id => csmsup,
 		   start => {sm_sup, start_link, []},
 		   restart => transient,
 		   type => supervisor
 		  },
-    {ok, {SupFlags, [GrsChildSpecs, SMsupspecs]}}.
+    {ok, {SupFlags, [GenRSChildSpecs, Rhchildspecs, SMsupspecs]}}.

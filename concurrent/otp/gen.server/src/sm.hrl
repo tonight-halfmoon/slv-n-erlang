@@ -4,4 +4,3 @@
 -record(sm_register_provider, {provider_name, pid}).
 -record(sm_state, {pid, name, state}).
 -record(sm_received_msg, {msg}).
--record(state_internal, {val}).

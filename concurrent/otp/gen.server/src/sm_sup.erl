@@ -12,8 +12,12 @@ start_link() ->
 
 init(Args) ->
     SupFlags = #{strategy => one_for_one, intensity => 1, period => 5}, 
-    Childs = [#{id => smsup, 
-		start => {sm, start_link, [Args]}, 
-		shutdown => 5000
-		}],
-    {ok, {SupFlags, Childs}}.
+    SMchildspecs = #{id => smsup, 
+		     start => {sm, start_link, [Args]}, 
+		     shutdown => 5000
+		    },
+    SPchildspecs = #{id => ssp,
+		     start => {sp, start_link, [Args]},
+		     shutdown => 5000
+		    },
+    {ok, {SupFlags, [SMchildspecs, SPchildspecs]}}.

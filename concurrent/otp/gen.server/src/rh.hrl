@@ -1,0 +1,1 @@
+-define(rh, res_handler).
