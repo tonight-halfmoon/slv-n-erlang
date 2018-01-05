@@ -141,18 +141,6 @@ free_case2_test_() ->
       ?_assertEqual({error, not_allocated}, free([], [], Pid, Res))
     }.
 
-handle_case_empty_free_list_test_() ->
-    {
-      "Function 'init_dh/2' expects to be invoked with a non-empty Free list",
-      ?_assertEqual({error, expected_non_empty_Free_list}, init_dh(self(), {[], []}))
-    }.
-
-handler_case_not_list_data_type_free_test_() ->
-    {
-      "function 'init_dh/2' expects to be invoked with data type list",
-      ?_assertEqual({error,expected_data_type_list}, init_dh(self(), {'',[]}))
-    }.
-
 write_debug(Dev, Event, Name) ->
     io:format(Dev, "~p: event = ~p~n", [Name, Event]).
 
