@@ -3,6 +3,7 @@
 -behaviour(gen_server).
 
 -export([start_link/1]).
+-export([freeup/1]).
 
 -export([init/1]).
 
@@ -11,34 +12,50 @@
 
 -include("rh.hrl").
 -include("config.hrl").
--include("common.hrl").
 -include("genrs.hrl").
 -include("telecommunication.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
 -import(dh_lib, [pairwith_hash/1, keymember/2, keydelete/2, values/1]).
 
+%%%===================================================================
+%%% API
+%%%===================================================================
+
 start_link([Free]) ->
     gen_server:start_link({local, ?rh}, ?MODULE, {Free, []}, [{debug, [trace, statistics]}]).
 
-init({_Free, []} = Args) ->
-    process_flag(trap_exit, true),
-    {ok, #state_internal{val=Args}}.
+freeup(R_protocol) ->
+    ?server ! gen_server:call(?rh, R_protocol).
 
-handle_cast(Msg, State) ->
-    io:format("~p received ~p~n", [?rh, Msg]),
+%%%===================================================================
+%%% gen_server callbacks
+%%%===================================================================
+
+init({Free, []}) ->
+    process_flag(trap_exit, true),
+    {ok, #state{free=Free, allocated=[]}}.
+
+handle_cast(_Msg, State) ->
     {noreply, State}.
 
-handle_call(Request, From, State) ->
-    io:format("~p received ~p from ~p~n", [?rh, Request, From]),
+handle_call(#cask2free{resource=Res} = _Request, From, #state{free=Free, allocated=Allocated} = State) ->
+    case free(Free, Allocated, From, Res) of
+	{ok, NewFree, NewAllocated} ->
+	    New_state = {NewFree, NewAllocated},
+	    Reply = #rh_ok{more={freed_up, Res}, new_state=#state{free=NewFree, allocated=NewAllocated}},
+	    {reply, Reply, New_state};
+	{error, Reason} ->
+	    Reply = #rh_error{reason=Reason},
+	    {reply, Reply, State}
+    end;
+handle_call(_Request, _From, State) ->
     Reply = ok,
     {reply, Reply, State}.
 
-handle_info({'EXIT', From, Reason}, State) ->
-    io:format("~p received 'EXIT' from ~p for ~p~n", [?rh, From, Reason]),
+handle_info({'EXIT', _From, _Reason}, State) ->
     {noreply, State};
-handle_info(Info, State) ->
-    io:format("~p received ~p ~n", [?rh, Info]),
+handle_info(_Info, State) ->
     {noreply, State}.
 
 terminate(Reason, _State) ->
@@ -65,13 +82,13 @@ handle_hashed(State = {Free, Allocated}) ->
 	    case free(Free, Allocated, FromPid, Ress) of
 		{ok, NewFree, NewAllocated} ->
 		    io:format("~p: ~p~n", [?MODULE, {{"Resource successfully freed up", Ress}, FromPid}]),
-		    ?server ! #rh_reply{message={freed, Ress}},
-		    io:format("~p: ~p~n", [?MODULE,  {#rh_reply{message={freed, Ress}}, ?server}]),
+		   % ?server ! #rh_reply{message={freed, Ress}},
+		    %io:format("~p: ~p~n", [?MODULE,  {#rh_reply{message={freed, Ress}}, ?server}]),
 		    handle_hashed({NewFree, NewAllocated});
 		
-		{error, Reason} ->
-		    ?server ! #rh_reply{message={error, Reason}},
-		    io:format("~p: ~p~n", [?MODULE, {out, #rh_reply{message={error, Reason}}, ?server}]),
+		{error, _Reason} ->
+		    %?server ! #rh_reply{message={error, Reason}},
+		   % io:format("~p: ~p~n", [?MODULE, {out, #rh_reply{message={error, Reason}}, ?server}]),
 		    handle_hashed(State)
 	    end;
 
@@ -79,12 +96,12 @@ handle_hashed(State = {Free, Allocated}) ->
 	    case allocate(Free, Allocated, FromPid) of
 		{{allocated, Resource}, NewFree, NewAllocated} ->
 		    io:format("~p: ~p~n", [?MODULE, {{"Resource successfully allocated"}, FromPid, Resource}]),
-		    ?server ! #rh_reply{message={allocated, Resource}},
-		    io:format("~p: ~p~n", [?MODULE, {out, #rh_reply{message={allocated, Resource}}, ?server}]),
+		   % ?server ! #rh_reply{message={allocated, Resource}},
+		    %io:format("~p: ~p~n", [?MODULE, {out, #rh_reply{message={allocated, Resource}}, ?server}]),
 		    handle_hashed({NewFree, NewAllocated});
 		{no_free_resource, []} ->
-		    ?server ! #rh_reply{message=no},
-		    io:format("~p: ~p~n", [?MODULE, {out, #rh_reply{message=no}, ?server}]),
+		   % ?server ! #rh_reply{message=no},
+		    %io:format("~p: ~p~n", [?MODULE, {out, #rh_reply{message=no}, ?server}]),
 		    handle_hashed(State)
 	    end;
 
@@ -92,7 +109,7 @@ handle_hashed(State = {Free, Allocated}) ->
 	    io:format("~p: ~p~n", [?MODULE, {in, #server_request_data{server=?server}, ?server}]),
 	    % 'handler' replies with only a list or resources names without showing the actual data structure
 	    DS = #data_structure{free=values(Free), allocated=values(Allocated)},
-	    ?server ! #rh_reply_data{data=DS},
+	    %?server ! #rh_reply_data{data=DS},
 	    io:format("~p: ~p~n", [?MODULE, {out, #rh_reply_data{data=DS}, ?server}]),
 	    handle_hashed(State);
 
@@ -106,14 +123,17 @@ handle_hashed(State = {Free, Allocated}) ->
 
 %%% Different clients can free up / allocate resources. For simolicity no constraints who allocate/freeup which.
 
-free(Free, Allocated, FromPid, Resource) ->
-    case keymember(erlang:phash2(Resource), Allocated) of
+free(_, _, FromPid, Not_binary) when not is_binary(Not_binary) ->
+    Reason = not_binary,
+    {error, Reason};
+free(Free, Allocated, FromPid, Binary) ->
+    Resource = binary_to_term(Binary),
+    case dh_lib:keymember(erlang:phash2(Resource), Allocated) of
 	true ->
 	    Resds = pairwith_hash(Resource),
 	    {ok, [Resds|Free], keydelete(Resds#res_ds.hash, Allocated)};
 	false ->
 	    Reason = not_allocated,
-	    io:format("FromPid ~p; Resource ~p not freed up; Reason: ~p~n", [FromPid, Resource, Reason]),
 	    {error, Reason}
     end.
 

@@ -11,6 +11,12 @@
 -record(free_resource, {server, from_pid, resource}).
 -record(data_structure, {free=#res_ds{}, allocated=#res_ds{}}).
 -record(server_request_data, {server}).
--record(rh_reply, {message}).
+-record(rh_ok, {more, new_state}).
+-record(rh_error, {reason}).
 -record(rh_reply_data, {data=#data_structure{}}).
 -record(rh_refused, {reason}).
+
+%%% Internal GenRS protocols
+-record(cask2free, {resource}).
+-record(ok, {more}).
+-record(error, {reason}).

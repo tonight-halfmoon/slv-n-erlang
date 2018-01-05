@@ -11,7 +11,7 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/1]).
+-export([start_link/1, freeup/1]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -33,6 +33,10 @@
 %%--------------------------------------------------------------------
 start_link(Free) ->
     gen_server:start_link({local, ?server}, ?MODULE, Free, [{debug, [trace, statistics]}]).
+
+freeup(Res) ->
+    self() ! gen_server:call(?server, #cask2free{resource=Res}).
+    
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -67,8 +71,18 @@ init(Args) ->
 %%                                   {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
-handle_call(Request, From, State) ->
-    io:format("~p received ~p from ~p~n", [?server, Request, From]),
+
+handle_call(#cask2free{resource=_Res} = Request, _From, State) ->
+    rh:freeup(Request),
+    receive
+	#rh_ok{more=More, new_state= #state{free=_Free, allocated=_Allocated} = New_state} ->
+	    Reply = #ok{more=More},
+	    {reply, Reply, New_state};
+	#rh_error{reason=Reason} ->
+	    Reply = #error{reason=Reason},
+	    {reply, Reply, State}
+    end;
+handle_call(_Request, _From, State) ->
     Reply = ok,
     {reply, Reply, State}.
 
@@ -83,7 +97,7 @@ handle_call(Request, From, State) ->
 %% @end
 %%--------------------------------------------------------------------
 handle_cast(Msg, State) ->
-    io:format("~p received ~p~n", [?server, Msg]),
+    io:format("~p received `asynchronous request` ~p~n", [?server, Msg]),
     {noreply, State}.
 
 %%--------------------------------------------------------------------
@@ -97,10 +111,10 @@ handle_cast(Msg, State) ->
 %% @end
 %%--------------------------------------------------------------------
 handle_info({'EXIT', Pid, Reason}, State) ->
-    io:format("~p received 'EXIT' from ~p for ~p~n", [?server, Pid, Reason]),
+    io:format("~p received info 'EXIT' from ~p for ~p~n", [?server, Pid, Reason]),
     {noreply, State};
 handle_info(Info, State) ->
-    io:format("~p received ~p ~n", [?server, Info]),
+    io:format("~p received info ~p ~n", [?server, Info]),
     {noreply, State}.
 
 %%--------------------------------------------------------------------

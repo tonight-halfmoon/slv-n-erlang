@@ -1,5 +1,5 @@
 -module(ait).
--export([start/0, stop/0]).
+-export([run_suite/0, start/0, stop/0]).
 
 -export([after_each/1]).
 -include_lib("eunit/include/eunit.hrl").
@@ -7,7 +7,11 @@
 -include("../src/sm.hrl").
 -include("../src/sp.hrl").
 -include("../src/rh.hrl").
+-include("../include/telecommunication.hrl").
 -include("../include/config.hrl").
+
+run_suite() ->
+    eunit:test([?MODULE], [verbose, {report, {eunit_surefire, [{dir, "."}]}}]).
 
 start_test_() ->
     {
@@ -39,3 +43,21 @@ stop() ->
 
 after_each(_) ->
     ?MODULE:stop().
+
+freeup_not_allocated_test_() ->
+    {
+        "When Server receives protocol 'freeup' and a resource name and the resource has not been allocated, then Server must reply with an error message",
+      {
+	setup,
+	fun() -> start(),
+		 genrs:freeup(term_to_binary('res.has.not.been.allocated.8741')),
+		 receive
+		     Msg ->
+			 Msg
+		 end
+	end,
+	fun ?MODULE:after_each/1,
+	fun(Actual) ->
+		?_assertEqual({error,not_allocated}, Actual) end
+      }
+    }.
