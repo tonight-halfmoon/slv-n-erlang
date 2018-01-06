@@ -18,5 +18,7 @@
 
 %%% Internal GenRS protocols
 -record(cask2free, {resource}).
+-record(cask2alloc, {}).
+
 -record(ok, {more}).
 -record(error, {reason}).

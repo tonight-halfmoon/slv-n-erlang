@@ -8,16 +8,17 @@
 	terminate/2, code_change/3]).
 
 -include("sp.hrl").
--include("common.hrl").
 -include("telecommunication.hrl").
 -include("config.hrl").
+
+-record(state, {val}).
 
 start_link(Args) ->
     gen_server:start_link({local, ?ssp}, ?MODULE, Args, [{debug, [trace, statistics]}]).
 
 init(Args) ->
     process_flag(trap_exit, true),
-    {ok, #state_internal{val=Args}}.
+    {ok, #state{val=Args}}.
 
 handle_cast(Msg, State) ->
     io:format("~p received ~p~n", [?ssp, Msg]),

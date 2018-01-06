@@ -16,30 +16,27 @@
 	 terminate/2, code_change/3]).
 
 -include("sm.hrl").
--include("common.hrl").
 -include("config.hrl").
+
+-record(state, {val}).
 
 start_link(Args) ->
     gen_server:start_link({local, ?sm}, ?MODULE, Args, [{debug, [trace, statistics]}]).
 
 init(Args) ->
     process_flag(trap_exit, true),
-    {ok, #state_internal{val=Args}}.
+    {ok, #state{val=Args}}.
 
 handle_cast(Msg, State) ->
-    io:format("~p received ~p~n", [?sm, Msg]),
     {noreply, State}.
 
 handle_call(Request, From, State) ->
-    io:format("~p received ~p from ~p~n", [?sm, Request, From]),
     Reply = ok,
     {reply, Reply, State}.
 
 handle_info({'EXIT', From, Reason}, State) ->
-    io:format("~p received 'EXIT' from ~p for ~p~n", [?sm, From, Reason]),
     {noreply, State};
 handle_info(Info, State) ->
-    io:format("~p received ~p ~n", [?sm, Info]),
     {noreply, State}.
 
 terminate(Reason, _State) ->

@@ -1,6 +1,6 @@
 -record(connect, {client_pid}).
 -record(server_reply,{message}).
--record(cask2alloc, {client_pid}).
+
 -record(cask4stats, {client_pid}).
 -record(abort_client, {message}).
 -record(stats, {name, length}).

@@ -3,7 +3,7 @@
 -behaviour(gen_server).
 
 -export([start_link/1]).
--export([freeup/1]).
+-export([freeup/1, alloc/1]).
 
 -export([init/1]).
 
@@ -22,10 +22,13 @@
 %%% API
 %%%===================================================================
 
-start_link([Free]) ->
+start_link(Free) ->
     gen_server:start_link({local, ?rh}, ?MODULE, {Free, []}, [{debug, [trace, statistics]}]).
 
 freeup(R_protocol) ->
+    ?server ! gen_server:call(?rh, R_protocol).
+
+alloc(R_protocol) ->
     ?server ! gen_server:call(?rh, R_protocol).
 
 %%%===================================================================
@@ -34,7 +37,7 @@ freeup(R_protocol) ->
 
 init({Free, []}) ->
     process_flag(trap_exit, true),
-    {ok, #state{free=Free, allocated=[]}}.
+    {ok, #state{free=dh_lib:pairwith_hash(Free), allocated=[]}}.
 
 handle_cast(_Msg, State) ->
     {noreply, State}.
@@ -43,9 +46,19 @@ handle_call(#cask2free{resource=Res} = _Request, From, #state{free=Free, allocat
     case free(Free, Allocated, From, Res) of
 	{ok, NewFree, NewAllocated} ->
 	    New_state = {NewFree, NewAllocated},
-	    Reply = #rh_ok{more={freed_up, Res}, new_state=#state{free=NewFree, allocated=NewAllocated}},
+	    Reply = #rh_ok{more={'free up success', Res}, new_state=#state{free=NewFree, allocated=NewAllocated}},
 	    {reply, Reply, New_state};
 	{error, Reason} ->
+	    Reply = #rh_error{reason=Reason},
+	    {reply, Reply, State}
+    end;
+handle_call(#cask2alloc{} = _Request, _From, #state{free=Free, allocated=Allocated} = State) ->
+    case allocate(Free, Allocated, self()) of
+	{{allocated, _Res}, New_free, [{_R, _FromPid}|_AlcT] = New_allocated} ->
+	    New_state = #state{free=New_free, allocated=New_allocated},
+	    Reply = #rh_ok{more={'allocate success'}, new_state=New_state},
+	    {reply, Reply, New_state};
+	{'no free resource anymore' = Reason, []} ->
 	    Reply = #rh_error{reason=Reason},
 	    {reply, Reply, State}
     end;
@@ -123,24 +136,24 @@ handle_hashed(State = {Free, Allocated}) ->
 
 %%% Different clients can free up / allocate resources. For simolicity no constraints who allocate/freeup which.
 
-free(_, _, FromPid, Not_binary) when not is_binary(Not_binary) ->
+free(_, _, _FromPid, Not_binary) when not is_binary(Not_binary) ->
     Reason = not_binary,
     {error, Reason};
-free(Free, Allocated, FromPid, Binary) ->
+free(Free, Allocated, _FromPid, Binary) ->
     Resource = binary_to_term(Binary),
     case dh_lib:keymember(erlang:phash2(Resource), Allocated) of
 	true ->
 	    Resds = pairwith_hash(Resource),
 	    {ok, [Resds|Free], keydelete(Resds#res_ds.hash, Allocated)};
 	false ->
-	    Reason = not_allocated,
+	    Reason = 'resource has not been allocated',
 	    {error, Reason}
     end.
 
 allocate([R|Free], Allocated, FromPid) ->
     {{allocated, R#res_ds.value}, Free, [{R, FromPid}|Allocated]};
 allocate([], _Allocated, _FromPid) ->
-    {no_free_resource, []}.
+    {'no free resource anymore', []}.
 
 %%% Unit Tests
 

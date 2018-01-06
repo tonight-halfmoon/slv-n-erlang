@@ -11,7 +11,7 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/1, freeup/1]).
+-export([start_link/1, freeup/1, alloc/0]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -36,7 +36,9 @@ start_link(Free) ->
 
 freeup(Res) ->
     self() ! gen_server:call(?server, #cask2free{resource=Res}).
-    
+
+alloc() ->    
+    self() ! gen_server:call(?server, #cask2alloc{}).
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -74,6 +76,16 @@ init(Args) ->
 
 handle_call(#cask2free{resource=_Res} = Request, _From, State) ->
     rh:freeup(Request),
+    receive
+	#rh_ok{more=More, new_state= #state{free=_Free, allocated=_Allocated} = New_state} ->
+	    Reply = #ok{more=More},
+	    {reply, Reply, New_state};
+	#rh_error{reason=Reason} ->
+	    Reply = #error{reason=Reason},
+	    {reply, Reply, State}
+    end;
+handle_call(#cask2alloc{} = Request, _From, State) ->
+    rh:alloc(Request),
     receive
 	#rh_ok{more=More, new_state= #state{free=_Free, allocated=_Allocated} = New_state} ->
 	    Reply = #ok{more=More},
