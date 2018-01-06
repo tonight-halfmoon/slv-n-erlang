@@ -10,7 +10,6 @@
 -include("../src/sp.hrl").
 -include("../src/rh.hrl").
 -include("../src/genrs.hrl").
--include("../include/telecommunication.hrl").
 -include("../include/config.hrl").
 
 -define(rs, 'rs.gsrp.999').
@@ -114,4 +113,20 @@ alloc_no_free_resource_test_() ->
 		?_assertEqual({error, 'no free resource anymore'}, Actual) end
 	
       }
+    }.
+
+stats_test_() ->
+    {
+      "When client asks for statistics on the current state of the resources, then Server must reply with statistics results",
+      setup,
+      fun() -> ?MODULE:start(),
+	       genrs:cask_stats(),
+	       receive
+		   Msg ->
+		       Msg
+		   end
+      end,
+      fun ?MODULE:after_each/1,
+      fun(Actual) ->
+	      ?_assertMatch(#ok{more={stats, {free, Fstats}, {allocated, Astats}}} when {Fstats,Astats} =:= {1,0}, Actual) end
     }.

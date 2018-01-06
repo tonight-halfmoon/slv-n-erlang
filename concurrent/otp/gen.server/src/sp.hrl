@@ -1,3 +1,3 @@
--record(sp_started, {pid, name, parent, state}).
--record(sp_stopped, {event, reason, from}).
--record(sp_processing, {data}).
+-record(bse, {name, length}).
+-record(dstats, {stats_free=#bse{}, stats_allocated=#bse{}}).
+-record(quickstats_on_dbrief, {free, allocated}).

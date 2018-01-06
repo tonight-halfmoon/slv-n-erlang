@@ -3,7 +3,7 @@
 -behaviour(gen_server).
 
 -export([start_link/1]).
--export([freeup/1, alloc/1]).
+-export([freeup/1, alloc/1, rbrief/1]).
 
 -export([init/1]).
 
@@ -13,7 +13,6 @@
 -include("rh.hrl").
 -include("config.hrl").
 -include("genrs.hrl").
--include("telecommunication.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
 -import(dh_lib, [pairwith_hash/1, keymember/2, keydelete/2, values/1]).
@@ -30,6 +29,9 @@ freeup(R_protocol) ->
 
 alloc(R_protocol) ->
     ?server ! gen_server:call(?rh, R_protocol).
+
+rbrief(R_protocol) ->
+    self() ! gen_server:call(?rh, R_protocol).
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -62,6 +64,10 @@ handle_call(#cask2alloc{} = _Request, _From, #state{free=Free, allocated=Allocat
 	    Reply = #rh_error{reason=Reason},
 	    {reply, Reply, State}
     end;
+handle_call(#cask_dbrief{} = _Request, _From, #state{free=Free, allocated=Allocated} = State) ->
+    DS = #data_structure{free=values(Free), allocated=values(Allocated)},
+    Reply = #rh_dbrief{ds=DS},
+    {reply, Reply, State};
 handle_call(_Request, _From, State) ->
     Reply = ok,
     {reply, Reply, State}.
@@ -77,62 +83,6 @@ terminate(Reason, _State) ->
 
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
-
-handle_hashed(State = {Free, Allocated}) ->    
-    receive
-	#free_resource{server=?server, from_pid=FromPid, resource=Tent_bin} ->
-	    io:format("~p: ~p~n", [?MODULE, 
-				   {in, #free_resource{server=?server, from_pid=FromPid, resource=Tent_bin}, FromPid}]),
-	    ResFun = fun(X) -> case is_binary(X) of
-				   true -> binary_to_term(X);
-				   false ->
-				       io:format("~p: ~p~n", [?MODULE, {{"Unexpected input term", X}, FromPid}]),
-				       ?server ! #rh_refused{reason=unexpected_data},
-				       io:format("~p: ~p~n", [?MODULE, {out, #rh_refused{reason=unexpected_data}, ?server}])
-			       end
-		     end,
-	    Ress = ResFun(Tent_bin),
-	    case free(Free, Allocated, FromPid, Ress) of
-		{ok, NewFree, NewAllocated} ->
-		    io:format("~p: ~p~n", [?MODULE, {{"Resource successfully freed up", Ress}, FromPid}]),
-		   % ?server ! #rh_reply{message={freed, Ress}},
-		    %io:format("~p: ~p~n", [?MODULE,  {#rh_reply{message={freed, Ress}}, ?server}]),
-		    handle_hashed({NewFree, NewAllocated});
-		
-		{error, _Reason} ->
-		    %?server ! #rh_reply{message={error, Reason}},
-		   % io:format("~p: ~p~n", [?MODULE, {out, #rh_reply{message={error, Reason}}, ?server}]),
-		    handle_hashed(State)
-	    end;
-
-	#allocate_resource{server=?server, from_pid=FromPid} ->
-	    case allocate(Free, Allocated, FromPid) of
-		{{allocated, Resource}, NewFree, NewAllocated} ->
-		    io:format("~p: ~p~n", [?MODULE, {{"Resource successfully allocated"}, FromPid, Resource}]),
-		   % ?server ! #rh_reply{message={allocated, Resource}},
-		    %io:format("~p: ~p~n", [?MODULE, {out, #rh_reply{message={allocated, Resource}}, ?server}]),
-		    handle_hashed({NewFree, NewAllocated});
-		{no_free_resource, []} ->
-		   % ?server ! #rh_reply{message=no},
-		    %io:format("~p: ~p~n", [?MODULE, {out, #rh_reply{message=no}, ?server}]),
-		    handle_hashed(State)
-	    end;
-
-	#server_request_data{server=?server} ->
-	    io:format("~p: ~p~n", [?MODULE, {in, #server_request_data{server=?server}, ?server}]),
-	    % 'handler' replies with only a list or resources names without showing the actual data structure
-	    DS = #data_structure{free=values(Free), allocated=values(Allocated)},
-	    %?server ! #rh_reply_data{data=DS},
-	    io:format("~p: ~p~n", [?MODULE, {out, #rh_reply_data{data=DS}, ?server}]),
-	    handle_hashed(State);
-
-	{'EXIT', From, Reason} ->
-	    io:format("~p: ~p~n", [?MODULE, #rh_stopped{event='EXIT', reason=Reason, from=From}]);
-
-	{stop, Reason, From} ->
-	    io:format("~p: ~p~n", [?MODULE, #rh_stopped{event=stop, reason=Reason, from=From}]),
-	    exit(Reason)
-    end.
 
 %%% Different clients can free up / allocate resources. For simolicity no constraints who allocate/freeup which.
 
