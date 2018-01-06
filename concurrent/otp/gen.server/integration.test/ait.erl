@@ -20,19 +20,20 @@ run_suite() ->
 
 start_test_() ->
     {
-      "When GenRS is loaded and started, then the supervision tree must be built, and the following process must have been started: `genrs_server`, `service_manager`, `service_stats_provider` and `rh`",
-      {setup, 
-       fun() -> ?MODULE:start() end,
-       fun ?MODULE:after_each/1,
-       fun(Actual) ->
-	       [
-		?_assertEqual(ok, Actual),
-		?_assertMatch(P when true == is_pid(P), whereis(?server)),
-		?_assertMatch(P when true == is_pid(P), whereis(?sm)),
-		?_assertMatch(P when true == is_pid(P), whereis(?ssp)),
-		?_assertMatch(P when true == is_pid(P), whereis(?rh))
-	       ]
-       end
+      "When GenRS is loaded and started, then the Supervision Tree must be built, and the following process must have been started: `genrs_server`, `service_manager`, `service_stats_provider` and `rh`",
+      {
+	setup, 
+	fun() -> ?MODULE:start() end,
+	fun ?MODULE:after_each/1,
+	fun(Actual) ->
+		[
+		 ?_assertEqual(ok, Actual),
+		 ?_assertMatch(P when true == is_pid(P), whereis(?server)),
+		 ?_assertMatch(P when true == is_pid(P), whereis(?sm)),
+		 ?_assertMatch(P when true == is_pid(P), whereis(?ssp)),
+		 ?_assertMatch(P when true == is_pid(P), whereis(?rh))
+		]
+	end
       }
     }.
 
@@ -49,7 +50,7 @@ stop() ->
 after_each(_) ->
     ?MODULE:stop().
 
-freeup_not_allocated_test_() ->
+freeup_resource_has_not_been_allocated_test_() ->
     {
       "When Server receives protocol 'freeup' and a resource name and the resource has not been allocated, then Server must reply with an error message",
       {
@@ -67,6 +68,7 @@ freeup_not_allocated_test_() ->
       }
     }.
 
+%%% This Test Case also implicitly tests alloc success.
 freeup_test_() ->
     {
       "When client asks to free up a resource which is allocated, then GenRS must free up the resource",
@@ -76,7 +78,7 @@ freeup_test_() ->
 		 genrs:alloc(),
 		 receive
 		     _ ->
-			 ok
+			 pass
 		 end,
 		 genrs:freeup(term_to_binary(?rs)),
 		 receive
@@ -87,5 +89,29 @@ freeup_test_() ->
 	fun ?MODULE:after_each/1,
 	fun(Actual) ->
 		?_assertEqual(#ok{more={'free up success', term_to_binary(?rs)}}, Actual) end
+      }
+    }.
+
+alloc_no_free_resource_test_() ->
+    {
+      "When client asks to alloc a resource and there is no free resources, then Server must reply with a message",
+      {
+	setup,
+	fun() -> ?MODULE:start(),
+		 genrs:alloc(),
+		 receive 
+		     _ ->
+			 pass
+		 end,
+		 genrs:alloc(),
+		 receive
+		     Msg ->
+			 Msg
+		 end
+	end,
+	fun ?MODULE:after_each/1,
+	fun(Actual) ->
+		?_assertEqual({error, 'no free resource anymore'}, Actual) end
+	
       }
     }.
