@@ -43,7 +43,7 @@ alloc() ->
     self() ! gen_server:call(?server, #cask2alloc{}).
 
 cask_stats() ->
-    self() ! gen_server:call(?server, #cask4stats{}).
+    gen_server:cast(?server, #cask4stats{}).
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -99,20 +99,20 @@ handle_call(#cask2alloc{} = Request, _From, State) ->
 	    Reply = #error{reason=Reason},
 	    {reply, Reply, State}
     end;
-handle_call(#cask4stats{} = _Request, _From, #state{free=_Free, allocated=_Allocated} = State) ->
-    rh:rbrief(#cask_dbrief{}),
-    receive
-	#rh_dbrief{ds=#data_structure{free=BFree, allocated=BAllocated}} ->
-	    sp:dstats(#quickstats_on_dbrief{free=BFree, allocated=BAllocated}),
-	    receive
-		#dstats{stats_free=#bse{name=_, length=FL}, 
-			stats_allocated=#bse{name=_, length=AL}} ->
-		    Reply = #ok{more={stats, {free,FL}, {allocated,AL}}},
-		    {reply, Reply, State}
-	    end;
-	Unknown ->
-	    {reply, #error{reason=Unknown}, State}
-    end;
+%% handle_call(#cask4stats{} = _Request, _From, #state{free=_Free, allocated=_Allocated} = State) ->
+%%     rh:rbrief(#cask_dbrief{}),
+%%     receive
+%% 	#rh_dbrief{ds=#data_structure{free=BFree, allocated=BAllocated}} ->
+%% 	    sp:dstats(#quickstats_on_dbrief{free=BFree, allocated=BAllocated}),
+%% 	    receive
+%% 		#dstats{stats_free=#bse{name=_, length=FL}, 
+%% 			stats_allocated=#bse{name=_, length=AL}} ->
+%% 		    Reply = #ok{more={stats, {free,FL}, {allocated,AL}}},
+%% 		    {reply, Reply, State}
+%% 	    end;
+%% 	Unknown ->
+%% 	    {reply, #error{reason=Unknown}, State}
+%%     end;
 handle_call(_Request, _From, State) ->
     Reply = ok,
     {reply, Reply, State}.
@@ -127,6 +127,20 @@ handle_call(_Request, _From, State) ->
 %%                                  {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
+
+handle_cast(#cask4stats{} = _Request, #state{free=_Free, allocated=_Allocated} = State) ->
+    rh:rbrief(#cask_dbrief{}),
+    receive
+	#rh_dbrief{ds=#data_structure{free=BFree, allocated=BAllocated}} ->
+	    sp:dstats(#quickstats_on_dbrief{free=BFree, allocated=BAllocated}),
+	    receive
+		#dstats{stats_free=#bse{name=_, length=_FL},
+			stats_allocated=#bse{name=_, length=_AL}} ->
+		    {noreply, State}
+	    end;
+	_ ->
+	    {noreply, State}
+    end;
 handle_cast(Msg, State) ->
     io:format("~p received `asynchronous request` ~p~n", [?server, Msg]),
     {noreply, State}.
