@@ -7,8 +7,10 @@
 
 -module(dh_lib).
 -export([pairwith_hash/1, keymember/2, keydelete/2, values/1]).
--include_lib("eunit/include/eunit.hrl").
+
 -include("genrs.hrl").
+
+-include_lib("eunit/include/eunit.hrl").
 
 pairwith_hash_input_term_test_() ->
     R = 'ab.12.0',
