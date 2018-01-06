@@ -170,7 +170,17 @@ allocated_case2_test_() ->
     Pid = spawn(fun() -> [] end),
     {
       "When Free list is empty then allocate a resource is not possible.",
-      ?_assertEqual({no_free_resource, []}, allocate([],[], Pid))
+      ?_assertEqual({'no free resource anymore', []}, allocate([],[], Pid))
+    }.
+
+free_case_not_binary_test_() ->
+    Res = 'ab.12.0',
+    Resds = pairwith_hash(Res),
+    Pid = spawn(fun() -> [] end),
+    Allocated = [{Resds, Pid}],
+    {
+      "When a given resource is not in binary data type, then Server must not handle the call.",
+      ?_assertEqual({error, not_binary}, free(_Free=[], Allocated, Pid, Res))
     }.
 
 free_case1_test_() ->
@@ -179,8 +189,8 @@ free_case1_test_() ->
     Pid = spawn(fun() -> [] end),
     Allocated = [{Resds, Pid}],
     {
-      "When a given resource is allocated, then the resource must be freed up. ", % Free up definition: Moving the resource from Allocated list to Free list.
-      ?_assertEqual({ok, [Resds], []}, free(_Free=[], Allocated, Pid, Res))
+      "When a given resource is allocated and client called to free it up, then Server must free up the resource",
+      ?_assertEqual({ok, [Resds], []}, free(_Free=[], Allocated, Pid, term_to_binary(Res)))
     }.
 
 free_case2_test_() ->
@@ -188,5 +198,5 @@ free_case2_test_() ->
     Pid = spawn(fun() -> [] end),
     {
       "When a given resource is not allocated, then the resource cannot be freed up.",
-      ?_assertEqual({error, not_allocated}, free([], [], Pid, Res))
+      ?_assertEqual({error, 'resource has not been allocated'}, free([], [], Pid, term_to_binary(Res)))
     }.
