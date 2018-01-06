@@ -13,4 +13,4 @@ attempt_alloc() ->
 
 %%% Asynchronous
 attempt_dstats() ->
-    spawn(genrs, cask_stats, []).
+    spawn(genrs, cask_dstats, []).

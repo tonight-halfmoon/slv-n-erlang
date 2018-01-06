@@ -11,7 +11,7 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/1, freeup/1, alloc/0, cask_stats/0]).
+-export([start_link/1, freeup/1, alloc/0, cask_dstats/0]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -42,8 +42,8 @@ freeup(Res) ->
 alloc() ->    
     self() ! gen_server:call(?server, #cask2alloc{}).
 
-cask_stats() ->
-    gen_server:cast(?server, #cask4stats{}).
+cask_dstats() ->
+    gen_server:cast(?server, #cask_dstats{}).
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -99,20 +99,6 @@ handle_call(#cask2alloc{} = Request, _From, State) ->
 	    Reply = #error{reason=Reason},
 	    {reply, Reply, State}
     end;
-%% handle_call(#cask4stats{} = _Request, _From, #state{free=_Free, allocated=_Allocated} = State) ->
-%%     rh:rbrief(#cask_dbrief{}),
-%%     receive
-%% 	#rh_dbrief{ds=#data_structure{free=BFree, allocated=BAllocated}} ->
-%% 	    sp:dstats(#quickstats_on_dbrief{free=BFree, allocated=BAllocated}),
-%% 	    receive
-%% 		#dstats{stats_free=#bse{name=_, length=FL}, 
-%% 			stats_allocated=#bse{name=_, length=AL}} ->
-%% 		    Reply = #ok{more={stats, {free,FL}, {allocated,AL}}},
-%% 		    {reply, Reply, State}
-%% 	    end;
-%% 	Unknown ->
-%% 	    {reply, #error{reason=Unknown}, State}
-%%     end;
 handle_call(_Request, _From, State) ->
     Reply = ok,
     {reply, Reply, State}.
@@ -128,7 +114,7 @@ handle_call(_Request, _From, State) ->
 %% @end
 %%--------------------------------------------------------------------
 
-handle_cast(#cask4stats{} = _Request, #state{free=_Free, allocated=_Allocated} = State) ->
+handle_cast(#cask_dstats{} = _Request, #state{free=_Free, allocated=_Allocated} = State) ->
     rh:rbrief(#cask_dbrief{}),
     receive
 	#rh_dbrief{ds=#data_structure{free=BFree, allocated=BAllocated}} ->
@@ -136,11 +122,12 @@ handle_cast(#cask4stats{} = _Request, #state{free=_Free, allocated=_Allocated} =
 	    receive
 		#dstats{stats_free=#bse{name=_, length=_FL},
 			stats_allocated=#bse{name=_, length=_AL}} ->
-		    {noreply, State}
+		    done
 	    end;
 	_ ->
-	    {noreply, State}
-    end;
+	    done
+    end,
+    {noreply, State};
 handle_cast(Msg, State) ->
     io:format("~p received `asynchronous request` ~p~n", [?server, Msg]),
     {noreply, State}.

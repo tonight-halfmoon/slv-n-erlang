@@ -2,7 +2,7 @@
 %%% Internal GenRS protocols
 -record(cask2free, {resource}).
 -record(cask2alloc, {}).
--record(cask4stats, {}).
+-record(cask_dstats, {}).
 
 %%% common
 -record(state, {free, allocated}).

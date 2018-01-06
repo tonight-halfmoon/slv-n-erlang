@@ -23,7 +23,8 @@ Convert it to a Distributed System: Processes on Nodes
 ```
 
 ```
-Simultaneous multiple client requests: Simulate the case when multiple clients sending GenRS requests at the same time
+[In Progress] ~~Simultaneous multiple client requests: Simulate the case when multiple clients sending GenRS requests at the same time~~
+Currently, API function `genrs:cask_dstats`
 ```
 
 ## Application

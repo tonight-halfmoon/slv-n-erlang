@@ -1,2 +1,1 @@
 -define(server, genrs).
--define(ssp, service_stats_provider).

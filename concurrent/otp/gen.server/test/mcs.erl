@@ -4,7 +4,9 @@
 
 -export([spawn_mcs/2, stop_genrs/0]).
 
--inclide_lib("eunit/include/eunit.hrl").
+-include("config.hrl").
+
+-include_lib("eunit/include/eunit.hrl").
 
 run() ->
     start_genrs(),
@@ -20,6 +22,7 @@ spawn_mcs(Limit, Limit, Handle_stop) ->
 	    io:format("~n~n~n", []),
 	    Handle_stop()
     end,
+    ?assertEqual(undefined, whereis(?server)),
     done;
 spawn_mcs(Limit, I, _fun)->
     Pid = spawn(simuc, attempt_dstats, []),

@@ -70,7 +70,7 @@ freeup_resource_has_not_been_allocated_test_() ->
 %%% This Test Case also implicitly tests alloc success.
 freeup_test_() ->
     {
-      "When client asks to free up a resource which is allocated, then GenRS must free up the resource",
+      "When a client asks to free up a resource which is allocated, then GenRS must free up the resource",
       {
 	setup,
 	fun() -> start(),
@@ -93,7 +93,7 @@ freeup_test_() ->
 
 alloc_no_free_resource_test_() ->
     {
-      "When client asks to alloc a resource and there is no free resources, then Server must reply with a message",
+      "When a client asks to alloc a resource and there is no free resources, then Server must reply with a message",
       {
 	setup,
 	fun() -> ?MODULE:start(),
@@ -117,16 +117,12 @@ alloc_no_free_resource_test_() ->
 
 stats_test_() ->
     {
-      "When client asks for statistics on the current state of the resources, then Server must reply with statistics results",
+      "When a client asks for statistics on the current state of the resources, then Server must come up with statistics results",
       setup,
       fun() -> ?MODULE:start(),
-	       genrs:cask_stats(),
-	       receive
-		   Msg ->
-		       Msg
-		   end
+	       genrs:cask_dstats()
       end,
       fun ?MODULE:after_each/1,
       fun(Actual) ->
-	      ?_assertMatch(#ok{more={stats, {free, Fstats}, {allocated, Astats}}} when {Fstats,Astats} =:= {1,0}, Actual) end
+	      ?_assertEqual(ok, Actual) end
     }.

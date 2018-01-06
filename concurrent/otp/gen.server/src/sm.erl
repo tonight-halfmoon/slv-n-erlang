@@ -27,16 +27,16 @@ init(Args) ->
     process_flag(trap_exit, true),
     {ok, #state{val=Args}}.
 
-handle_cast(Msg, State) ->
+handle_cast(_Msg, State) ->
     {noreply, State}.
 
-handle_call(Request, From, State) ->
+handle_call(_Request, _From, State) ->
     Reply = ok,
     {reply, Reply, State}.
 
-handle_info({'EXIT', From, Reason}, State) ->
+handle_info({'EXIT', _From, _Reason}, State) ->
     {noreply, State};
-handle_info(Info, State) ->
+handle_info(_Info, State) ->
     {noreply, State}.
 
 terminate(Reason, _State) ->
