@@ -2,7 +2,7 @@
 -export([start/0]).
 
 %%% this is how you enjoy concurrency with rosetta code!
-%%% This sample simulates synchronous behaviour of multiple processes
+%%% This sample simulates asynchronous behaviour of multiple processes
 
 %%% Sample output: 
 %%% 36> erc:start().
