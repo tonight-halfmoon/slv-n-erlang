@@ -1,0 +1,5 @@
+-define(conn, rabbitconn).
+-define(ch, testch109733).
+-define(queue, <<"quuuuxxxxxxpppp657">>).
+-define(exch, <<"dumexch87652">>).
+-record(pub, {payload}).
