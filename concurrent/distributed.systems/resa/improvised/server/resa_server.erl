@@ -74,20 +74,24 @@ active() -> %%% Server wouldn't bother to deal with data
             %%% See the flexibility here! Handling the server request is delegated
             %%% to another process without a need to change the interface functions.
 	#connect{client_pid=FromPid} ->
-	    connect_client(FromPid);
+	    connect_client(FromPid),
+	    active();
 	{'EXIT', FromPid, Reason} ->
-	    io:format("Client ~p disconnected; reason: ~p~n", [FromPid, Reason]);
+	    io:format("Client ~p disconnected; reason: ~p~n", [FromPid, Reason]),
+	    ok;
 	#cask2alloc{client_pid=FromPid} ->
 	    ?handler ! #allocate_resource{server=?server, from_pid=FromPid},
-	    await_handler(FromPid);
+	    await_handler(FromPid),
+	    active();
 	#cask2free{client_pid=FromPid, resource=Resource} ->
 	    ?handler ! #free_resource{server=?server, from_pid=FromPid, resource=Resource},
-	    await_handler(FromPid);
+	    await_handler(FromPid),
+	    active();
 	#cask4stats{client_pid=FromPid} ->
 	    ?handler ! #server_request_data{server=?server},
-	    await_handler(FromPid)
-    end,
-    active().
+	    await_handler(FromPid),
+	    active()
+    end.
 
 await_handler(FromPid) ->
     receive
