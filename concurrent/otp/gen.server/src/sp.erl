@@ -16,19 +16,21 @@ start_link(Args) ->
     gen_server:start_link({local, ?ssp}, ?MODULE, Args, [{debug, [trace, statistics]}]).
 
 dstats(Request) ->
-    self() ! gen_server:call(?ssp, Request).
+    gen_server:cast(?ssp, Request).
 
 init(Args) ->
     process_flag(trap_exit, true),
     {ok, #state{val=Args}}.
 
-handle_cast(_Msg, State) ->
+handle_cast(#quickstats_on_dbrief{free=Free, allocated=Allocated}, State) ->
+    Payload = #dstats{stats_free=#bse{name=free, length=length(Free)},
+		      stats_allocated=#bse{name=allocated, length=length(Allocated)}},
+    amqp_pub:pub(term_to_binary(Payload)),
+    {noreply, State};
+handle_cast(Any, State) ->
+    io:format("No interested in ~p~n", [Any]),
     {noreply, State}.
 
-handle_call(#quickstats_on_dbrief{free=Free, allocated=Allocated}, _From, State) ->
-    Reply = #dstats{stats_free=#bse{name=free, length=length(Free)}, 
-		    stats_allocated=#bse{name=allocated, length=length(Allocated)}},
-    {reply, Reply, State};
 handle_call(_Request, _From, State) ->
     Reply = ok,
     {reply, Reply, State}.

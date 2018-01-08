@@ -11,6 +11,7 @@
 -include("../src/rh.hrl").
 -include("../src/genrs.hrl").
 -include("../include/config.hrl").
+-include("../include/amqp_config.hrl").
 
 -define(rs, 'rs.gsrp.999').
 
@@ -22,7 +23,7 @@ start_test_() ->
       "When GenRS is loaded and started, then the Supervision Tree must be built, and the following process must have been started: `genrs_server`, `service_manager`, `service_stats_provider` and `rh`",
       {
 	setup, 
-	fun() -> ?MODULE:start() end,
+	fun() -> start() end,
 	fun ?MODULE:after_each/1,
 	fun(Actual) ->
 		[
@@ -96,7 +97,7 @@ alloc_no_free_resource_test_() ->
       "When a client asks to alloc a resource and there is no free resources, then Server must reply with a message",
       {
 	setup,
-	fun() -> ?MODULE:start(),
+	fun() -> start(),
 		 genrs:alloc(),
 		 receive 
 		     _ ->
@@ -117,12 +118,15 @@ alloc_no_free_resource_test_() ->
 
 stats_test_() ->
     {
-      "When a client asks for statistics on the current state of the resources, then Server must come up with statistics results",
+      "When a client asks for statistics on the current state of the resources data, then Server must come up with statistics results: Server must send the result to an exchange on RabbitMQ broker Queue. The client who has subscribed to the same queue will be able to receive the message in an asynchronous fashion.",
       setup,
-      fun() -> ?MODULE:start(),
-	       genrs:cask_dstats()
+      fun() ->  %amqp_consumer:spawn_link(),
+		start(),
+		genrs:cask_dstats()
+		%amqp_consumer:cask_msg()
       end,
       fun ?MODULE:after_each/1,
       fun(Actual) ->
 	      ?_assertEqual(ok, Actual) end
+	      %% ?_assertMatch(#ok{more={stats, {free, Fstats}, {allocated, Astats}}} when {Fstats, Astats} =:= {1,0}, Actual)
     }.

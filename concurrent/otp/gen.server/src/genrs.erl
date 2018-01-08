@@ -119,15 +119,10 @@ handle_cast(#cask_dstats{} = _Request, #state{free=_Free, allocated=_Allocated} 
     receive
 	#rh_dbrief{ds=#data_structure{free=BFree, allocated=BAllocated}} ->
 	    sp:dstats(#quickstats_on_dbrief{free=BFree, allocated=BAllocated}),
-	    receive
-		#dstats{stats_free=#bse{name=_, length=_FL},
-			stats_allocated=#bse{name=_, length=_AL}} ->
-		    done
-	    end;
+	    {noreply, State};
 	_ ->
-	    done
-    end,
-    {noreply, State};
+	    {noreply, State}
+    end;
 handle_cast(Msg, State) ->
     io:format("~p received `asynchronous request` ~p~n", [?server, Msg]),
     {noreply, State}.
