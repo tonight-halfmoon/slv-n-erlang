@@ -5,3 +5,4 @@
 -record(pub, {payload}).
 -record(cask_consumer_msg, {from}).
 -define(amqp_consumer, amqp_consumer_sp).
+-record(amqp_connect, {exch, queue, ch, conn}).

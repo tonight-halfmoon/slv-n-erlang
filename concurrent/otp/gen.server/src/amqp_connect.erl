@@ -7,24 +7,24 @@
 
 -module(amqp_connect).
 
--export([spawn_link/1]).
+-export([spawn_link/1, init/2]).
 
--export([init/1]).
+-export([system_continue/3, system_terminate/4,
+	 write_debug/3]).
 
 -include_lib("amqp_client/include/amqp_client.hrl").
 
--include("amqp_config.hrl").
+-include("amqp_connect.hrl").
 
 -record(state, {pid, name}).
 
 spawn_link([]) ->
-    spawn_link({local, ?MODULE}, ?MODULE, [], []).
+    spawn_link({local, ?MODULE}, ?MODULE, init, [self(), #amqp_connect{exch=?exch, queue=?queue, ch=?ch, conn=?conn}]).
 
-init([]) ->
+init(Parent, _Args) ->
     %% Connecting to a Broker
     {ok, Connection} = amqp_connection:start(#amqp_params_network{}),
-    io:format("AMQP Client connection has been is established ~p~n.", [Connection]),
-    %register(?conn, Connection),
+    register(?conn, Connection),
     %% A new Channel
     {ok, Channel} = amqp_connection:open_channel(Connection),
     %% A new Queue
@@ -34,19 +34,20 @@ init([]) ->
     %% 2. Make up the new Queue
     Queue_declare = #'queue.declare'{queue = ?queue},
     #'queue.declare_ok'{queue = ?queue} = amqp_channel:call(Channel, Queue_declare),
-    %% Routing Rule
-    %Binding = #'queue.bind'{queue = Queue, exchange = Exchange, routing_key = Routing_key},
-    %#'queue.bind_ok'{} = amqp_channel:call(Channel, Binding),
-    io:format("registering the new channel ~p as ~p~n", [Channel, ?ch]),
+    Deb = sys:debug_options([statistics, trace]),
+    Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
+			    ?MODULE, "AMQP Client connection has been is established.~nRegistering a new channel on RabbitMQ"),
     register(?ch, Channel),
+    proc_lib:init_ack(Parent, {ok, self()}),
     process_flag(trap_exit, true),
-    active({ok, #state{pid=self(), name=?ch}}).
+    active({ok, #state{pid=self(), name=?ch}}, Parent, Deb2).
 
-active(State) ->
+active(State, Parent, Deb) ->
     receive
+	{system, From, Request} ->
+	    sys:handle_system_msg(Request, From, Parent, ?MODULE, Deb, State);
 	{'EXIT', _From, _Reason} ->
-	    terminate('EXIT', State),
-	    {noreply, State}
+	    terminate('EXIT', State)
     end.
 
 terminate(Reason, _State) ->
@@ -58,3 +59,12 @@ terminate(Reason, _State) ->
     amqp_connection:close(Conn_pid),
     io:format("~p Shutdown because of ~p~n", [?MODULE, Reason]),
     ok.
+
+write_debug(Dev, Event, Name) ->
+    io:format(Dev, "~p: event = ~p~n", [Name, Event]).
+
+system_continue(Parent, Deb, State) ->
+    active(State, Parent, Deb).
+
+system_terminate(Reason, _Parent, _Deb, _State) ->
+    exit(Reason).

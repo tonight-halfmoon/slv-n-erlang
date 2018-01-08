@@ -2,7 +2,7 @@
 
 -export([spawn_link/0, connect/0, pub/1]).
 
--include("amqp_config.hrl").
+-include("amqp_connect.hrl").
 
 -include_lib("amqp_client/include/amqp_client.hrl").
 

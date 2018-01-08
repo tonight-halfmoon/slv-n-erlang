@@ -19,10 +19,10 @@ init(Args) ->
     Rhchildspecs = #{id => rhcp,
 		     start => {rh, start_link, Args},
 		     restart => permanent,
-		     shutdown => 5000,
+		     shutdown => brutal_kill,
 		     modules => [rh, dh_lib]
 		    },
-    SMsupspecs = #{id => csmsup,
+    SMsupspecs = #{id => service_manager_supervisor,
 		   start => {sm_sup, start_link, []},
 		   restart => transient,
 		   type => supervisor

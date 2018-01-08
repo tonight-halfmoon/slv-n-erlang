@@ -11,7 +11,6 @@
 -include("../src/rh.hrl").
 -include("../src/genrs.hrl").
 -include("../include/config.hrl").
--include("../include/amqp_config.hrl").
 
 -define(rs, 'rs.gsrp.999').
 
