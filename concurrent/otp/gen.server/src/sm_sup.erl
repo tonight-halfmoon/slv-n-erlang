@@ -17,10 +17,10 @@ init(_Args) ->
     SupFlags = #{strategy => one_for_one, intensity => 1, period => 5}, 
     SMchildspecs = #{id => service_manager,
 		     start => {sm, start_link, [#sm_start_args{}]},
-		     shutdown => 5000
+		     shutdown => brutal_kill
 		    },
     SPchildspecs = #{id => ssp,
 		     start => {sp, start_link, [#sp_start_args{}]},
-		     shutdown => 5000
+		     shutdown => brutal_kill
 		    },
     {ok, {SupFlags, [SMchildspecs, SPchildspecs]}}.
