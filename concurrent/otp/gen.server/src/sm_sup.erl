@@ -7,6 +7,7 @@
 
 -include("sm.hrl").
 -include("sp.hrl").
+-include("amqp_connect.hrl").
 
 -define(SUP, smsupproc_name).
 

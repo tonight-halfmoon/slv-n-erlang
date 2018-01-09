@@ -9,6 +9,7 @@
 
 -include("sp.hrl").
 -include("config.hrl").
+-include("amqp_connect.hrl").
 
 -record(state, {val}).
 
@@ -25,7 +26,7 @@ init(Args) ->
 handle_cast(#quickstats_on_dbrief{free=Free, allocated=Allocated}, State) ->
     Payload = #dstats{stats_free=#bse{name=free, length=length(Free)},
 		      stats_allocated=#bse{name=allocated, length=length(Allocated)}},
-    amqp_pub:pub(term_to_binary(Payload)),
+    amqp_pub:send(#amqp_connect{exch=?exch, queue=?queue, ch=?ch, conn=?conn}, term_to_binary(Payload)),
     {noreply, State};
 handle_cast(Any, State) ->
     io:format("No interested in ~p~n", [Any]),
