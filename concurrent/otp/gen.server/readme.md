@@ -10,6 +10,10 @@ A lot of things have changed the way to implement the server, when compared agai
 
 I did not need to explicitely implement control source code on logging debug messages in runtime, as I had to do that when I utilised Erlang module `proc_lib` in [`RSSP`]( ../special.processes/ebin/rssp.app) when OTP Special Processes applied there. OTP standard behviour `gen_server` makes use of Erlang module `proc_lib` and when option `{debug,Dbgs}` is provided with [`gen_server:start_link`](http://erlang.org/doc/man/gen_server.html#start_link-3) then all the boiler plate is done. Of course, this does not come with a surprise, as described in Erlang [STDLIB documentation](http://erlang.org/doc/apps/stdlib/index.html).
 
+# Communicting through RabbitMQ broker via AMQP Client
+
+To demonstrate concurrently communicating processes, I integrated application AMQP client. The example implemented, say a client requests data statistics. GenRS will process the request and submit the result as a payload with a message on a RabbitMQ broker queue using AMQP client publisher. The client subscribes to the same queue as a AMQP client consumer and receives the message.
+
 # Future Work
 
 ## Testing
@@ -26,7 +30,7 @@ Convert it to a Distributed System: Processes on Nodes
 > [In Progress]
 Simultaneous multiple client requests: Simulate the case when multiple clients sending GenRS requests at the same time
 
-	     Module `mcs` spawns many clients to test API function `genrs:cask_dstats` which invokes `gen_server:cast/2`.
+     Module `mcs` spawns many clients to test API function `genrs:cask_dstats` which invokes `gen_server:cast/2`.
 ```
 
 ## Application
