@@ -7,3 +7,4 @@
 -define(amqp_consumer, amqp_consumer_sp).
 -record(amqp_connect, {exch, queue, ch, conn}).
 -record(ampq_connect_stopped, {event, reason, from}).
+-record(amqp_send, {exch, queue, ch_proc_name, payload}).

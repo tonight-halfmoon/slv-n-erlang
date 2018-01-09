@@ -121,12 +121,15 @@ stats_test_() ->
       "When a client asks for statistics on the current state of the resources data, then Server must come up with statistics results: Server must send the result to an exchange on RabbitMQ broker Queue. The client who has subscribed to the same queue will be able to receive the message in an asynchronous fashion.",
       setup,
       fun() -> start(),
-	       amqp_consumer:start_link(#amqp_connect{exch=?exch, queue=?queue, ch=?ch, conn=?conn}),
 	       genrs:cask_dstats(),
-	       amqp_consumer:cask_msg()
+	       receive
+		   after 500 ->
+			   ok
+		   end,
+	       amqp_consumer:start_link(#amqp_connect{exch=?exch, queue=?queue, ch=?ch, conn=?conn}),
+	       binary_to_term(amqp_consumer:cask_msg())
       end,
       fun ?MODULE:after_each/1,
       fun(Actual) ->
-	      ?_assertEqual(nothing, Actual) end
-	      %% ?_assertMatch(#ok{more={stats, {free, Fstats}, {allocated, Astats}}} when {Fstats, Astats} =:= {1,0}, Actual)
+	      ?_assertMatch({dstats, {bse, free, Fstats}, {bse, allocated, Astats}} when {Fstats, Astats} =:= {1,0}, Actual) end
     }.
