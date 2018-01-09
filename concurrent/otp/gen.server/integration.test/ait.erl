@@ -121,12 +121,12 @@ stats_test_() ->
       "When a client asks for statistics on the current state of the resources data, then Server must come up with statistics results: Server must send the result to an exchange on RabbitMQ broker Queue. The client who has subscribed to the same queue will be able to receive the message in an asynchronous fashion.",
       setup,
       fun() -> start(),
+	       amqp_consumer:start_link(#amqp_connect_args{exch=?exch, queue=?queue}),
 	       genrs:cask_dstats(),
 	       receive
 	       after 500 ->
 		       ok
 	       end,
-	       amqp_consumer:start_link(#amqp_connect_args{exch=?exch, queue=?queue}),
 	       amqp_consumer:cask4_msg()
       end,
       fun ?MODULE:after_each/1,
