@@ -34,7 +34,7 @@ init(Parent, _Args) ->
 			    ?MODULE, "AMQP Client connection for Publisher has been is established~n"),
     proc_lib:init_ack(Parent, {ok, self()}),
     process_flag(trap_exit, true),
-    active(Parent, Deb, #state{ch_pid=Channel, conn_pid=Connection}).  
+    active(Parent, Deb2, #state{ch_pid=Channel, conn_pid=Connection}).  
 
 active(Parent, Deb, State) ->
     receive
@@ -68,7 +68,7 @@ write_debug(Dev, Event, Name) ->
 system_continue(Parent, Deb, State) ->
     active(State, Parent, Deb).
 
-system_terminate(Reason, _Parent, Deb, #state{ch_pid=Channel, conn_pid=Connection}) ->
+system_terminate(Reason, _Parent, _Deb, #state{ch_pid=Channel, conn_pid=Connection}) ->
     unregister(Channel),
     unregister(Connection),
     amqp_channel:close(Channel),
