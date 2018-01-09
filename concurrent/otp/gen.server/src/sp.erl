@@ -26,8 +26,8 @@ init(Args) ->
 handle_cast(#quickstats_on_dbrief{free=Free, allocated=Allocated}, State) ->
     Payload = #dstats{stats_free=#bse{name=free, length=length(Free)},
 		      stats_allocated=#bse{name=allocated, length=length(Allocated)}},
-    amqp_pub:start_link(),
-    amqp_pub:send(term_to_binary(Payload)),
+    amqp_pub:start_link(#amqp_connect_args{exch=?exch, queue=?queue}),
+    amqp_pub:send(Payload),
     {noreply, State};
 handle_cast(Any, State) ->
     io:format("No interested in ~p~n", [Any]),

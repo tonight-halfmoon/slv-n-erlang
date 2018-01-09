@@ -7,9 +7,8 @@
 
 -include("sm.hrl").
 -include("sp.hrl").
--include("amqp_connect.hrl").
 
--define(SUP, smsupproc_name).
+-define(SUP, sm_sup_proc).
 
 start_link() ->
     supervisor:start_link({local, ?SUP}, ?MODULE, []).

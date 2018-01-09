@@ -123,11 +123,11 @@ stats_test_() ->
       fun() -> start(),
 	       genrs:cask_dstats(),
 	       receive
-		   after 500 ->
-			   ok
-		   end,
-	       amqp_consumer:start_link(#amqp_connect{exch=?exch, queue=?queue, ch=?ch, conn=?conn}),
-	       binary_to_term(amqp_consumer:cask_msg())
+	       after 500 ->
+		       ok
+	       end,
+	       amqp_consumer:start_link(#amqp_connect_args{exch=?exch, queue=?queue}),
+	       amqp_consumer:cask4_msg()
       end,
       fun ?MODULE:after_each/1,
       fun(Actual) ->
