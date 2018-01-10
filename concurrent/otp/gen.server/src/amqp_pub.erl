@@ -10,41 +10,41 @@
 
 -include_lib("amqp_client/include/amqp_client.hrl").
 
--record(state, {ch_pid, conn_pid, exch, queue}).
+-record(state, {exch, queue}).
 -record(which_exchange, {from}).
+
 start_link(Args) ->
     proc_lib:start_link(?MODULE, init, [self(), Args]).
 
 init(Parent, #amqp_connect_args{exch=Exch, queue=Q}) ->
     register(?amqp_pub_proc, self()),
     Deb = sys:debug_options([statistics, trace]),
-    %% Connecting to a Broker
+    proc_lib:init_ack(Parent, {ok, self()}),
+    Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
+			    ?MODULE, {"AMQP Publisher client process is ready"}),
+    process_flag(trap_exit, true),
+    active(Parent, Deb2, #state{exch=Exch, queue=Q}).
+
+amqp_connect(Exch, Q, Deb) ->
     {ok, Connection} = amqp_connection:start(#amqp_params_network{}),
-    %% A new Channel
     {ok, Channel} = amqp_connection:open_channel(Connection),
-    %% A new Queue
-    %% 1. Declare an exchange
     Exchange_declare = #'exchange.declare'{exchange = Exch},
     #'exchange.declare_ok'{} = amqp_channel:call(Channel, Exchange_declare),
-    %% 2. Make up the new Queue
     Queue_declare = #'queue.declare'{queue = Q},
     #'queue.declare_ok'{queue = Q} = amqp_channel:call(Channel, Queue_declare),
-    proc_lib:init_ack(Parent, {ok, self()}),    
-    Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
-			    ?MODULE, {"AMQP Client connection for Publisher has been is established"}),
-    process_flag(trap_exit, true),
-    active(Parent, Deb2, #state{ch_pid=Channel, conn_pid=Connection, exch=Exch, queue=Q}).
+    sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
+			    ?MODULE, {"AMQP Publisher's channel has been is established"}),
+    {Channel, Connection}.
 
-active(Parent, Deb, #state{ch_pid=Channel, conn_pid=Connection, exch=Exch, queue=Q} = State) ->
+active(Parent, Deb, #state{exch=Exch, queue=Q} = State) ->
     receive
+	{'EXIT', Parent, Reason} ->
+	    unregister(whereis(?amqp_pub_proc)),
+	    exit(Reason);
 	{system, From, Request} ->
 	    sys:handle_system_msg(Request, From, Parent, ?MODULE, Deb, State);
-	{'EXIT', From, Reason} ->
-	    terminate('EXIT', Deb, State),
-	    sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
-			     ?MODULE, {event,'EXIT', reason, Reason, from, From});
 	#which_exchange{from=From} ->
-	    From ! {Channel, Exch, Q},
+	    From ! {State, Deb},
 	    active(Parent, Deb, State);
 	Msg ->
 	    Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
@@ -55,19 +55,14 @@ active(Parent, Deb, #state{ch_pid=Channel, conn_pid=Connection, exch=Exch, queue
 send(Payload) ->
     ?amqp_pub_proc ! #which_exchange{from=self()},
     receive
-	{Channel, Exch, Q} ->
+	{#state{exch=Exch, queue=Q}, Deb} ->
+	    {Channel, Connection} = amqp_connect(Exch, Q, Deb),
 	    Publish = #'basic.publish'{exchange = Exch, routing_key = Q},
 	    Props = #'P_basic'{delivery_mode = 2},
-	    amqp_channel:cast(Channel, Publish, #amqp_msg{props = Props, payload = term_to_binary(Payload)})
+	    amqp_channel:cast(Channel, Publish, #amqp_msg{props = Props, payload = term_to_binary(Payload)}),
+	    amqp_channel:close(Channel),
+	    amqp_connection:close(Connection)
     end.
-
-terminate(Reason, Deb, #state{ch_pid=Channel, conn_pid=Connection, exch=_Exch, queue=_Q}) ->
-    amqp_channel:close(Channel),
-    amqp_connection:close(Connection),
-    unregister(whereis(?amqp_pub_proc)),
-    sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
-		     ?MODULE, {terminated, Reason}),
-    ok.
 
 write_debug(Dev, Event, Name) ->
     io:format(Dev, "~p: event = ~p~n", [Name, Event]).
@@ -75,10 +70,9 @@ write_debug(Dev, Event, Name) ->
 system_continue(Parent, Deb, State) ->
     active(State, Parent, Deb).
 
-system_terminate(Reason, _Parent, _Deb, #state{ch_pid=Channel, conn_pid=Connection, exch=_Exch, queue=_Q}) ->
-    io:format("~p Shutdown because of ~p~n", [?MODULE, Reason]),
-    amqp_channel:close(Channel),
-    amqp_connection:close(Connection),
+system_terminate(Reason, _Parent, Deb, #state{exch=_Exch, queue=_Q}) ->
+    sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
+		     ?MODULE, {shutdown, Reason}),
     unregister(whereis(?amqp_pub_proc)),
     exit(Reason).
 
