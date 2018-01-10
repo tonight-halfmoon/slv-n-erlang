@@ -9,9 +9,9 @@
 -include("../src/sm.hrl").
 -include("../src/sp.hrl").
 -include("../src/rh.hrl").
--include("../src/genrs.hrl").
+-include("../src/genrs_internal.hrl").
 -include("../include/config.hrl").
--include("../src/amqp_connect.hrl").
+-include("../include/amqp_connect.hrl").
 
 -define(rs, 'rs.gsrp.999').
 

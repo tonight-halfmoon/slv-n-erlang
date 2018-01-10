@@ -1,4 +1,6 @@
 
+-include("genrs.hrl").
+
 %%% Internal GenRS protocols
 -record(cask2free, {resource}).
 -record(cask2alloc, {}).

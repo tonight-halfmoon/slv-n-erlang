@@ -8,7 +8,7 @@
 -module(dh_lib).
 -export([pairwith_hash/1, keymember/2, keydelete/2, values/1]).
 
--include("genrs.hrl").
+-include("genrs_internal.hrl").
 
 -include_lib("eunit/include/eunit.hrl").
 

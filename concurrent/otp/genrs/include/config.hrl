@@ -1,0 +1,1 @@
+-define(server, genrs_gen_server).

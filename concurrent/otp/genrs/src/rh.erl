@@ -12,7 +12,7 @@
 
 -include("rh.hrl").
 -include("config.hrl").
--include("genrs.hrl").
+-include("genrs_internal.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
 -import(dh_lib, [pairwith_hash/1, keymember/2, keydelete/2, values/1]).

@@ -60,6 +60,8 @@ send(Payload) ->
 	    Publish = #'basic.publish'{exchange = Exch, routing_key = Q},
 	    Props = #'P_basic'{delivery_mode = 2},
 	    amqp_channel:cast(Channel, Publish, #amqp_msg{props = Props, payload = term_to_binary(Payload)}),
+	    sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
+			     ?MODULE, {amq_msg_has_been_sent_to_the_queue}),
 	    amqp_channel:close(Channel),
 	    amqp_connection:close(Connection)
     end.
