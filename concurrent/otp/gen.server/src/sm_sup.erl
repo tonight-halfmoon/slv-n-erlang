@@ -7,6 +7,7 @@
 
 -include("sm.hrl").
 -include("sp.hrl").
+-include("amqp_connect.hrl").
 
 -define(SUP, sm_sup_proc).
 
@@ -23,4 +24,8 @@ init(_Args) ->
 		     start => {sp, start_link, [#sp_start_args{}]},
 		     shutdown => brutal_kill
 		    },
-    {ok, {SupFlags, [SMchildspecs, SPchildspecs]}}.
+    AMQP_publisher_childspecs = #{id => amqp_publisher_child,
+				  start => {amqp_pub, start_link, [#amqp_connect_args{exch=?exch, queue=?queue}]},
+				  shutdown => brutal_kill
+				 },
+    {ok, {SupFlags, [SMchildspecs, SPchildspecs, AMQP_publisher_childspecs]}}.
