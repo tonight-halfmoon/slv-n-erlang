@@ -11,22 +11,21 @@
 run() ->
     start_genrs(),
     spawn_mcs(50, fun ?MODULE:stop_genrs/0).
-    
+
 spawn_mcs(Limit, Handle_stop) ->
     spawn_mcs(Limit, 1, Handle_stop).
 
 spawn_mcs(Limit, Limit, Handle_stop) ->
     receive
-    after 
-	5000 ->
-	    io:format("~n~n~n", []),
+    after 5000 ->
+	    io:format("~n", []),
 	    Handle_stop()
     end,
     ?assertEqual(undefined, whereis(?server)),
     done;
 spawn_mcs(Limit, I, _fun)->
     Pid = spawn(simuc, attempt_dstats, []),
-    io:format("next Pid ~p~n", [Pid]),
+    io:format(">> next Pid ~p~n", [Pid]),
     spawn_mcs(Limit, I + 1, _fun).
 
 start_genrs() ->

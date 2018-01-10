@@ -61,8 +61,6 @@ active(#state{ch_pid=Channel, conn_pid=Connection, received=LastMsg} = State, Pa
 	#'basic.cancel_ok'{} ->
 	    sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
 			     ?MODULE, {received_cancel}),
-	    amqp_channel:close(Channel),
-	    amqp_connection:close(Connection),
 	    active(State, Parent, Deb);
 	{#'basic.deliver'{delivery_tag = Tag}, {amqp_msg, _, Payload} =_Content} ->
 	    Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
@@ -85,9 +83,11 @@ write_debug(Dev, Event, Name) ->
 system_continue(Parent, Deb, State) ->
     active(State, Parent, Deb).
 
-system_terminate(Reason, _Parent, Deb, #state{ch_pid=_Channel, conn_pid=_Connection, received=_LastMsg}) ->
+system_terminate(Reason, _Parent, Deb, #state{ch_pid=Channel, conn_pid=Connection, received=_LastMsg}) ->
     sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
 		     ?MODULE, {shutdown, Reason}),
+    amqp_channel:close(Channel),
+    amqp_connection:close(Connection),
     unregister(?amqp_consumer_proc),
     exit(Reason).
 

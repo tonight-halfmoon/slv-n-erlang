@@ -29,7 +29,7 @@ handle_cast(#quickstats_on_dbrief{free=Free, allocated=Allocated}, State) ->
     amqp_pub:send(Payload),
     {noreply, State};
 handle_cast(Any, State) ->
-    io:format("No interested in ~p~n", [Any]),
+    io:format("Not interested in ~p~n", [Any]),
     {noreply, State}.
 
 handle_call(_Request, _From, State) ->
