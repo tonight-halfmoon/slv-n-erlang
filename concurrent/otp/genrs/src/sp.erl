@@ -8,7 +8,7 @@
 	terminate/2, code_change/3]).
 
 -include("sp.hrl").
--include("config.hrl").
+-include("genrs_internal.hrl").
 -include("amqp_connect.hrl").
 
 -record(state, {val}).

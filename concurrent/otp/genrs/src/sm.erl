@@ -16,6 +16,7 @@
 	 terminate/2, code_change/3]).
 
 -include("sm.hrl").
+-include("genrs_internal.hrl").
 -include("config.hrl").
 
 -record(state, {val}).

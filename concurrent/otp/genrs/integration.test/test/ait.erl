@@ -5,13 +5,9 @@
 -export([after_each/1]).
 
 -include_lib("eunit/include/eunit.hrl").
-
--include("../src/sm.hrl").
--include("../src/sp.hrl").
--include("../src/rh.hrl").
--include("../src/genrs_internal.hrl").
--include("../include/config.hrl").
--include("../include/amqp_connect.hrl").
+-include_lib("genrs/include/genrs_internal.hrl").
+-include_lib("genrs/include/config.hrl").
+-include_lib("genrs/include/amqp_connect.hrl").
 
 -define(rs, 'rs.gsrp.999').
 

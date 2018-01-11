@@ -1,13 +1,14 @@
 
 -include("genrs.hrl").
 
-%%% Internal GenRS protocols
+-define(sm, service_manager).
+-define(ssp, service_stats_provider).
+-define(rh, res_handler).
+
 -record(cask2free, {resource}).
 -record(cask2alloc, {}).
 -record(cask_dstats, {}).
 
-%%% common
--record(state, {free, allocated}).
 -record(ok, {more}).
 -record(error, {reason}).
 -record(res_ds, {hash, value}).

@@ -1,5 +1,3 @@
--define(conn, rabbitconn).
--define(ch, ch4_genrs).
 -define(queue, <<"queue4_dstats">>).
 -define(exch, <<"exch4_genrs">>).
 -record(amqp_connect_args, {exch, queue}).
