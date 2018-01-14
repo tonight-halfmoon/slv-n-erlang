@@ -23,7 +23,7 @@ init(Parent, #amqp_connect_args{exch=Exch, queue=Q}) ->
     Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
 			    ?MODULE, {"AMQP Publisher client process is ready"}),
     process_flag(trap_exit, true),
-    active(Parent, Deb2, #state{exch=Exch, queue=Q}).
+    active(#state{exch=Exch, queue=Q}, Parent, Deb2).
 
 amqp_connect(Exch, Q, Deb) ->
     {ok, Connection} = amqp_connection:start(#amqp_params_network{}),
@@ -36,7 +36,7 @@ amqp_connect(Exch, Q, Deb) ->
 			    ?MODULE, {"AMQP Publisher's channel has been is established"}),
     {Channel, Connection}.
 
-active(Parent, Deb, #state{exch=Exch, queue=Q} = State) ->
+active(#state{exch=Exch, queue=Q} = State, Parent, Deb) ->
     receive
 	{'EXIT', Parent, Reason} ->
 	    unregister(whereis(?amqp_pub_proc)),
@@ -45,11 +45,11 @@ active(Parent, Deb, #state{exch=Exch, queue=Q} = State) ->
 	    sys:handle_system_msg(Request, From, Parent, ?MODULE, Deb, State);
 	#which_exchange{from=From} ->
 	    From ! {State, Deb},
-	    active(Parent, Deb, State);
+	    active(State, Parent, Deb);
 	Msg ->
 	    Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
 				    ?MODULE, Msg),
-	    active(Parent, Deb2, State)
+	    active(State, Parent, Deb2)
     end.
 
 send(Payload) ->

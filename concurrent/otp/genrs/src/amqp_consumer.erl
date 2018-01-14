@@ -55,25 +55,20 @@ active(#state{ch_pid=Channel, conn_pid=Connection, received=LastMsg} = State, Pa
 	{system, From, Request} ->
 	    sys:handle_system_msg(Request, From, Parent, ?MODULE, Deb, State);
 	#'basic.consume_ok'{} ->
-	    Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
-				    ?MODULE, {received_ok}),
+	    Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3, ?MODULE, {received_ok}),
 	    active(State, Parent, Deb2);
 	#'basic.cancel_ok'{} ->
-	    sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
-			     ?MODULE, {received_cancel}),
+	    sys:handle_debug(Deb, fun ?MODULE:write_debug/3, ?MODULE, {received_cancel}),
 	    active(State, Parent, Deb);
 	{#'basic.deliver'{delivery_tag = Tag}, {amqp_msg, _, Payload} =_Content} ->
-	    Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
-				    ?MODULE, {received_msg_with_payload, Payload}),
+	    Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3, ?MODULE, {received_msg_with_payload, Payload}),
 	    amqp_channel:cast(Channel, #'basic.ack'{delivery_tag = Tag}),
-	    Deb3 = sys:handle_debug(Deb2, fun ?MODULE:write_debug/3,
-				    ?MODULE, {sent_ack}),
+	    Deb3 = sys:handle_debug(Deb2, fun ?MODULE:write_debug/3, ?MODULE, {sent_ack}),
 	    New_state = #state{ch_pid=Channel, conn_pid=Connection, received=binary_to_term(Payload)},
 	    active(New_state, Parent, Deb3);
 	#cask4_consumer_msg{from=From} ->
 	    From ! LastMsg,
-	    Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
-				    ?MODULE, {received_cask_consume_msg}),
+	    Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3, ?MODULE, {received_cask_consume_msg}),
 	    active(State, Parent, Deb2)
     end.
 
