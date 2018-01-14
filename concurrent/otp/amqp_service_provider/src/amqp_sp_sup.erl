@@ -12,7 +12,7 @@ start_link(DeclareArgs) ->
 init({ExchangeDeclareArgs, QueueDeclareArgs}) ->
     SupFlags = #{startegy => one_for_one, intensity => 1, period => 5},
     AMQPExchangeChildSpecs = #{id => amqp_sp_exchange_child,
-				      start => {amqp_sp_exchange, start_link, [ExchangeDeclareArgs]},
+				      start => {amqp_sp_exchange, start_link, [ExchangeDeclareArgs]}, % mfa
 				      restart => permanent,
 				      shutdown => brutal_kill,
 				      type => worker,

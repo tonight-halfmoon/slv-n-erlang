@@ -17,6 +17,7 @@ start_link(ExchangeDeclareArgs) ->
     proc_lib:start_link(?MODULE, init, [self(), ExchangeDeclareArgs]).
 
 declare() ->
+    io:format("Interface function 'declare/0' was called by ~p~n", [self()]),
     ?exchange_declare_proc ! #declare{exchange_declare_args = {}, from = self()}.
 
 init(Parent, ExchangeDeclareArgs) ->
@@ -35,17 +36,20 @@ active(#state{exchange_declare_args = ExchangeDeclareArgs, exchange_declared = A
 	    sys:handle_debug(Deb, fun ?MODULE:write_debug/3, ?MODULE, {"Receieved 'EXIT' from", Parent, "because", Reason}),
 	    unregister(whereis(?exchange_declare_proc)),
 	    exit(Reason);
- 	#declare{exchange_declare_args = _anotherExchangeArgs, from = _From} ->
+	#declare{exchange_declare_args = _anotherExchangeArgs, from = From} ->
 	    case has_been_declared(State) of
 		false ->
 		    case declare2(ExchangeDeclareArgs, Deb) of
-			{ok, ExchangeDeclaredAsArgs, Deb2} ->
-			    active(#state{exchange_declare_args = ExchangeDeclareArgs, exchange_declared = ExchangeDeclaredAsArgs}, Parent, Deb2);
-			{error, _E, Deb2} ->
+			{ok, ExchangeDeclaredAs, Deb2} ->
+			    From ! {ok, ExchangeDeclaredAs},
+			    active(#state{exchange_declare_args = ExchangeDeclareArgs, exchange_declared = ExchangeDeclaredAs}, Parent, Deb2);
+			{error, E, Deb2} ->
+			    From ! {error, E},
 			    active(State, Parent, Deb2)
 		    end;
 		true ->
 		    Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3, ?MODULE, {"Exchange", ActualExchangeDeclaredArgs, "has been already declared"}),
+		    From ! {error, exchange_has_been_already_declared},
 		    active(State, Parent, Deb2)
 	    end
     end.
