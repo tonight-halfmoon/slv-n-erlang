@@ -16,7 +16,7 @@
 -record(subscribe, {from}).
 
 start_link() ->
-    start_link(#amqp_connect_args{exch=?exch, queue=?queue}).
+    start_link(#amqp_connect_args{exch = ?exch, queue = ?queue}).
 
 start_link(Args) ->
     proc_lib:start_link(?MODULE, init, [self(), Args]).
@@ -102,7 +102,7 @@ subscribe(#amqp_connect_args{exch=Exch, queue=Q} = AMQPConnectArgs, Parent, Deb)
 	    end
     end.
 
-active(#state{identity=Id, amqp_connect_args = AMQPConnectArgs, ch_pid=Channel, conn_pid=Connection, received=LastMsg} = State, Parent, Deb) ->
+active(#state{identity = Id, amqp_connect_args = AMQPConnectArgs, ch_pid = Channel, conn_pid = Connection, received = LastMsg} = State, Parent, Deb) ->
     receive
 	{'EXIT', Parent, Reason} ->
 	    amqp_channel:close(Channel),
@@ -121,12 +121,12 @@ active(#state{identity=Id, amqp_connect_args = AMQPConnectArgs, ch_pid=Channel, 
 	    Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3, ?MODULE, {received_msg_with_payload, Payload}),
 	    amqp_channel:cast(Channel, #'basic.ack'{delivery_tag = Tag}),
 	    Deb3 = sys:handle_debug(Deb2, fun ?MODULE:write_debug/3, ?MODULE, {sent_ack}),
-	    New_state = #state{identity=Id, amqp_connect_args = AMQPConnectArgs, ch_pid=Channel, conn_pid=Connection, received=binary_to_term(Payload)},
+	    New_state = #state{identity = Id, amqp_connect_args = AMQPConnectArgs, ch_pid = Channel, conn_pid = Connection, received = binary_to_term(Payload)},
 	    active(New_state, Parent, Deb3);
 	#subscribe{from = _From} ->
 	    % if not has been subscribed
 	    active(State, Parent, Deb);
-	    #cask4_consumer_msg{from = From} ->
+	#cask4_consumer_msg{from = From} ->
 	    From ! LastMsg,
 	    Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3, ?MODULE, {received_cask_consume_msg}),
 	    active(State, Parent, Deb2)
@@ -151,7 +151,7 @@ write_debug(Dev, Event, Name) ->
 system_continue(Parent, Deb, State) ->
     active(State, Parent, Deb).
 
-system_terminate(Reason, _Parent, Deb, #state{ch_pid=Channel, conn_pid=Connection, received=_LastMsg}) ->
+system_terminate(Reason, _Parent, Deb, #state{ch_pid = Channel, conn_pid = Connection, received = _LastMsg}) ->
     sys:handle_debug(Deb, fun ?MODULE:write_debug/3, ?MODULE, {shutdown, Reason}),
     amqp_channel:close(Channel),
     amqp_connection:close(Connection),
