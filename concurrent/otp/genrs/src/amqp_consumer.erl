@@ -24,13 +24,13 @@ start_link(Args) ->
     proc_lib:start_link(?MODULE, subscribe, [self(), Args]).
 
 cask4_msg() ->
-    ?amqp_consumer_proc ! #cask4_consumer_msg{from=self()},
+    ?amqp_consumer_proc ! #cask4_consumer_msg{from = self()},
     receive
 	LastMsg ->
 	    LastMsg
     end.
 
-subscribe(Parent, #amqp_connect_args{exch=Exch, queue=Q}) ->
+subscribe(Parent, #amqp_connect_args{exch = Exch, queue = Q}) ->
     register(?amqp_consumer_proc, self()),
     Deb = sys:debug_options([statistics, trace]),
     {ok, Connection} = amqp_connection:start(#amqp_params_network{}),
@@ -45,7 +45,7 @@ subscribe(Parent, #amqp_connect_args{exch=Exch, queue=Q}) ->
     process_flag(trap_exit, true),
     active(#state{ch_pid=Channel, received=nothing}, Parent, Deb2).
 
-active(#state{ch_pid=Channel, conn_pid=Connection, received=LastMsg} = State, Parent, Deb) ->
+active(#state{ch_pid = Channel, conn_pid = Connection, received = LastMsg} = State, Parent, Deb) ->
     receive
 	{'EXIT', Parent, Reason} ->
 	    amqp_channel:close(Channel),
@@ -66,7 +66,7 @@ active(#state{ch_pid=Channel, conn_pid=Connection, received=LastMsg} = State, Pa
 	    Deb3 = sys:handle_debug(Deb2, fun ?MODULE:write_debug/3, ?MODULE, {sent_ack}),
 	    New_state = #state{ch_pid=Channel, conn_pid=Connection, received=binary_to_term(Payload)},
 	    active(New_state, Parent, Deb3);
-	#cask4_consumer_msg{from=From} ->
+	#cask4_consumer_msg{from = From} ->
 	    From ! LastMsg,
 	    Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3, ?MODULE, {received_cask_consume_msg}),
 	    active(State, Parent, Deb2)
@@ -78,9 +78,8 @@ write_debug(Dev, Event, Name) ->
 system_continue(Parent, Deb, State) ->
     active(State, Parent, Deb).
 
-system_terminate(Reason, _Parent, Deb, #state{ch_pid=Channel, conn_pid=Connection, received=_LastMsg}) ->
-    sys:handle_debug(Deb, fun ?MODULE:write_debug/3,
-		     ?MODULE, {shutdown, Reason}),
+system_terminate(Reason, _Parent, Deb, #state{ch_pid = Channel, conn_pid = Connection, received = _LastMsg}) ->
+    sys:handle_debug(Deb, fun ?MODULE:write_debug/3, ?MODULE, {shutdown, Reason}),
     amqp_channel:close(Channel),
     amqp_connection:close(Connection),
     unregister(?amqp_consumer_proc),

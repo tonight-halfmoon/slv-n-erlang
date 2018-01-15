@@ -11,58 +11,67 @@
 -include_lib("amqp_client/include/amqp_client.hrl").
 
 -record(state, {exch, queue}).
--record(which_exchange, {from}).
+-record(send_amqp_msg, {payload, from}).
 
 start_link(Args) ->
     proc_lib:start_link(?MODULE, init, [self(), Args]).
 
-init(Parent, #amqp_connect_args{exch=Exch, queue=Q}) ->
+send(Payload) ->
+    io:format("Interface function 'send/1' was called by ~p~n", [self()]),
+    ?amqp_pub_proc ! #send_amqp_msg{payload = Payload, from = self()}.
+
+init(Parent, #amqp_connect_args{exch = Exch, queue = Q}) ->
     register(?amqp_pub_proc, self()),
     Deb = sys:debug_options([statistics, trace]),
     proc_lib:init_ack(Parent, {ok, self()}),
     Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3, ?MODULE, {"AMQP Publisher client process is ready"}),
     process_flag(trap_exit, true),
-    active(#state{exch=Exch, queue=Q}, Parent, Deb2).
+    active(#state{exch = Exch, queue = Q}, Parent, Deb2).
 
-amqp_connect(_Exch, _Q, Deb) ->
-    {ok, Connection} = amqp_connection:start(#amqp_params_network{}),
-    {ok, Channel} = amqp_connection:open_channel(Connection),
-    %Exchange_declare = #'exchange.declare'{exchange = Exch},
-    %#'exchange.declare_ok'{} = amqp_channel:call(Channel, Exchange_declare),
-    %Queue_declare = #'queue.declare'{queue = Q},
-    %#'queue.declare_ok'{queue = Q} = amqp_channel:call(Channel, Queue_declare),
-    sys:handle_debug(Deb, fun ?MODULE:write_debug/3, ?MODULE, {"AMQP Publisher's channel has been is established"}),
-    {Channel, Connection}.
+open_channel(Deb) ->
+    case amqp_connection:start(#amqp_params_network{}) of
+	{ok, Connection} ->
+	    case amqp_connection:open_channel(Connection) of
+		{ok, Channel} ->
+		    {Connection, Channel, Deb};
+		E ->
+		    {error, E, Deb}
+	    end;
+	E ->
+	    {error, E, Deb}
+    end.
 
-active(#state{exch=Exch, queue=Q} = State, Parent, Deb) ->
+active(#state{exch = Exch, queue = Q} = State, Parent, Deb) ->
     receive
 	{'EXIT', Parent, Reason} ->
 	    unregister(whereis(?amqp_pub_proc)),
 	    exit(Reason);
 	{system, From, Request} ->
 	    sys:handle_system_msg(Request, From, Parent, ?MODULE, Deb, State);
-	#which_exchange{from=From} ->
-	    From ! {State, Deb},
-	    active(State, Parent, Deb);
-	Msg ->
-	    Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3, ?MODULE, Msg),
-	    active(State, Parent, Deb2)
+	#send_amqp_msg{payload = Payload, from = From} ->
+	    case send_internal(Payload, State, Deb) of
+		{error, E, Deb2} ->
+		    From ! {error, E},
+		    active(State, Parent, Deb2);
+		{ok, Deb2} ->
+		    From ! {ok, msg_has_been_published, Exch, Q},
+		    active(State, Parent, Deb2)
+	    end
     end.
 
-send(Payload) ->
-   % ?amqp_pub_proc ! #which_exchange{from=self()},
-   % receive
-   %	{#state{exch=Exch, queue=Q}, Deb} ->
-    Exch = ?exch,
-    Q = queue,
-	    {Channel, Connection} = amqp_connect(Exch, Q, Deb),
-	    Publish = #'basic.publish'{exchange = Exch, routing_key = Q},
-	    Props = #'P_basic'{delivery_mode = 2},
-	    amqp_channel:cast(Channel, Publish, #amqp_msg{props = Props, payload = term_to_binary(Payload)}),
-	    sys:handle_debug(Deb, fun ?MODULE:write_debug/3, ?MODULE, {amq_msg_has_been_sent_to_the_queue}),
-	    amqp_channel:close(Channel),
-	    amqp_connection:close(Connection)
-    %end.
+send_internal(Payload, #state{exch = Exch, queue = Q} = State, Deb) ->
+     case open_channel(Deb) of
+	 {error, E, Deb2} ->
+	     {error, E, Deb2};
+	 {Connection, Channel, Deb2} ->
+	     Publish = #'basic.publish'{exchange = Exch, routing_key = Q},
+	     Props = #'P_basic'{delivery_mode = 2},
+	     amqp_channel:cast(Channel, Publish, #amqp_msg{props = Props, payload = term_to_binary(Payload)}),
+	     Deb3 = sys:handle_debug(Deb2, fun ?MODULE:write_debug/3, ?MODULE, {amq_msg_has_been_sent_to_the_queue}),
+	     amqp_channel:close(Channel),
+	     amqp_connection:close(Connection),
+	     {ok, Deb3}
+     end.
 
 write_debug(Dev, Event, Name) ->
     io:format(Dev, "~p: event = ~p~n", [Name, Event]).

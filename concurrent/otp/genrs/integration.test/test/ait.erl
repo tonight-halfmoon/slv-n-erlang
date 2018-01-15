@@ -113,18 +113,16 @@ alloc_no_free_resource_test_() ->
 
 dstats_test_() ->
     {
-      "When a client asks for statistics on the current state of the resources data, then Server must come up with statistics results: Server must send the result to an exchange on RabbitMQ broker Queue. The client who has subscribed to the same queue will be able to receive the message in an asynchronous fashion.",
+      "When a client asks for statistics on the current state of the resources data, then Server must come up with statistics results: Server must send the result to an exchange on RabbitMQ broker queue. The client who has subscribed to the same queue will be able to receive the message in an asynchronous fashion.",
       setup,
       fun() ->
 	      application:ensure_all_started(amqp_service_provider),
 	      application:ensure_all_started(genrs_client),
 	      receive after 500 -> ok end,
-	      amqp_consumer:start_link(#amqp_connect_args{exch=?exch, queue=?queue}),
 	      start(),
 	      genrs:cask_dstats(),
 	      receive after 500 -> ok end,
-	      Msg = amqp_consumer:cask4_msg(),
-	      receive after 500 -> Msg end
+	      genrs_amqp_consumer:cask_last_amqp_msg()
       end,
       fun ?MODULE:after_each/1,
       fun(Actual) ->

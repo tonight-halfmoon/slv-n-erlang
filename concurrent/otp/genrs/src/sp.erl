@@ -21,11 +21,10 @@ dstats(Request) ->
 
 init(Args) ->
     process_flag(trap_exit, true),
-    {ok, #state{val=Args}}.
+    {ok, #state{val = Args}}.
 
-handle_cast(#quickstats_on_dbrief{free=Free, allocated=Allocated}, State) ->
-    Payload = #dstats{stats_free=#bse{name=free, length=length(Free)},
-		      stats_allocated=#bse{name=allocated, length=length(Allocated)}},
+handle_cast(#quickstats_on_dbrief{free = Free, allocated = Allocated}, State) ->
+    Payload = #dstats{stats_free = #bse{name = free, length = length(Free)}, stats_allocated = #bse{name = allocated, length = length(Allocated)}},
     amqp_pub:send(Payload),
     {noreply, State};
 handle_cast(Any, State) ->
