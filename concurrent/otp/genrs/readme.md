@@ -21,15 +21,20 @@ To demonstrate concurrently communicating processes, I integrated the [Erlang Ra
 ## Round-trip Scenario including AMQP Client and RabbitMQ Broker
 
 > At the application's root level
-1. Execute `erl -make`
+1. 
 2. Execute `erl -pa ebin/`
-3. Evaluate `ait:run_suite().`
+
 
 > In order to add amqp_service_provider to the pass on the fly, execute the build commands with additional ERL_LIBS:
 
-1. `../genrs$ ERL_LIBS=$ERL_LIBS:../amqp_service_provider erl -make`
-2. `../genrs$ ERL_LIBS=$ERL_LIBS:../amqp_service_provider erl -pa ebin/`
+> At ../integration.test/ level
+0. Execute `erl -make`
 
+> At Application root level
+
+1. `ERL_LIBS=$ERL_LIBS:../genrs_client:../amqp_service_provider erl -make`
+2. `ERL_LIBS=$ERL_LIBS:../genrs_client:../amqp_service_provider erl -pa ebin`
+3. Evaluate `ait:run_suite().`
 
 ## Application to Concurrency
 
