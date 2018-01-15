@@ -1,6 +1,6 @@
 -module(genrs_amqp_consumer).
 
--export([start_link/0, start_link/1, request_genrs/0]).
+-export([start_link/0, start_link/1, request_genrs/0, cask_last_amqp_msg/0]).
 
 -export([init/2, system_continue/3, system_terminate/4, 
 	 write_debug/3,
@@ -20,6 +20,13 @@ start_link() ->
 
 start_link(Args) ->
     proc_lib:start_link(?MODULE, init, [self(), Args]).
+
+cask_last_amqp_msg() ->
+    ?gcp ! #cask4_consumer_msg{from = self()},
+    receive
+	LastMsg ->
+	    LastMsg
+    end.
 
 request_genrs() ->
     true.
@@ -118,7 +125,11 @@ active(#state{identity=Id, amqp_connect_args = AMQPConnectArgs, ch_pid=Channel, 
 	    active(New_state, Parent, Deb3);
 	#subscribe{from = _From} ->
 	    % if not has been subscribed
-	    active(State, Parent, Deb)
+	    active(State, Parent, Deb);
+	    #cask4_consumer_msg{from = From} ->
+	    From ! LastMsg,
+	    Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3, ?MODULE, {received_cask_consume_msg}),
+	    active(State, Parent, Deb2)
     end.
 
 open_channel(Deb) ->
