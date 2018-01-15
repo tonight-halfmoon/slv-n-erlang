@@ -15,7 +15,7 @@ start_link() ->
     supervisor:start_link({local, ?SUP}, ?MODULE, []).
 
 init(_Args) ->
-    SupFlags = #{strategy => one_for_one, intensity => 1, period => 5}, 
+    SupFlags = #{strategy => one_for_one, intensity => 1, period => 5},
     SMchildspecs = #{id => service_manager,
 		     start => {sm, start_link, [#sm_start_args{}]},
 		     shutdown => brutal_kill
@@ -25,7 +25,7 @@ init(_Args) ->
 		     shutdown => brutal_kill
 		    },
     AMQP_publisher_childspecs = #{id => amqp_publisher_child,
-				  start => {amqp_pub, start_link, [#amqp_connect_args{exch=?exch, queue=?queue}]},
+				  start => {amqp_pub, start_link, [#amqp_connect_args{exch = ?exch, queue = ?queue}]},
 				  shutdown => brutal_kill
 				 },
     {ok, {SupFlags, [SMchildspecs, SPchildspecs, AMQP_publisher_childspecs]}}.

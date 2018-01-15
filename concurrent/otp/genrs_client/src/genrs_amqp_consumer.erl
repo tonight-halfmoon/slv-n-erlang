@@ -41,20 +41,20 @@ init(Parent, AMQPConnectArgs) ->
 	    proc_lib:init_ack(Parent, {ok, self()}),
 	    active(#state{identity = {?gcp, self()}, amqp_connect_args = AMQPConnectArgs, ch_pid = {}, conn_pid= {}, received = {}}, Parent, Deb3);
 	{ok, Deb3} ->
-    case queue_declare(Deb2) of
-	{error, Deb3} ->
-	    proc_lib:init_ack(Parent, {ok, self()}),
-	    active(#state{identity = {?gcp, self()}, amqp_connect_args = AMQPConnectArgs, ch_pid = {}, conn_pid= {}, received = {}}, Parent, Deb3);
-	{ok, Deb3} ->
-	    case subscribe(AMQPConnectArgs, Parent, Deb3) of
-		{ok, Connection, Channel, Deb4} ->
+	    case queue_declare(Deb2) of
+		{error, Deb3} ->
 		    proc_lib:init_ack(Parent, {ok, self()}),
-		    active(#state{identity = {?gcp, self()}, amqp_connect_args = AMQPConnectArgs, ch_pid = Channel, conn_pid= Connection, received = {}}, Parent, Deb4);
-		{error, _E, Deb4} ->
-		    proc_lib:init_ack(Parent, {ok, self()}),
-		    active(#state{identity = {?gcp, self()}, amqp_connect_args = AMQPConnectArgs, ch_pid = {}, conn_pid= {}, received = {}}, Parent, Deb4)
+		    active(#state{identity = {?gcp, self()}, amqp_connect_args = AMQPConnectArgs, ch_pid = {}, conn_pid= {}, received = {}}, Parent, Deb3);
+		{ok, Deb3} ->
+		    case subscribe(AMQPConnectArgs, Parent, Deb3) of
+			{ok, Connection, Channel, Deb4} ->
+			    proc_lib:init_ack(Parent, {ok, self()}),
+			    active(#state{identity = {?gcp, self()}, amqp_connect_args = AMQPConnectArgs, ch_pid = Channel, conn_pid= Connection, received = {}}, Parent, Deb4);
+			{error, _E, Deb4} ->
+			    proc_lib:init_ack(Parent, {ok, self()}),
+			    active(#state{identity = {?gcp, self()}, amqp_connect_args = AMQPConnectArgs, ch_pid = {}, conn_pid= {}, received = {}}, Parent, Deb4)
+		    end
 	    end
-    end
     end.
 
 exchange_declare(Deb) ->
