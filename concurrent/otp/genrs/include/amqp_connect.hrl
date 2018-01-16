@@ -1,7 +1,4 @@
 -define(queue, <<"queue6_genrs">>).
 -define(exch, <<"exch6_genrs">>).
 -record(amqp_connect_args, {exch, queue}).
--record(pub, {payload}).
 -record(cask4_consumer_msg, {from}).
--define(amqp_consumer_proc, amqp_consumer_process).
--define(amqp_pub_proc, amqp_pub_process).

@@ -20,7 +20,7 @@ To demonstrate concurrently communicating processes, I integrated the [Erlang Ra
 
 ## Round-trip Scenario including AMQP Client and RabbitMQ Broker
 
-First, ERL_LIBS set with the path the Erlang AMQP Client and required dependencies. See [IoT](../../iot/readme.md). Then: 
+First, ERL_LIBS set with the path the Erlang AMQP Client and required dependencies. See [IoT](../../iot/readme.md). Then, run RabbitMQ server with `rabbitmq-server`. Then: 
 
 > At ../integration.test/ level
 

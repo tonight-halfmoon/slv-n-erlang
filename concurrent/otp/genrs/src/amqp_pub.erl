@@ -12,6 +12,7 @@
 
 -record(state, {exch, queue}).
 -record(send_amqp_msg, {payload, from}).
+-define(amqp_pub_proc, genrs_amqp_pub_process).
 
 start_link(Args) ->
     proc_lib:start_link(?MODULE, init, [self(), Args]).
