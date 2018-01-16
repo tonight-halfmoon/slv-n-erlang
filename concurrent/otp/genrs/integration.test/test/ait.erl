@@ -120,7 +120,7 @@ dstats_test_() ->
 	      application:ensure_all_started(genrs_client),
 	      receive after 500 -> ok end,
 	      start(),
-	      genrs:cask_dstats(),
+	      genrs_amqp_consumer:request_genrs_data_statistics(),
 	      receive after 500 -> ok end,
 	      genrs_amqp_consumer:cask_last_amqp_msg()
       end,

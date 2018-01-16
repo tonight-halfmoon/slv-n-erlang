@@ -1,6 +1,6 @@
 -module(genrs_amqp_consumer).
 
--export([start_link/0, start_link/1, request_genrs/0, cask_last_amqp_msg/0]).
+-export([start_link/0, start_link/1, request_genrs_data_statistics/0, cask_last_amqp_msg/0]).
 
 -export([init/2, system_continue/3, system_terminate/4, 
 	 write_debug/3,
@@ -28,8 +28,8 @@ cask_last_amqp_msg() ->
 	    LastMsg
     end.
 
-request_genrs() ->
-    true.
+request_genrs_data_statistics() ->
+    genrs:cask_dstats().
 
 init(Parent, AMQPConnectArgs) ->
     register(?gcp, self()),
