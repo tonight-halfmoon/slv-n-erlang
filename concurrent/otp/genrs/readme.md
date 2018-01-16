@@ -14,7 +14,7 @@ I did not need to explicitely implement control source code on logging debug mes
 
 ## Communicating through RabbitMQ broker via AMQP Client
 
-To demonstrate concurrently communicating processes, I integrated the [Erlang RabbitMQ Client library](http://www.rabbitmq.com/erlang-client-user-guide.html). The example implemented, say a client requests data statistics. GenRS will process the request and submit the result as a payload with `amqp_msg` on a RabbitMQ broker queue. The client which has subscribed to the same queue as a AMQP client consumer will eventually receives the message sent by [RabbitMQ broker](http://www.rabbitmq.com/admin-guide.html). To immediately see this test of this specific topic, take a look at Test Case `dstats_test_` in module [`ait.erl`](./integration.test/ait.erl).
+To demonstrate concurrently communicating processes, I integrated the [Erlang RabbitMQ Client library](http://www.rabbitmq.com/erlang-client-user-guide.html). The example implemented, say a client requests data statistics. GenRS will process the request and submit the result as a payload with `amqp_msg` on a RabbitMQ broker queue. The client which has subscribed to the same queue as a AMQP client consumer will eventually receives the message sent by [RabbitMQ broker](http://www.rabbitmq.com/admin-guide.html). To immediately see this test of this specific topic, take a look at Test Case `dstats_test_` in module [`./integratoin.terst/test/ait.erl`](./integration.test/ait.erl).
 
 # Testing
 
