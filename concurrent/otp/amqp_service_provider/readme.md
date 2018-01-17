@@ -4,6 +4,6 @@ AMQP Service Provider is a AMQP Client that implements [Erlang RabbitMQ Client l
 
 # Future Work
 
-## Configuration of Exchange and Queue
+## Runtime Configuration for Non-default Behaviour of Exchange and Queue
 
-Currently, exchange and queue names are defined in [amqp_service_provider.app](./ebin/amqp_service_provider.app). It must be configurable in runtime to give a chance for a client to pass desired names.
+Currently, a default behaviour of exchange and queue is defined in [amqp_service_provider.app](./ebin/amqp_service_provider.app). In case a client requires a non-default behaviour of exchange and queue then it must be configurable in runtime.
