@@ -13,11 +13,18 @@
 
 -record(state, {val}).
 
+%% ===================================================================
+%% API
+%% ===================================================================
 start_link(Args) ->
     gen_server:start_link({local, ?ssp}, ?MODULE, Args, [{debug, [trace, statistics]}]).
 
 dstats(Request) ->
     gen_server:cast(?ssp, Request).
+
+%%%===================================================================
+%%% gen_server callbacks
+%%%===================================================================
 
 init(Args) ->
     process_flag(trap_exit, true),

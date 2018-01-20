@@ -1,6 +1,7 @@
 -module(genrs_amqp_consumer).
 
--export([start_link/0, start_link/1, request_genrs_data_statistics/0, cask_last_amqp_msg/0]).
+-export([start_link/0, start_link/1, request_genrs_data_statistics/0,
+	 cask_last_amqp_msg/0]).
 
 -export([init/2, system_continue/3, system_terminate/4, 
 	 write_debug/3,
@@ -15,11 +16,18 @@
 -record(state, {identity, amqp_connect_args, ch_pid, conn_pid, received}).
 -record(subscribe, {from}).
 
+%% ====================================================================
+%% API
+%% ====================================================================
+
 start_link() ->
     start_link(#amqp_connect_args{exch = ?exch, queue = ?queue}).
 
 start_link(Args) ->
     proc_lib:start_link(?MODULE, init, [self(), Args]).
+
+request_genrs_data_statistics() ->
+    genrs:cask_dstats().
 
 cask_last_amqp_msg() ->
     ?gcp ! #cask4_consumer_msg{from = self()},
@@ -28,9 +36,15 @@ cask_last_amqp_msg() ->
 	    LastMsg
     end.
 
-request_genrs_data_statistics() ->
-    genrs:cask_dstats().
+%%%===================================================================
+%%% proc_lib callbacks
+%%%===================================================================
 
+%%--------------------------------------------------------------------
+%% @private
+%% @doc
+%% Initialises the process
+%%--------------------------------------------------------------------
 init(Parent, AMQPConnectArgs) ->
     register(?gcp, self()),
     Deb = sys:debug_options([statistics, trace]),  
@@ -57,6 +71,40 @@ init(Parent, AMQPConnectArgs) ->
 	    end
     end.
 
+%%%===================================================================
+%%% system and debug callbacks
+%%%===================================================================
+
+%%--------------------------------------------------------------------
+%% @private
+%%--------------------------------------------------------------------
+write_debug(Dev, Event, Name) ->
+    io:format(Dev, "~p: event = ~p~n", [Name, Event]).
+
+system_continue(Parent, Deb, State) ->
+    active(State, Parent, Deb).
+
+system_terminate(Reason, _Parent, Deb, #state{ch_pid = Channel, conn_pid = Connection, received = _LastMsg}) ->
+    sys:handle_debug(Deb, fun ?MODULE:write_debug/3, ?MODULE, {shutdown, Reason}),
+    amqp_channel:close(Channel),
+    amqp_connection:close(Connection),
+    unregister(?gcp),
+    exit(Reason).
+
+system_get_state(State) ->
+    {ok, State}.
+
+system_replace_state(StateFun, State) ->
+    NState = StateFun(State),
+    {ok, NState, NState}.
+
+%%%===================================================================
+%%% Internal functions
+%%%===================================================================
+
+%%--------------------------------------------------------------------
+%% @private
+%%--------------------------------------------------------------------
 exchange_declare(Deb) ->
     Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3, ?MODULE, {"Let's declare an exchange", {?gcp, self()}}),
     amqp_sp_exchange:declare(),
@@ -69,6 +117,9 @@ exchange_declare(Deb) ->
 	    {error, Deb3}
 	end.
 
+%%--------------------------------------------------------------------
+%% @private
+%%--------------------------------------------------------------------
 queue_declare(Deb) ->
     Deb2 = sys:handle_debug(Deb, fun ?MODULE:write_debug/3, ?MODULE, {"Let's declare a queue", {?gcp, self()}}),
     amqp_sp_queue:declare(),
@@ -81,6 +132,9 @@ queue_declare(Deb) ->
 	    {error, Deb3}
     end.
 
+%%--------------------------------------------------------------------
+%% @private
+%%--------------------------------------------------------------------
 subscribe(#amqp_connect_args{exch=Exch, queue=Q} = AMQPConnectArgs, Parent, Deb) ->
     case open_channel(Deb) of
 	{error, E, Deb2} ->
@@ -102,6 +156,9 @@ subscribe(#amqp_connect_args{exch=Exch, queue=Q} = AMQPConnectArgs, Parent, Deb)
 	    end
     end.
 
+%%-------------------------------------------------------------------
+%% @private
+%%-------------------------------------------------------------------
 active(#state{identity = Id, amqp_connect_args = AMQPConnectArgs, ch_pid = Channel, conn_pid = Connection, received = LastMsg} = State, Parent, Deb) ->
     receive
 	{'EXIT', Parent, Reason} ->
@@ -132,6 +189,9 @@ active(#state{identity = Id, amqp_connect_args = AMQPConnectArgs, ch_pid = Chann
 	    active(State, Parent, Deb2)
     end.
 
+%%-------------------------------------------------------------------
+%% @private
+%%-------------------------------------------------------------------
 open_channel(Deb) ->
     case amqp_connection:start(#amqp_params_network{}) of
 	{ok, Connection} ->
@@ -144,23 +204,3 @@ open_channel(Deb) ->
 	E ->
 	    {error, E, Deb}
     end.
-
-write_debug(Dev, Event, Name) ->
-    io:format(Dev, "~p: event = ~p~n", [Name, Event]).
-
-system_continue(Parent, Deb, State) ->
-    active(State, Parent, Deb).
-
-system_terminate(Reason, _Parent, Deb, #state{ch_pid = Channel, conn_pid = Connection, received = _LastMsg}) ->
-    sys:handle_debug(Deb, fun ?MODULE:write_debug/3, ?MODULE, {shutdown, Reason}),
-    amqp_channel:close(Channel),
-    amqp_connection:close(Connection),
-    unregister(?gcp),
-    exit(Reason).
-
-system_get_state(State) ->
-    {ok, State}.
-
-system_replace_state(StateFun, State) ->
-    NState = StateFun(State),
-    {ok, NState, NState}.

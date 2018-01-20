@@ -14,6 +14,10 @@
 -record(send_amqp_msg, {payload, from}).
 -define(amqp_pub_proc, genrs_amqp_pub_process).
 
+%% ====================================================================
+%% API
+%% ====================================================================
+
 start_link(Args) ->
     proc_lib:start_link(?MODULE, init, [self(), Args]).
 
@@ -21,6 +25,15 @@ send(Payload) ->
     io:format("Interface function 'send/1' was called by ~p~n", [self()]),
     ?amqp_pub_proc ! #send_amqp_msg{payload = Payload, from = self()}.
 
+%%%===================================================================
+%%% proc_lib callbacks
+%%%===================================================================
+
+%%--------------------------------------------------------------------
+%% @private
+%% @doc
+%% Initialises the process
+%%--------------------------------------------------------------------
 init(Parent, #amqp_connect_args{exch = Exch, queue = Q}) ->
     register(?amqp_pub_proc, self()),
     Deb = sys:debug_options([statistics, trace]),
@@ -29,6 +42,50 @@ init(Parent, #amqp_connect_args{exch = Exch, queue = Q}) ->
     process_flag(trap_exit, true),
     active(#state{exch = Exch, queue = Q}, Parent, Deb2).
 
+%%%===================================================================
+%%% system and debug callbacks
+%%%===================================================================
+
+%%--------------------------------------------------------------------
+%% @private
+%%--------------------------------------------------------------------
+write_debug(Dev, Event, Name) ->
+    io:format(Dev, "~p: event = ~p~n", [Name, Event]).
+
+%%--------------------------------------------------------------------
+%% @private
+%%--------------------------------------------------------------------
+system_continue(Parent, Deb, State) ->
+    active(State, Parent, Deb).
+
+%%--------------------------------------------------------------------
+%% @private
+%%--------------------------------------------------------------------
+system_terminate(Reason, _Parent, Deb, #state{exch=_Exch, queue=_Q}) ->
+    sys:handle_debug(Deb, fun ?MODULE:write_debug/3, ?MODULE, {shutdown, Reason}),
+    unregister(whereis(?amqp_pub_proc)),
+    exit(Reason).
+
+%%--------------------------------------------------------------------
+%% @private
+%%--------------------------------------------------------------------
+system_get_state(State) ->
+    {ok, State}.
+
+%%--------------------------------------------------------------------
+%% @private
+%%--------------------------------------------------------------------
+system_replace_state(StateFun, State) ->
+    NState = StateFun(State),
+    {ok, NState, NState}.
+
+%%%===================================================================
+%%% Internal functions
+%%%===================================================================
+
+%%--------------------------------------------------------------------
+%% @private
+%%--------------------------------------------------------------------
 open_channel(Deb) ->
     case amqp_connection:start(#amqp_params_network{}) of
 	{ok, Connection} ->
@@ -42,6 +99,9 @@ open_channel(Deb) ->
 	    {error, E, Deb}
     end.
 
+%%--------------------------------------------------------------------
+%% @private
+%%--------------------------------------------------------------------
 active(#state{exch = Exch, queue = Q} = State, Parent, Deb) ->
     receive
 	{'EXIT', Parent, Reason} ->
@@ -60,6 +120,9 @@ active(#state{exch = Exch, queue = Q} = State, Parent, Deb) ->
 	    end
     end.
 
+%%--------------------------------------------------------------------
+%% @private
+%%--------------------------------------------------------------------
 send_internal(Payload, #state{exch = Exch, queue = Q} = State, Deb) ->
      case open_channel(Deb) of
 	 {error, E, Deb2} ->
@@ -73,21 +136,3 @@ send_internal(Payload, #state{exch = Exch, queue = Q} = State, Deb) ->
 	     amqp_connection:close(Connection),
 	     {ok, Deb3}
      end.
-
-write_debug(Dev, Event, Name) ->
-    io:format(Dev, "~p: event = ~p~n", [Name, Event]).
-
-system_continue(Parent, Deb, State) ->
-    active(State, Parent, Deb).
-
-system_terminate(Reason, _Parent, Deb, #state{exch=_Exch, queue=_Q}) ->
-    sys:handle_debug(Deb, fun ?MODULE:write_debug/3, ?MODULE, {shutdown, Reason}),
-    unregister(whereis(?amqp_pub_proc)),
-    exit(Reason).
-
-system_get_state(State) ->
-    {ok, State}.
-
-system_replace_state(StateFun, State) ->
-    NState = StateFun(State),
-    {ok, NState, NState}.

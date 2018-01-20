@@ -107,7 +107,9 @@ allocate([R|Free], Allocated, FromPid) ->
 allocate([], _Allocated, _FromPid) ->
     {'no free resource anymore', []}.
 
+%%%===================================================================
 %%% Unit Tests
+%%%===================================================================
 
 allocate_case1_test_() ->
     Res = 'ab.12.0',
