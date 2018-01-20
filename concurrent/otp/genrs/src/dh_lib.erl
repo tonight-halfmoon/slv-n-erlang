@@ -12,6 +12,10 @@
 
 -include_lib("eunit/include/eunit.hrl").
 
+%% ===========================================================
+%% Unit Tests
+%% ===========================================================
+
 pairwith_hash_input_term_test_() ->
     R = 'ab.12.0',
     {
@@ -49,6 +53,10 @@ pairwith_hash_input_binary_with_utf8_encoded_codepoints_test_() ->
       "When a resources provided as a binary with utf8 encoded codepoints, then function 'pairwith_hash/1' must transform the utf-8 binary to an atom and return its atom paired with the atom's hash defined by 'erlang:phash2/1'",
       ?_assertEqual(#res_ds{hash=erlang:phash2('\f\025\féz'), value='\f\025\féz'}, pairwith_hash(<<12,21,12,233,122/utf8>>))
     }.
+
+%% ===========================================================
+%% API
+%% ===========================================================
 
 pairwith_hash(B) when is_binary(B) ->
     pairwith_hash(binary_to_list(B));
