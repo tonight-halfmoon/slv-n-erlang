@@ -8,7 +8,7 @@ Option 0:
 The most flexible and most configurable method is to [BYOC](https://github.com/basho-labs/riak-docker).
 ```
 
-However, for learning purposes going step by step and learn the building units, let's start with the most elementary options.
+However, for learning purposes, this be going step by step and learn the building units, let's start with the most elementary options.
 
 ```
 Step 0: Install Docker
@@ -31,7 +31,7 @@ sudo docker run --name=riak -d -p 8087:8087 -p 8098:8098 basho/riak-ts
 Option 2:
 sudo docker run --name=riak -d -P -v $(pwd)/schemas:/etc/riak/schemas -p 8087:8087 -p 8098:8098 basho/riak-ts
 
- -  Check the absolute path of $(pwd)/schemas is the one intended.
+ -  Check the absolute path of $(pwd)/schemas is the one intended. Replace $(pwd) with the absolute value.
 
 In directory $(pwd)/schemas, the definition of table(s) and buckets. In this directory, we could define table [GeoCheckin.sql](./example/schemas/GeoCheckin.sql).
 ```
