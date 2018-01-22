@@ -10,4 +10,4 @@ Currently, a default behaviour of exchange and queue is defined in [amqp_service
 
 ## Distributed Nodes
 
-There won't be any chance for a system to be a real game unless it can play a role in distributed setting. The challenge is to take this element and the containing prototype to a real game as a distributed system composed of nodes which communicated with nodes and publish and store data to other nodes.
+There won't be any chance for a system to be a real game unless it can play a role in distributed setting. The challenge is to take this element and the containing prototype to a real game as a distributed system composed of nodes which communicate with nodes, publish messages and store data on other nodes.
