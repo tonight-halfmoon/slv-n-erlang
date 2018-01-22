@@ -1,0 +1,2 @@
+#!/usr/bin/env sh
+export ERL_LIBS=/home/rosemary/amqp_client_deps:/home/rosemary/programming/erlang/slv-n-erlang/concurrent/otp/genrs
