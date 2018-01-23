@@ -5,6 +5,7 @@ The Learning is directed by [basho Blog](http://basho.com/posts/technical/runnin
 
 ```
 Option 0:
+
 The most flexible and most configurable method is to [BYOC](https://github.com/basho-labs/riak-docker).
 ```
 
