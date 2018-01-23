@@ -11,17 +11,17 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/0, store/3]).
+-export([start_link/0, store/3, wro_geocheckin/0]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
 	 terminate/2, code_change/3]).
 
-
 -define(griakc, ?MODULE).
 
 -record(state, {}).
--record(store_new, {bucket, key, value, from}).
+-record(store_new, {bucket, key, value}).
+-record(to_geocheckin, {id, time, region, state, weather, temperature}).
 
 %%%===================================================================
 %%% API
@@ -38,7 +38,10 @@ start_link() ->
     gen_server:start_link({local, ?griakc}, ?MODULE, [], []).
 
 store(Bucket, Key, Value) ->
-    gen_server:cast(#store_new{bucket= Bucket, key= Key, value = Value, from = self()}).
+    gen_server:cast(?griakc, #store_new{bucket= Bucket, key= Key, value = Value}).
+
+wro_geocheckin() ->
+    gen_server:cast(?griakc, #to_geocheckin{id = 1, time = 1224435679, region = <<"Brazil">>, state = <<"Amazon">>, weather = <<"extremely hot">>, temperature = 33.4}).
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -87,8 +90,11 @@ handle_call(_Request, _From, State) ->
 %%                                  {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
-handle_cast(#store_new{bucket=Bucket, key=Key, value=Value, from=From}, State) ->
-    From ! store_on_riak_internal(Bucket, Key, Value),
+handle_cast(#store_new{bucket=Bucket, key=Key, value=Value}, State) ->
+    store_internal(Bucket, Key, Value),
+    {noreply, State};
+handle_cast(#to_geocheckin{id = Id, time = T, region = R, state = S, weather = W, temperature=T}, State) ->
+    wro_geocheckin_internal(Id, T, R, S, W, T),
     {noreply, State};
 handle_cast(_Msg, State) ->
     {noreply, State}.
@@ -135,6 +141,11 @@ code_change(_OldVsn, State, _Extra) ->
 %%% Internal functions
 %%%===================================================================
 
-store_on_riak_internal(_Bucket, _Key, _Value) ->
+store_internal(Bucket, Key, Value) ->
     {ok, Pid} = riakc_pb_socket:start_link("172.17.0.2", 8087),
-    {ok, Pid}.
+    riakc_pb_socket:put(Pid, riakc_obj:new(Bucket, Key, Value)).
+
+wro_geocheckin_internal(Id, T, R, S, W, T) ->
+    {ok, Pid} = riakc_pb_socket:start_link("172.17.0.2", 8087),
+    R = riakc_ts:put(Pid, "GeoCheckin", [{Id, T, R, S, W, T}]),
+    io:format("wrote to GeoCheckin with result ~p~n", [R]).

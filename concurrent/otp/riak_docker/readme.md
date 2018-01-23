@@ -49,6 +49,6 @@ Since we haven't passed riak_shell.conf at docker container initialise time. The
 
 > Riak Explorer
 
-On host machine:
+On host machine check [Riak Explorer](https://github.com/basho-labs/riak_explorer) for your Riak TS cluster:
 
    http://172.17.0.2:8098/admin/
