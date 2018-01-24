@@ -17,9 +17,9 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
 	 terminate/2, code_change/3]).
 
--define(griakc, ?MODULE).
+-define(griakc, genrs_riakc_proc).
 
--record(state, {}).
+-record(state, {riak_ip, riak_port}).
 -record(store_new, {bucket, key, value}).
 -record(to_geocheckin, {id, time, region, state, weather, temperature}).
 
@@ -35,13 +35,13 @@
 %% @end
 %%--------------------------------------------------------------------
 start_link() ->
-    gen_server:start_link({local, ?griakc}, ?MODULE, [], []).
+    gen_server:start_link({local, ?griakc}, ?MODULE, [{"172.17.0.2", 8087}], [{debug, [trace, statistics]}]).
 
 store(Bucket, Key, Value) ->
     gen_server:cast(?griakc, #store_new{bucket= Bucket, key= Key, value = Value}).
 
 wro_geocheckin() ->
-    gen_server:cast(?griakc, #to_geocheckin{id = 1, time = 1224435679, region = <<"Brazil">>, state = <<"Amazon">>, weather = <<"extremely hot">>, temperature = 33.4}).
+    gen_server:cast(?griakc, #to_geocheckin{id = 6, time = 1451606402, region = <<"Brazil">>, state = <<"Amazon">>, weather = <<"extremely hot">>, temperature = 33.4}).
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -58,9 +58,9 @@ wro_geocheckin() ->
 %%                     {stop, Reason}
 %% @end
 %%--------------------------------------------------------------------
-init([]) ->
+init([{Riak_ip, Riak_port}]) ->
     process_flag(trap_exit, true),
-    {ok, #state{}}.
+    {ok, #state{riak_ip = Riak_ip, riak_port = Riak_port}}.
 
 %%--------------------------------------------------------------------
 %% @private
@@ -93,8 +93,8 @@ handle_call(_Request, _From, State) ->
 handle_cast(#store_new{bucket=Bucket, key=Key, value=Value}, State) ->
     store_internal(Bucket, Key, Value),
     {noreply, State};
-handle_cast(#to_geocheckin{id = Id, time = T, region = R, state = S, weather = W, temperature=T}, State) ->
-    wro_geocheckin_internal(Id, T, R, S, W, T),
+handle_cast(#to_geocheckin{id = Id, time = Time, region = R, state = S, weather = W, temperature = Temperature}, State = #state{riak_ip = _Riak_ip, riak_port = _Riak_port}) ->
+    wro_geocheckin_internal(State, {Id, Time, R, S, W, Temperature}),
     {noreply, State};
 handle_cast(_Msg, State) ->
     {noreply, State}.
@@ -109,6 +109,9 @@ handle_cast(_Msg, State) ->
 %%                                   {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
+handle_info({'EXIT', Pid, Reason}, State) ->
+    io:format("~p received info 'EXIT' from ~p for ~p~n", [?griakc, Pid, Reason]),
+    {noreply, State};
 handle_info(_Info, State) ->
     {noreply, State}.
 
@@ -123,7 +126,8 @@ handle_info(_Info, State) ->
 %% @spec terminate(Reason, State) -> void()
 %% @end
 %%--------------------------------------------------------------------
-terminate(_Reason, _State) ->
+terminate(Reason, _State) ->
+    io:format("Shutdown because of ~p~n", [Reason]),
     ok.
 
 %%--------------------------------------------------------------------
@@ -145,7 +149,7 @@ store_internal(Bucket, Key, Value) ->
     {ok, Pid} = riakc_pb_socket:start_link("172.17.0.2", 8087),
     riakc_pb_socket:put(Pid, riakc_obj:new(Bucket, Key, Value)).
 
-wro_geocheckin_internal(Id, T, R, S, W, T) ->
-    {ok, Pid} = riakc_pb_socket:start_link("172.17.0.2", 8087),
-    R = riakc_ts:put(Pid, "GeoCheckin", [{Id, T, R, S, W, T}]),
-    io:format("wrote to GeoCheckin with result ~p~n", [R]).
+wro_geocheckin_internal(#state{riak_ip = Riak_ip, riak_port = Riak_port}, {Id, Time, R, S, W, Temperature}) ->
+    {ok, Pid} = riakc_pb_socket:start_link(Riak_ip, Riak_port),
+    io:format("Id ~p, T ~p, R ~p, S ~p, W ~p, T~p~n", [Id, Time, R, S, W, Temperature]),
+    riakc_ts:put(Pid, "GeoCheckin", [{Id, Time, R, S, W, Temperature}]).
