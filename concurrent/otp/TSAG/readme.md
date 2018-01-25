@@ -21,12 +21,18 @@ Set environment variable PATH_TO_RIAKC as suggested. For example, on archlinux i
 
 > Second option
 
-Add to environment variable $ERL_LIBS both RIAKC and RIAKC_DEPS_HAMCREST and RIAKC_DEPS_PB as shown in (ERL_LIBS 2)[https://github.com/tonight-halfmoon/shabang/tree/master/archlinux/environment.variables/etc_profile_d_erl_libs_2_sh].
+Add to environment variable $ERL_LIBS both RIAKC and RIAKC_DEPS_HAMCREST and RIAKC_DEPS_PB as shown in [ERL_LIBS 2](https://github.com/tonight-halfmoon/shabang/tree/master/archlinux/environment.variables/etc_profile_d_erl_libs_2_sh).
 
 ## Development
+
+> First Option
 
 If you set the environment variable according to the first option, then:
 
    erl -pa $PATH_TO_RIAKC/ebin $PATH_TO_RIAKC/deps/*/ebin ebin/
 
-Otherwise, if all reltated environment variables have been set according to the second option then we do not need to pass them explicitely.
+> Second Option
+
+Otherwise, if all reltated environment variables have been set according to the Second Option, then we do not need to pass them explicitely.
+
+   erl -pa ebin
