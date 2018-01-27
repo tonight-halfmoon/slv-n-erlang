@@ -11,7 +11,7 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/0, store/3, wro_geocheckin/0]).
+-export([start_link/0, store/3, wro_geocheckin/0, r_geocheckin/0]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -22,6 +22,8 @@
 -record(state, {riak_ip, riak_port}).
 -record(store_new, {bucket, key, value}).
 -record(to_geocheckin, {id, time, region, state, weather, temperature}).
+-record(geocheckin_pk, {id, time}).
+-record(query_geocheckin, {select = [], where = #geocheckin_pk{}}).
 
 %%%===================================================================
 %%% API
@@ -42,6 +44,9 @@ store(Bucket, Key, Value) ->
 
 wro_geocheckin() ->
     gen_server:cast(?griakc, #to_geocheckin{id = 6, time = 1451606402, region = <<"Brazil">>, state = <<"Amazon">>, weather = <<"extremely hot">>, temperature = 33.4}).
+
+r_geocheckin() ->
+    gen_server:call(?griakc, #query_geocheckin{select = [weather, temperature], where = #geocheckin_pk{id = 6, time = {1441606401, 1585606401}}}).
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -76,6 +81,9 @@ init([{Riak_ip, Riak_port}]) ->
 %%                                   {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
+handle_call(#query_geocheckin{select = [_C1, _C2], where = #geocheckin_pk{id = _Id, time = {_T1, _T2}}} = Query_GeoCheckin, _From, State) ->
+    Row = r_table_internal(State, {"GeoCheckin", Query_GeoCheckin}),
+    {reply, Row, State};
 handle_call(_Request, _From, State) ->
     Reply = ok,
     {reply, Reply, State}.
@@ -153,3 +161,7 @@ wro_geocheckin_internal(#state{riak_ip = Riak_ip, riak_port = Riak_port}, {Id, T
     {ok, Pid} = riakc_pb_socket:start_link(Riak_ip, Riak_port),
     io:format("Id ~p, T ~p, R ~p, S ~p, W ~p, T~p~n", [Id, Time, R, S, W, Temperature]),
     riakc_ts:put(Pid, "GeoCheckin", [{Id, Time, R, S, W, Temperature}]).
+
+r_table_internal(#state{riak_ip = Riak_ip, riak_port = Riak_port}, {TableName, #query_geocheckin{select = [Weather, Temperature], where = #geocheckin_pk{id = Id, time = {T1, T2}}}}) ->
+    {ok, Pid} = riakc_pb_socket:start_link(Riak_ip, Riak_port),
+    riakc_ts:query(Pid, lists:concat(["select ", Weather, ", ", Temperature, " from ", TableName, " where id = ", Id, " and time > ", T1, " and time < ", T2])).
