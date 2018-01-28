@@ -1,5 +1,5 @@
 
-# TSAG
+# tSAG
 
 A Riak TS client for [GenRS](../genrs) to communicate with Riak TS 
 
@@ -36,3 +36,7 @@ If you set the environment variable according to the first option, then:
 Otherwise, if all reltated environment variables have been set according to the Second Option, then we do not need to pass them explicitely.
 
    erl -pa ebin
+
+## Unit and Integration Testing
+
+   > [ait:run_suite](./test/ait.erl).
