@@ -36,7 +36,10 @@ wro_geocheckin_test_() ->
 		start(),
 		genrs_riakc:wro_geocheckin(),
 		receive after 500 -> true end,
-	        genrs_riakc:r_geocheckin()
+	        Result = genrs_riakc:r_geocheckin(),
+		genrs_riakc:del_geocheckin(),
+		receive after 50 -> true end,
+		Result
 	end,
 	fun ?MODULE:after_each/1,
 	fun(Actual) ->

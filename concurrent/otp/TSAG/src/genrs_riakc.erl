@@ -11,7 +11,9 @@
 -behaviour(gen_server).
 
 %% API
--export([start_link/0, store/3, wro_geocheckin/0, r_geocheckin/0]).
+-export([start_link/0, start_link/1, 
+	 store/3, 
+	 wro_geocheckin/0, r_geocheckin/0, del_geocheckin/0]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -24,6 +26,7 @@
 -record(to_geocheckin, {id, time, region, state, weather, temperature}).
 -record(geocheckin_pk, {id, time}).
 -record(query_geocheckin, {select = [], where = #geocheckin_pk{}}).
+-record(del_row_in_geocheckin, {where = #geocheckin_pk{}}).
 
 %%%===================================================================
 %%% API
@@ -37,7 +40,10 @@
 %% @end
 %%--------------------------------------------------------------------
 start_link() ->
-    gen_server:start_link({local, ?griakc}, ?MODULE, [{"172.17.0.2", 8087}], [{debug, [trace, statistics]}]).
+    start_link({"172.17.0.2", 8087}).
+
+start_link({RiakIP, RiakPort}) ->
+    gen_server:start_link({local, ?griakc}, ?MODULE, [{RiakIP, RiakPort}], [{debug, [trace, statistics]}]).
 
 store(Bucket, Key, Value) ->
     gen_server:cast(?griakc, #store_new{bucket= Bucket, key= Key, value = Value}).
@@ -47,6 +53,9 @@ wro_geocheckin() ->
 
 r_geocheckin() ->
     gen_server:call(?griakc, #query_geocheckin{select = [weather, temperature], where = #geocheckin_pk{id = 6, time = {1441606401, 1585606401}}}).
+
+del_geocheckin() ->
+    gen_server:cast(?griakc, #del_row_in_geocheckin{where = #geocheckin_pk{id = 6, time = 1451606402}}).
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -92,11 +101,11 @@ handle_call(#query_geocheckin{select = [_C1, _C2], where = #geocheckin_pk{id = _
 	    {reply, Result, State};
 	{ok, Pid} ->
 	    NewState = #state{riakc_socket_proc = Pid, riak_ip = Riak_ip, riak_port = Riak_port},
-	    Result = r_table_internal(State, {"GeoCheckin", Query_GeoCheckin}),
+	    Result = r_geocheckin_internal(State, Query_GeoCheckin),
 	    {reply, Result, NewState}
     end;
 handle_call(#query_geocheckin{select = [_C1, _C2], where = #geocheckin_pk{id = _Id, time = {_T1, _T2}}} = Query_GeoCheckin, _From, State) ->
-    Result = r_table_internal(State, {"GeoCheckin", Query_GeoCheckin}),
+    Result = r_geocheckin_internal(State, Query_GeoCheckin),
     {reply, Result, State};
 handle_call(_Request, _From, State) ->
     Reply = ok,
@@ -112,10 +121,9 @@ handle_call(_Request, _From, State) ->
 %%                                  {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
-handle_cast(#store_new{bucket=Bucket, key=Key, value=Value}, State) ->
-    store_internal(Bucket, Key, Value),
+handle_cast(#store_new{bucket=Bucket, key=Key, value=Value},  #state{riakc_socket_proc = Pid, riak_ip = _Riak_ip, riak_port = _Riak_port} = State) ->
+    store_internal(Pid, Bucket, Key, Value),
     {noreply, State};
-
 handle_cast(#to_geocheckin{id = Id, time = Time, region = R, state = S, weather = W, temperature = Temperature}, State = #state{riakc_socket_proc = nil, riak_ip = Riak_ip, riak_port = Riak_port}) ->
     case riakc_pb_socket:start_link(Riak_ip, Riak_port) of
 	{error, {tcp, ehostunreach}} ->
@@ -127,6 +135,9 @@ handle_cast(#to_geocheckin{id = Id, time = Time, region = R, state = S, weather 
     end;
 handle_cast(#to_geocheckin{id = Id, time = Time, region = R, state = S, weather = W, temperature = Temperature}, State = #state{riakc_socket_proc = _Pid, riak_ip = _Riak_ip, riak_port = _Riak_port}) ->
     wro_geocheckin_internal(State, {Id, Time, R, S, W, Temperature}),
+    {noreply, State};
+handle_cast(Query_GeoCheckin, State = #state{riakc_socket_proc = Pid, riak_ip = _Riak_ip, riak_port = _Riak_port}) ->
+    del_geocheckin_internal(Pid, Query_GeoCheckin),
     {noreply, State};
 handle_cast(stop, State) ->
     {norply, State};
@@ -179,12 +190,14 @@ code_change(_OldVsn, State, _Extra) ->
 %%% Internal functions
 %%%===================================================================
 
-store_internal(Bucket, Key, Value) ->
-    {ok, Pid} = riakc_pb_socket:start_link("172.17.0.2", 8087),
-    riakc_pb_socket:put(Pid, riakc_obj:new(Bucket, Key, Value)).
+store_internal(RiakSocketPid, Bucket, Key, Value) ->
+    riakc_pb_socket:put(RiakSocketPid, riakc_obj:new(Bucket, Key, Value)).
 
 wro_geocheckin_internal(#state{riakc_socket_proc = Pid, riak_ip = _Riak_ip, riak_port = _Riak_port}, {Id, Time, R, S, W, Temperature}) ->
     riakc_ts:put(Pid, "GeoCheckin", [{Id, Time, R, S, W, Temperature}]).
 
-r_table_internal(#state{riakc_socket_proc = Pid, riak_ip = _Riak_ip, riak_port = _Riak_port}, {TableName, #query_geocheckin{select = [Weather, Temperature], where = #geocheckin_pk{id = Id, time = {T1, T2}}}}) ->
-    riakc_ts:query(Pid, lists:concat(["select ", Weather, ", ", Temperature, " from ", TableName, " where id = ", Id, " and time > ", T1, " and time < ", T2])).
+r_geocheckin_internal(#state{riakc_socket_proc = Pid, riak_ip = _Riak_ip, riak_port = _Riak_port}, #query_geocheckin{select = [Weather, Temperature], where = #geocheckin_pk{id = Id, time = {T1, T2}}}) ->
+    riakc_ts:query(Pid, lists:concat(["select ", Weather, ", ", Temperature, " from ", "GeoCheckin", " where id = ", Id, " and time > ", T1, " and time < ", T2])).
+
+del_geocheckin_internal(RiakcSocketPid, #del_row_in_geocheckin{where = #geocheckin_pk{id = Id, time = Time}}) ->
+    riakc_ts:query(RiakcSocketPid, lists:concat(["delete from ", "GeoCheckin", " where id = ", Id, " and time = ", Time])).
