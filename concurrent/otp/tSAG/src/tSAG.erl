@@ -6,5 +6,5 @@ start() ->
     genrs_riakc:start().
 
 stop() ->
-    application:unload('TSAG'),
-    application:stop('TSAG').
+    application:unload('tSAG'),
+    application:stop('tSAG').

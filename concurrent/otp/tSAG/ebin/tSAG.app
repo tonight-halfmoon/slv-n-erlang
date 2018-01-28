@@ -1,5 +1,5 @@
-{application, 'TSAG',
-	      [{description, "A Riak Client for GenRS"},
+{application, 'tSAG',
+	      [{description, "A Riak TS Client for GenRS"},
 	       {vsn, "1"},
 	       {registered, [genrs_riakc_sup]},
 	       {modules, []},

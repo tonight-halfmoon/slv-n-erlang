@@ -51,12 +51,20 @@ init(Args) ->
     SupFlags = #{strategy => one_for_one,
 		 intensity => 1,
 		 period => 5},
-
+    
     RiakcGeoCheckin = #{id => riakc_geocheckin_child,
-	       start => {riakc_geocheckin, start_link, [Args]},
-	       restart => permanent,
-	       shutdown => 5000,
-	       type => worker,
-	       modules => []},
+			start => {riakc_geocheckin, start_link, [Args]},
+			restart => permanent,
+			shutdown => 5000,
+			type => worker,
+			modules => []
+		       },
+    RiakTsStore = #{id => riakc_sore_child,
+		    start => {riakc_store, start_link, [Args]},
+		    restart => permanent,
+		    shutdown => 5000,
+		    type => worker,
+		    modules => []
+		   },
 
-    {ok, {SupFlags, [RiakcGeoCheckin]}}.
+    {ok, {SupFlags, [RiakcGeoCheckin, RiakTsStore]}}.

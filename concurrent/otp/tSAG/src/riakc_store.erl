@@ -12,7 +12,7 @@
 
 %% API
 -export([start_link/0, start_link/1, 
-	 store/3]).
+	 put/1, get/1]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -22,6 +22,7 @@
 
 -record(state, {riakc_socket_proc, riak_ip, riak_port}).
 -record(store_new, {bucket, key, value}).
+-record(store_get, {bucket, key}).
 
 %%%===================================================================
 %%% API
@@ -40,8 +41,11 @@ start_link() ->
 start_link({RiakIP, RiakPort}) ->
     gen_server:start_link({local, ?sriakc}, ?MODULE, [{RiakIP, RiakPort}], [{debug, [trace, statistics]}]).
 
-store(Bucket, Key, Value) ->
+put({Bucket, Key, Value}) ->
     gen_server:cast(?sriakc, #store_new{bucket= Bucket, key= Key, value = Value}).
+
+get({Bucket, Key}) ->
+    gen_server:call(?sriakc, #store_get{bucket = Bucket, key = Key}).
 
 %%%===================================================================
 %%% gen_server callbacks
@@ -81,6 +85,9 @@ init([{Riak_ip, Riak_port}]) ->
 %%                                   {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
+handle_call(#store_get{bucket = Bucket, key = Key}, _From, #state{riakc_socket_proc = Pid, riak_ip = _Riak_ip, riak_port = _Riak_port} = State) ->
+    Result = get_internal(Pid, {Bucket, Key}),
+    {reply, Result, State};
 handle_call(_Request, _From, State) ->
     Reply = ok,
     {reply, Reply, State}.
@@ -95,7 +102,7 @@ handle_call(_Request, _From, State) ->
 %%                                  {stop, Reason, State}
 %% @end
 %%--------------------------------------------------------------------
-handle_cast(#store_new{bucket=Bucket, key=Key, value=Value},  #state{riakc_socket_proc = Pid, riak_ip = _Riak_ip, riak_port = _Riak_port} = State) ->
+handle_cast(#store_new{bucket=Bucket, key=Key, value=Value}, #state{riakc_socket_proc = Pid, riak_ip = _Riak_ip, riak_port = _Riak_port} = State) ->
     store_internal(Pid, Bucket, Key, Value),
     {noreply, State};
 handle_cast(_Msg, State) ->
@@ -149,3 +156,7 @@ code_change(_OldVsn, State, _Extra) ->
 
 store_internal(RiakSocketPid, Bucket, Key, Value) ->
     riakc_pb_socket:put(RiakSocketPid, riakc_obj:new(Bucket, Key, Value)).
+
+get_internal(RiakSocketPid, {Bucket, Key})->
+    riakc_pb_socket:get(RiakSocketPid, Bucket, Key).
+    
