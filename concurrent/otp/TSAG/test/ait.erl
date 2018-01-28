@@ -17,27 +17,26 @@ run_suite() ->
 
 start() ->
     %% TODO: Handle case when Riak is not reachable at start up
-    {ok, Pid} = genrs_riakc:start_link(),
-    Pid.
+    tSAG:start().
 
 after_each(_) ->
   ?MODULE:stop().
 
 stop() ->
-    {}.
+    tSAG:stop().
 
 wro_geocheckin_test_() ->
     { % Pre-Condition: Riak has been started
       % TODO: automate start-up for a riak docker with table 'GeoCheckin'
-      "When function `wro_geocheckin` of module `genrs_raikc` is called, then a new row at RIAK TS in table `GeoCheckin` is created",
+      "When function `write` of module `raikc_geocheckin` is called, then a new row at RIAK TS in table `GeoCheckin` is created",
       {
 	setup,
 	fun() ->
 		start(),
-		genrs_riakc:wro_geocheckin(),
+		riakc_geocheckin:write(),
 		receive after 500 -> true end,
-	        Result = genrs_riakc:r_geocheckin(),
-		genrs_riakc:del_geocheckin(),
+	        Result = riakc_geocheckin:read(),
+		riakc_geocheckin:delete(),
 		receive after 50 -> true end,
 		Result
 	end,
