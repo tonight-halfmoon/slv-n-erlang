@@ -33,7 +33,7 @@ If you set the environment variable according to the first option, then:
 
 > Second Option
 
-Otherwise, if all reltated environment variables have been set according to the Second Option, then we do not need to pass them explicitely.
+Otherwise, if all related environment variables have been set according to the Second Option, then we do not need to pass them explicitely.
 
    erl -pa ebin
 
