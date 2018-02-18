@@ -8,7 +8,9 @@
 -module(lns_tests).
 
 -export([run_suite/0,
-	after_each/1]).
+	 setup/1,
+	 setup/2,
+	 after_each/1]).
 
 -include_lib("eunit/include/eunit.hrl").
 
@@ -17,6 +19,15 @@ run_suite() ->
 
 after_each(_) ->
     true.
+
+setup(To) ->
+    lns:from_list(setup_list(1, To)).
+
+setup_list(From, To) ->
+    [list_to_atom(lists:concat(['v', X])) || X <- lists:seq(From, To)].
+    
+setup(From, To) ->    
+    lns:from_list(setup_list(From, To)).
 
 api_from_list_test_() ->
     {
@@ -46,12 +57,50 @@ api_tail_test_() ->
 
 api_visit_all_test_() ->
     {
-      "When a given Linked List is asked to be visited, then all its nodes must be updated on its property timestamp",
+      "When a given Linked List is visited, then all its nodes must be updated on its property `timestamp`",
       {
 	setup,
-	fun () -> lns:from_list(['v1', 'v2', 'v3']) end,
+	fun() -> ?MODULE:setup(3) end,
 	fun(Lns) ->
 		[?_assertMatch({lns,{node,v1, {node,v2, {node,v3,nil,{time_visited,T1}},{time_visited,T2}}, {time_visited,T3}}} when T1 > 0; T2 > 0; T3 > 0, lns:visit_all(Lns))]
+	end
+      }
+    }.
+
+api_pop_test_() ->
+    {
+      "When function `pop` is invoked on a given linked list, then it must extract the data from the head, delete the node, advance the head pointer to point at the next node in line",
+      {
+	setup,
+	fun() -> ?MODULE:setup(3) end,
+	fun(Lns) ->
+		[?_assertEqual({v1,{lns,{node,v2,{node,v3,nil,{time_visited,0}},{time_visited,0}}}}, lns:pop(Lns))]
+	end
+      }
+    }.
+
+api_nth_test_() ->
+    N = 923,
+    {
+      "When function `nth` is invoked on a given linked list, then it must return the data in the nth node",
+      {
+	setup,
+	fun() -> ?MODULE:setup(0, 1000) end,
+	fun(Lns) ->
+		[?_assertEqual(list_to_atom(lists:concat(['v', N])), lns:nth(N, Lns))]
+	end
+      }
+    }.
+
+api_nth_0_test_() ->
+    N = 0,
+    {
+      "When function `nth` is invoked on a given linked list, then it must return the data in the nth node",
+      {
+	setup,
+	fun() -> ?MODULE:setup(0, 1000) end,
+	fun(Lns) ->
+		[?_assertEqual(list_to_atom(lists:concat(['v', N])), lns:nth(N, Lns))]
 	end
       }
     }.

@@ -7,11 +7,18 @@
 	 visit_all/1,
 	 merge_tails/2,
 	 extend/2,
-	 to_list/1]).
+	 to_list/1,
+	 pop/1,
+	 nth/2]).
 
 -record(time_visited, {timestamp = 0}).
 -record(node, {value = 'empty', next = nil, time_visited = #time_visited{}}).
 -record(lns, {head = nil}).
+
+
+%%%===================================================================
+%%%  API
+%%%===================================================================
 
 new() ->
     #lns{}.
@@ -67,6 +74,19 @@ to_list(Lns) ->
 from_list(L) ->
     prepend_all(lists:reverse(L), #lns{}).
 
+pop(#lns{head = nil}) ->
+    empty_lns;
+pop(_ = #lns{head = #node{value = V, next = Next}}) ->
+    {V, #lns{head = Next}}.
+
+nth(N, Lns) ->
+    nth(N, 0, Lns#lns.head).
+
+%%%===================================================================
+%%% Internal Functions
+%%% @private
+%%%===================================================================
+
 visit_next(Head, _Next = nil) ->
     Head#node{time_visited = #time_visited{timestamp = os:system_time()}};
 visit_next(Head, Next) ->
@@ -91,3 +111,12 @@ prepend_all([], Lns) ->
 prepend_all([H|T], Lns) ->
     NewLns =  prepend(Lns, H),
     prepend_all(T, NewLns).
+
+nth(N, I, _) when N < I ->
+    n_outside;
+nth(N, N, nil) ->
+    n_outside;
+nth(N, N, #node{value = V}) ->
+    V;
+nth(N, I, #node{value = _, next = Next}) ->
+    nth(N, I + 1, Next).
