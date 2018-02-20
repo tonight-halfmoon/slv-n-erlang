@@ -129,60 +129,61 @@ api_extend_on_empty_lnss_test_() ->
       }
     }.
 
-api_show_duplicates_test_() ->
+api_count_duplicates_no_dups_test_() ->
     {
-      "When function `show_duplicates` is invoked on two linked lists given, then it must return the number of nodes from the second linked list which are a duplicate of nodes from the first linke list",
-      {
-	setup,
-	fun() -> [setup(1, 40), setup(1, 40), 40] end,
-	fun([Lns1, Lns2, Expected]) ->
-		[?_assertEqual(Expected, lns:show_duplicates(Lns1, Lns2))]
-	end
-      }
-    }.
-
-api_show_duplicates_no_dups_test_() ->
-    {
-      "When function `show_duplicates` is invoked on two linked lists given, and there is no node in the linked list which is a duplicate node from the first linked list, then it must return Zero",
+      "When function `count_duplicates` is invoked on two linked lists given, and there is no node in the linked list which is a duplicate node from the first linked list, then it must return Zero",
       {
 	setup,
 	fun() -> [setup(1, 40), setup(41, 80), 0] end,
 	fun([Lns1, Lns2, Expected]) ->
-		[?_assertEqual(Expected, lns:show_duplicates(Lns1, Lns2))]
+		[?_assertEqual(Expected, lns:count_duplicates(Lns1, Lns2))]
 	end
       }
     }.
 
-api_show_duplicates_on_two_empty_lnss_test_() ->
+api_count_duplicates_on_two_empty_lnss_test_() ->
     {
-      "When function `show_duplicates` is invoked on two empty linked lists, then it must return Zero",
+      "When function `count_duplicates` is invoked on two empty linked lists, then it must return Zero",
       {
 	setup,
 	fun() -> [lns:new(), lns:new(), 0] end,
 	fun([Lns1, Lns2, Expected]) ->
-		[?_assertEqual(Expected, lns:show_duplicates(Lns1, Lns2))]
+		[?_assertEqual(Expected, lns:count_duplicates(Lns1, Lns2))]
 	end
       }
     }.
 
-api_show_duplicates_insure_duplicates_in_lns1_are_not_considered_test_() ->
+api_count_duplicates_insure_duplicates_in_lns1_are_not_considered_test_() ->
     {
-      "When function `show_duplicates` is invoked on two linked lists given, and there is no node in the linked list which is a duplicate node from the first linked list, then it must return Zero",
+      "When function `count_duplicates` is invoked on two linked lists given, and the two linked lists having identical nodes, then it must return 20",
       {
 	setup,
 	fun() -> [lns:extend(setup(1, 20), setup(1, 20)), setup(1, 20), 20] end,
 	fun([Lns1, Lns2, Expected]) ->
-		[?_assertEqual(Expected, lns:show_duplicates(Lns1, Lns2))]
+		[?_assertEqual(Expected, lns:count_duplicates(Lns1, Lns2))]
 	end
       }
     }.
 
-api_show_duplicates_insure_all_duplicates_in_lns2_are_considered_test_() ->
+api_count_duplicates_insure_all_duplicates_in_lns2_are_considered_test_() ->
     {
-      "When function `show_duplicates` is invoked on two linked lists given, and there is no node in the linked list which is a duplicate node from the first linked list, then it must return Zero",
+      "When function `count_duplicates` is invoked on two linked lists given, and there is 40 nodes in the second linked list which are duplicates of nodes on the first linked list, then it must return 40",
       {
 	setup,
 	fun() -> [setup(1,20), lns:extend(setup(1, 20), setup(1, 20)), 40] end,
+	fun([Lns1, Lns2, Expected]) ->
+		[?_assertEqual(Expected, lns:count_duplicates(Lns1, Lns2))]
+	end
+      }
+    }.
+
+
+api_show_duplicates_test_() ->
+    {
+      "When function `show_duplicates` is invoked on two linked lists given, then it must return a list having pairs, each pair having the node value and the count of how many duplicates found in the second linked list of the node",
+      {
+	setup,
+	fun() -> [setup(1, 2), setup(1, 2), [{'v1', 1}, {'v2', 1}]] end,
 	fun([Lns1, Lns2, Expected]) ->
 		[?_assertEqual(Expected, lns:show_duplicates(Lns1, Lns2))]
 	end

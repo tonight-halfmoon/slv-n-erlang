@@ -10,6 +10,7 @@
 	 to_list/1,
 	 pop/1,
 	 nth/2,
+	 count_duplicates/2,
 	 show_duplicates/2]).
 
 -record(time_visited, {timestamp = 0}).
@@ -80,7 +81,7 @@ nth(N, Lns) ->
     nth(N, 0, Lns#lns.head).
 
 %%%===================================================================
-%%% Counts duplicates for two Linked Lists. It shows how many nodes in
+%%% Show duplicates for two Linked Lists. It shows how many nodes in
 %%% the second linked list given which are duplicates of nodes from
 %%% the first linked list. Duplicates in the same linked list are not
 %%% considered. A duplicate instance is a node in a second linked list 
@@ -90,8 +91,32 @@ nth(N, Lns) ->
 %%% The two linked lists input are completely independent. Each having
 %%% a different head and there is no merge point for the two. Each one
 %%% ends with a different tail node.
+%%%
+%%% Returns:
+%%% A List of pairs, each contains the source node and the number of 
+%%% duplicate instances found in the second inputlinked list
 %%%===================================================================
 show_duplicates(Lns1, Lns2) ->
+    Dict = traverse(Lns1),
+    show_dups(Dict, head(Lns2)).
+
+%%%===================================================================
+%%% Count duplicates for two Linked Lists. It shows how many nodes in
+%%% the second linked list given which are duplicates of nodes from
+%%% the first linked list. Duplicates in the same linked list are not
+%%% considered. A duplicate instance is a node in a second linked list 
+%%% having the same data value of a node in the first linked list. 
+%%%
+%%% Assumptions:
+%%% The two linked lists input are completely independent. Each having
+%%% a different head and there is no merge point for the two. Each one
+%%% ends with a different tail node.
+%%%
+%%% Returns:
+%%% The total number of duplicates found in the second Linked List
+%%% provided as input.
+%%%===================================================================
+count_duplicates(Lns1, Lns2) ->
     Dict = traverse(Lns1),
     count_dups(Dict, head(Lns2)).
 
@@ -152,6 +177,16 @@ traverse(nil, Dict) ->
 traverse(Next, Dict) ->
     traverse(Next#node.next, dict:store(Next#node.value, 0, Dict)).
 
+show_dups(Dict, nil) ->
+    dict:to_list(dict:filter(fun filter_predicate/2, Dict));
+show_dups(Dict, Next) ->
+    show_dups(dict:update(Next#node.value, fun(V) -> V + 1 end, 0, Dict), Next#node.next).
+
+filter_predicate(_Key, Value) when Value > 0 ->
+    true;
+filter_predicate(_Key, Value) when Value =:= 0 ->
+    false.
+
 count_dups(Dict, nil) ->
     dict:fold(fun(_Key, Value, AccIn) ->
 		      case Value > 0 of
@@ -164,3 +199,6 @@ count_dups(Dict, nil) ->
 count_dups(Dict, Next) ->
     count_dups(dict:update(Next#node.value, fun(V) -> V + 1 end, 0, Dict), Next#node.next).
 
+update_dict(V, Initial, Dict) ->
+    dict:update(V, fun(X) -> X + 1 end, Initial, Dict).
+			   
