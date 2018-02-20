@@ -116,3 +116,51 @@ api_extend_test_() ->
 	end
       }
     }.
+
+api_extend_on_empty_lnss_test_() ->
+    {
+      "When function `extend` is invoked on two empty linked lists, then it must hault with an empty linked list resulted",
+      {
+	setup,
+	fun() -> [lns:new(), lns:new(), lns:new()] end,
+	fun([Lns1, Lns2, Expected]) ->
+		[?_assertEqual(Expected, lns:extend(Lns1, Lns2))]
+	end
+      }
+    }.
+
+api_show_duplicates_test_() ->
+    {
+      "When function `show_duplicates` is invoked on two linked lists given, then it must return the number of nodes from the second linked list which are a duplicate of nodes from the first linke list",
+      {
+	setup,
+	fun() -> [setup(1, 40), setup(1, 40), 40] end,
+	fun([Lns1, Lns2, Expected]) ->
+		[?_assertEqual(Expected, lns:show_duplicates(Lns1, Lns2))]
+	end
+      }
+    }.
+
+api_show_duplicates_no_dups_test_() ->
+    {
+      "When function `show_duplicates` is invoked on two linked lists given, and there is no node in the linked list which is a duplicate node from the first linked list, then it must return Zero",
+      {
+	setup,
+	fun() -> [setup(1, 40), setup(41, 80), 0] end,
+	fun([Lns1, Lns2, Expected]) ->
+		[?_assertEqual(Expected, lns:show_duplicates(Lns1, Lns2))]
+	end
+      }
+    }.
+
+api_show_duplicates_on_two_empty_lnss_test_() ->
+    {
+      "When function `show_duplicates` is invoked on two empty linked lists, then it must return Zero",
+      {
+	setup,
+	fun() -> [lns:new(), lns:new(), 0] end,
+	fun([Lns1, Lns2, Expected]) ->
+		[?_assertEqual(Expected, lns:show_duplicates(Lns1, Lns2))]
+	end
+      }
+    }.

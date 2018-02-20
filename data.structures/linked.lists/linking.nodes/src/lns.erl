@@ -9,7 +9,8 @@
 	 extend/2,
 	 to_list/1,
 	 pop/1,
-	 nth/2]).
+	 nth/2,
+	 show_duplicates/2]).
 
 -record(time_visited, {timestamp = 0}).
 -record(node, {value = 'empty', next = nil, time_visited = #time_visited{}}).
@@ -58,6 +59,8 @@ merge_tails(Lns1, Lns2) ->
     Nhead = append_node(head(Lns1), tail(Lns2)),
     #lns{head = Nhead}.
 
+extend(#lns{head = nil}, Lns) ->
+    Lns;
 extend(Lns1, Lns2) ->
     Nhead = append_node(head(Lns1), head(Lns2)),
     #lns{head = Nhead}.
@@ -75,6 +78,22 @@ pop(_ = #lns{head = #node{value = V, next = Next}}) ->
 
 nth(N, Lns) ->
     nth(N, 0, Lns#lns.head).
+
+%%%===================================================================
+%%% Counts duplicates for two Linked Lists. It shows how many nodes in
+%%% the second linked list given which are duplicates of nodes from
+%%% the first linked list. Duplicates in the same linked list are not
+%%% considered. A duplicate instance is a node in a second linked list 
+%%% having the same data value of a node in the first linked list. 
+%%%
+%%% Assumptions:
+%%% The two linked lists input are completely independent. Each having
+%%% a different head and there is no merge point for the two. Each one
+%%% ends with a different tail node.
+%%%===================================================================
+show_duplicates(Lns1, Lns2) ->
+    Dict = traverse(Lns1),
+    count_dups(Dict, head(Lns2)).
 
 %%%===================================================================
 %%% Internal Functions
@@ -121,3 +140,26 @@ nth(N, N, #node{value = V}) ->
     V;
 nth(N, I, #node{value = _, next = Next}) ->
     nth(N, I + 1, Next).
+
+traverse(#lns{head = nil}) ->
+    dict:new();
+traverse(Lns) ->
+    Dict = dict:new(),
+    traverse(head(Lns), Dict).
+
+traverse(nil, Dict) ->
+    Dict;
+traverse(Next, Dict) ->
+    traverse(Next#node.next, dict:store(Next#node.value, 0, Dict)).
+
+count_dups(Dict, nil) ->
+    dict:fold(fun(_Key, Value, AccIn) ->
+		      case Value > 0 of
+			  true ->
+			      AccIn + 1;
+			  false ->
+			      AccIn
+		      end
+	      end, 0, Dict);
+count_dups(Dict, Next) ->
+    count_dups(dict:update(Next#node.value, fun(V) -> V + 1 end, 0, Dict), Next#node.next).
