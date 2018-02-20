@@ -15,7 +15,6 @@
 -record(node, {value = 'empty', next = nil, time_visited = #time_visited{}}).
 -record(lns, {head = nil}).
 
-
 %%%===================================================================
 %%%  API
 %%%===================================================================
@@ -40,32 +39,27 @@ tail(Lns) ->
 append(#lns{head = nil}, Data) ->
     #lns{head = #node{value = Data}};
 append(Lns, Data) ->
-    Nhead = append_node(?MODULE:head(Lns), Data),
+    Nhead = append_node(head(Lns), Data),
     #lns{head = Nhead}.
-
-append_node(Head = #node{next = nil}, Node = #node{}) ->
-    Head#node{next = Node};
-append_node(Head = #node{next = nil}, Data) ->
-    Head#node{next = #node{value = Data}};
-append_node(Head, Data) ->
-    Head#node{next = append_node(Head#node.next, Data)}.
 
 prepend(Lns, Data) ->
     Nhead = #node{value = Data, next = Lns#lns.head},
     #lns{head = Nhead}.
 
+visit_all(#lns{head = nil}) ->
+    empty_lns;
 visit_all(Lns) ->
-    Head = ?MODULE:head(Lns),
+    Head = head(Lns),
     Next = Head#node.next,
     Nhead = visit_next(Head, Next),
     #lns{head = Nhead}.
 
 merge_tails(Lns1, Lns2) ->
-    Nhead = append_node(?MODULE:head(Lns1), ?MODULE:tail(Lns2)),
+    Nhead = append_node(head(Lns1), tail(Lns2)),
     #lns{head = Nhead}.
 
 extend(Lns1, Lns2) ->
-    Nhead = append_node(?MODULE:head(Lns1), ?MODULE:head(Lns2)),
+    Nhead = append_node(head(Lns1), head(Lns2)),
     #lns{head = Nhead}.
 
 to_list(Lns) ->
@@ -87,6 +81,13 @@ nth(N, Lns) ->
 %%% @private
 %%%===================================================================
 
+append_node(Head = #node{next = nil}, Node = #node{}) ->
+    Head#node{next = Node};
+append_node(Head = #node{next = nil}, Data) ->
+    Head#node{next = #node{value = Data}};
+append_node(Head, Data) ->
+    Head#node{next = append_node(Head#node.next, Data)}.
+
 visit_next(Head, _Next = nil) ->
     Head#node{time_visited = #time_visited{timestamp = os:system_time()}};
 visit_next(Head, Next) ->
@@ -101,7 +102,7 @@ to_list(#lns{head = nil}, L) ->
 to_list(nil, L) ->
     lists:reverse(L);
 to_list(Lns = #lns{}, L) ->
-    to_list(?MODULE:head(Lns), L);
+    to_list(head(Lns), L);
 to_list(Next = #node{}, L) ->
     Visited = visit_node(Next),
     to_list(Next#node.next, [{Visited#node.value, Visited#node.time_visited}|L]).
