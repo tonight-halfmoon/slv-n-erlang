@@ -156,10 +156,11 @@ count_dups(Dict, nil) ->
     dict:fold(fun(_Key, Value, AccIn) ->
 		      case Value > 0 of
 			  true ->
-			      AccIn + 1;
+			      AccIn + Value;
 			  false ->
 			      AccIn
 		      end
 	      end, 0, Dict);
 count_dups(Dict, Next) ->
     count_dups(dict:update(Next#node.value, fun(V) -> V + 1 end, 0, Dict), Next#node.next).
+
