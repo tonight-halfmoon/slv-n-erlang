@@ -81,11 +81,12 @@ nth(N, Lns) ->
     nth(N, 0, Lns#lns.head).
 
 %%%===================================================================
-%%% Show duplicates for two Linked Lists. It shows how many nodes in
-%%% the second linked list given which are duplicates of nodes from
-%%% the first linked list. Duplicates in the same linked list are not
-%%% considered. A duplicate instance is a node in a second linked list 
-%%% having the same data value of a node in the first linked list. 
+%%% Show duplicates for two Linked Lists. It shows which nodes on the
+%%% the first linked lists have duplicates in the second linked list 
+%%% and the count as a pair. Duplicates in the first linked list are 
+%%% not considered. 
+%%% A duplicate instance is a node in a second linked list having the 
+%%% same data value of a node in the first linked list. 
 %%%
 %%% Assumptions:
 %%% The two linked lists input are completely independent. Each having
@@ -102,7 +103,7 @@ show_duplicates(Lns1, Lns2) ->
 
 %%%===================================================================
 %%% Count duplicates for two Linked Lists. It shows how many nodes in
-%%% the second linked list given which are duplicates of nodes from
+%%% the second linked list which are duplicates of nodes from
 %%% the first linked list. Duplicates in the same linked list are not
 %%% considered. A duplicate instance is a node in a second linked list 
 %%% having the same data value of a node in the first linked list. 
