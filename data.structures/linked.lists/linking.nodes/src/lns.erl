@@ -199,7 +199,3 @@ count_dups(Dict, nil) ->
 	      end, 0, Dict);
 count_dups(Dict, Next) ->
     count_dups(dict:update(Next#node.value, fun(V) -> V + 1 end, 0, Dict), Next#node.next).
-
-update_dict(V, Initial, Dict) ->
-    dict:update(V, fun(X) -> X + 1 end, Initial, Dict).
-			   
