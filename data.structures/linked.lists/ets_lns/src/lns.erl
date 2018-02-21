@@ -65,11 +65,11 @@ tail(LL) ->
     Tail.
 
 nth(N, LL) ->
-    case ets:first(LL#lns.ntab) of 
+    case ets:first(LL#lns.ntab) of
 	'$end_of_table' ->
 	    empty_linked_list;
 	Key when abs(Key) > Key ->
-	    lookup(LL,  N + Key);
+	    lookup(LL, N + Key);
 	_Key ->
 	    lookup(LL, N)
     end.
@@ -77,8 +77,6 @@ nth(N, LL) ->
 lookup(LL, Key) ->
     case ets:lookup(LL#lns.ntab, Key) of
 	[] ->
-	    not_found;
-	{badmatch, []} ->
 	    not_found;
 	[Nth] ->
 	    Nth
