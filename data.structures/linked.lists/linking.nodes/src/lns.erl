@@ -98,13 +98,8 @@ nth(N, Lns) ->
 %%% duplicate instances found in the second inputlinked list
 %%%===================================================================
 
-show_duplicates(_Lns1 = #lns{head = nil}, _Lns2) ->
-    {0};
-show_duplicates(_Lns1, _Lns2 = #lns{head= nil}) ->
-    {0};
 show_duplicates(Lns1, Lns2) ->
-    Dict = traverse(Lns1),
-    show_dups(Dict, head(Lns2)).
+    process_dups(Lns1, Lns2, fun show_dups/2).
 
 %%%===================================================================
 %%% Count duplicates for two Linked Lists. It shows how many nodes in
@@ -123,13 +118,8 @@ show_duplicates(Lns1, Lns2) ->
 %%% provided as input.
 %%%===================================================================
 
-count_duplicates(_Lns1 = #lns{head = nil}, _Lns2) ->
-    0;
-count_duplicates(_Lns1, _Lns2 = #lns{head = nil}) ->
-    0;
 count_duplicates(Lns1, Lns2) ->
-    Dict = traverse(Lns1),
-    count_dups(Dict, head(Lns2)).
+    process_dups(Lns1, Lns2, fun count_dups/2).
 
 %%%===================================================================
 %%% Internal Functions
@@ -188,6 +178,8 @@ traverse(nil, Dict) ->
 traverse(Next, Dict) ->
     traverse(Next#node.next, dict:store(Next#node.value, 0, Dict)).
 
+show_dups(nil, nil) ->
+    {0};
 show_dups(Dict, nil) ->
     dict:to_list(dict:filter(fun filter_predicate/2, Dict));
 show_dups(Dict, Next) ->
@@ -198,6 +190,8 @@ filter_predicate(_Key, Value) when Value > 0 ->
 filter_predicate(_Key, Value) when Value =:= 0 ->
     false.
 
+count_dups(nil, nil) ->
+    0;
 count_dups(Dict, nil) ->
     dict:fold(fun(_Key, Value, AccIn) ->
 		      case Value > 0 of
@@ -209,3 +203,11 @@ count_dups(Dict, nil) ->
 	      end, 0, Dict);
 count_dups(Dict, Next) ->
     count_dups(dict:update(Next#node.value, fun(V) -> V + 1 end, 0, Dict), Next#node.next).
+
+process_dups(_Lns1 = #lns{head = nil}, _Lns2, Fun) ->
+    Fun(nil, nil);
+process_dups(_Lns1, _Lns2 = #lns{head = nil}, Fun) ->
+    Fun(nil, nil);
+process_dups(Lns1, Lns2, Fun) ->
+    Dict = traverse(Lns1),
+    Fun(Dict, head(Lns2)).
