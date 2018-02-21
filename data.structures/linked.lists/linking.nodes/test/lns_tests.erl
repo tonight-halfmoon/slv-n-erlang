@@ -158,7 +158,7 @@ api_count_duplicates_on_empty_Lns1_test_() ->
       "When function `count_duplicates` is invoked with input `Lns1` as an empty Linked List, then function `count_duplicates` must not perform any computation and must return `0`",
       {
 	setup,
-	fun() -> [lns:new(), setup(1,2) , 0] end,
+	fun() -> [lns:new(), setup(1,2), 0] end,
 	fun([Lns1, Lns2, Expected]) ->
 		[?_assertEqual(Expected, lns:count_duplicates(Lns1, Lns2))]
 	end
@@ -170,7 +170,7 @@ api_count_duplicates_on_empty_Lns2_test_() ->
       "When function `count_duplicates` is invoked with input `Lns2` as an empty Linked List, then function `count_duplicates` must not perform any computation and must return `0`",
       {
 	setup,
-	fun() -> [setup(1,2), lns:new() , 0] end,
+	fun() -> [setup(1,2), lns:new(), 0] end,
 	fun([Lns1, Lns2, Expected]) ->
 		[?_assertEqual(Expected, lns:count_duplicates(Lns1, Lns2))]
 	end
