@@ -153,6 +153,30 @@ api_count_duplicates_on_two_empty_lnss_test_() ->
       }
     }.
 
+api_count_duplicates_on_empty_Lns1_test_() ->
+    {
+      "When function `count_duplicates` is invoked with input `Lns1` as an empty Linked List, then function `count_duplicates` must not perform any computation and must return `0`",
+      {
+	setup,
+	fun() -> [lns:new(), setup(1,2) , 0] end,
+	fun([Lns1, Lns2, Expected]) ->
+		[?_assertEqual(Expected, lns:count_duplicates(Lns1, Lns2))]
+	end
+      }
+    }.
+
+api_count_duplicates_on_empty_Lns2_test_() ->
+    {
+      "When function `count_duplicates` is invoked with input `Lns2` as an empty Linked List, then function `count_duplicates` must not perform any computation and must return `0`",
+      {
+	setup,
+	fun() -> [setup(1,2), lns:new() , 0] end,
+	fun([Lns1, Lns2, Expected]) ->
+		[?_assertEqual(Expected, lns:count_duplicates(Lns1, Lns2))]
+	end
+      }
+    }.
+
 api_count_duplicates_insure_duplicates_in_lns1_are_not_considered_test_() ->
     {
       "When function `count_duplicates` is invoked on two linked lists given, and the two linked lists having identical nodes, then it must return 20",
@@ -184,6 +208,30 @@ api_show_duplicates_test_() ->
       {
 	setup,
 	fun() -> [setup(1, 2), setup(1, 2), [{'v1', 1}, {'v2', 1}]] end,
+	fun([Lns1, Lns2, Expected]) ->
+		[?_assertEqual(Expected, lns:show_duplicates(Lns1, Lns2))]
+	end
+      }
+    }.
+
+api_show_duplicates_empty_Lns1_test_() ->
+    {
+      "When function `show_duplicates` is invoked with input `Lns1` as an empty Linked List, then function `show_duplicates` must not perform any computation and must return `{0}`",
+      {
+	setup,
+	fun() -> [lns:new(), setup(1,2), {0}] end,
+	fun([Lns1, Lns2, Expected]) ->
+		[?_assertEqual(Expected, lns:show_duplicates(Lns1, Lns2))]
+	end
+      }
+    }.
+
+api_show_duplicates_empty_Lns2_test_() ->
+    {
+      "When function `show_duplicates` is invoked with input `Lns2` as an empty Linked List, then function `show_duplicates` must not perform any computation and must return `{0}`",
+      {
+	setup,
+	fun() -> [setup(1,2), lns:new(), {0}] end,
 	fun([Lns1, Lns2, Expected]) ->
 		[?_assertEqual(Expected, lns:show_duplicates(Lns1, Lns2))]
 	end

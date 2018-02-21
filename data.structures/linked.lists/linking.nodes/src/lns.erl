@@ -29,9 +29,9 @@ head(Lns) ->
 
 tail(_ = #lns{head = #node{value = 'empty'}}) ->
     #node{};
-tail(Node = #node{value = _, next = nil})->
+tail(Node = #node{value = _V, next = nil})->
     Node;
-tail(#node{value = _, next = Next}) ->
+tail(#node{value = _V, next = Next}) ->
     tail(Next);
 tail(#lns{head = nil}) ->
     nil;
@@ -74,7 +74,7 @@ from_list(L) ->
 
 pop(#lns{head = nil}) ->
     empty_lns;
-pop(_ = #lns{head = #node{value = V, next = Next}}) ->
+pop(_Lns = #lns{head = #node{value = V, next = Next}}) ->
     {V, #lns{head = Next}}.
 
 nth(N, Lns) ->
@@ -97,6 +97,11 @@ nth(N, Lns) ->
 %%% A List of pairs, each contains the source node and the number of 
 %%% duplicate instances found in the second inputlinked list
 %%%===================================================================
+
+show_duplicates(_Lns1 = #lns{head = nil}, _Lns2) ->
+    {0};
+show_duplicates(_Lns1, _Lns2 = #lns{head= nil}) ->
+    {0};
 show_duplicates(Lns1, Lns2) ->
     Dict = traverse(Lns1),
     show_dups(Dict, head(Lns2)).
@@ -117,6 +122,11 @@ show_duplicates(Lns1, Lns2) ->
 %%% The total number of duplicates found in the second Linked List
 %%% provided as input.
 %%%===================================================================
+
+count_duplicates(_Lns1 = #lns{head = nil}, _Lns2) ->
+    0;
+count_duplicates(_Lns1, _Lns2 = #lns{head = nil}) ->
+    0;
 count_duplicates(Lns1, Lns2) ->
     Dict = traverse(Lns1),
     count_dups(Dict, head(Lns2)).
@@ -139,7 +149,7 @@ visit_next(Head, Next) ->
     Head#node{time_visited = #time_visited{timestamp = os:system_time()},
 	      next = visit_next(Head#node.next, Next#node.next)}.
 
-visit_node(#node{value = V, next = Next, time_visited = _}) ->
+visit_node(#node{value = V, next = Next, time_visited = _Timestamp}) ->
     #node{value = V, next = Next, time_visited = #time_visited{timestamp = os:system_time()}}.
 
 to_list(#lns{head = nil}, L) ->
@@ -164,7 +174,7 @@ nth(N, N, nil) ->
     n_outside;
 nth(N, N, #node{value = V}) ->
     V;
-nth(N, I, #node{value = _, next = Next}) ->
+nth(N, I, #node{value = _V, next = Next}) ->
     nth(N, I + 1, Next).
 
 traverse(#lns{head = nil}) ->
