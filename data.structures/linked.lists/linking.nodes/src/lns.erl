@@ -13,19 +13,27 @@
 	 count_duplicates/2,
 	 show_duplicates/2]).
 
+-export_type([linked_list/0]).
+
 -record(time_visited, {timestamp = 0 :: integer()}).
 -record(node, {value :: atom(), next :: #node{}, time_visited :: #time_visited{}}).
 -record(lns, {head :: #node{}}).
+
+-opaque linked_list() :: #lns{}.
+
+-type node@() :: #node{}.
 
 %%%===================================================================
 %%%  API
 %%%===================================================================
 
-new() ->
-    #lns{}.
+-spec new() -> linked_list().
+ 
+new() -> #lns{}.
 
-head(Lns) ->
-    Lns#lns.head.
+-spec head(linked_list()) -> node@().
+
+head(Lns) -> Lns#lns.head.
 
 tail(_ = #lns{head = #node{value = undefined}}) ->
     #node{};
