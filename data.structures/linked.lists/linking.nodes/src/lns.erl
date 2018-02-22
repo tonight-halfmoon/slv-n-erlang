@@ -13,9 +13,9 @@
 	 count_duplicates/2,
 	 show_duplicates/2]).
 
--record(time_visited, {timestamp = 0}).
--record(node, {value = 'empty', next, time_visited = #time_visited{}}).
--record(lns, {head}).
+-record(time_visited, {timestamp = 0 :: integer()}).
+-record(node, {value :: atom(), next, time_visited :: #time_visited{}}).
+-record(lns, {head :: #node{}}).
 
 %%%===================================================================
 %%%  API
@@ -27,7 +27,7 @@ new() ->
 head(Lns) ->
     Lns#lns.head.
 
-tail(_ = #lns{head = #node{value = 'empty'}}) ->
+tail(_ = #lns{head = #node{value = undefined}}) ->
     #node{};
 tail(Node = #node{value = _V, next = undefined})->
     Node;
@@ -167,17 +167,6 @@ nth(N, N, #node{value = V}) ->
 nth(N, I, #node{value = _V, next = Next}) ->
     nth(N, I + 1, Next).
 
-traverse(#lns{head = undefined}) ->
-    dict:new();
-traverse(Lns) ->
-    Dict = dict:new(),
-    traverse(head(Lns), Dict).
-
-traverse(undefined, Dict) ->
-    Dict;
-traverse(Next, Dict) ->
-    traverse(Next#node.next, dict:store(Next#node.value, 0, Dict)).
-
 show_dups(undefined, undefined) ->
     {0};
 show_dups(Dict, undefined) ->
@@ -211,3 +200,14 @@ process_dups(_Lns1, _Lns2 = #lns{head = undefined}, Fun) ->
 process_dups(Lns1, Lns2, Fun) ->
     Dict = traverse(Lns1),
     Fun(Dict, head(Lns2)).
+
+traverse(#lns{head = undefined}) ->
+    dict:new();
+traverse(Lns) ->
+    Dict = dict:new(),
+    traverse(head(Lns), Dict).
+
+traverse(undefined, Dict) ->
+    Dict;
+traverse(Next, Dict) ->
+    traverse(Next#node.next, dict:store(Next#node.value, 0, Dict)).
