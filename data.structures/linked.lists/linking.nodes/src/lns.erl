@@ -15,7 +15,7 @@
 
 -export_type([linked_list/0]).
 
--record(time_visited, {timestamp = 0 :: integer()}).
+-record(time_visited, {timestamp = erlang:timestamp() :: integer()}).
 -record(node, {value :: atom(), next :: #node{}, time_visited :: #time_visited{}}).
 -record(lns, {head :: #node{}}).
 
@@ -64,9 +64,13 @@ visit_all(Lns) ->
     Nhead = visit_next(Head, Next),
     #lns{head = Nhead}.
 
+-spec merge_tails(linked_list(), linked_list()) -> linked_list().
+
 merge_tails(Lns1, Lns2) ->
     Nhead = append_node(head(Lns1), tail(Lns2)),
     #lns{head = Nhead}.
+
+-spec extend(linked_list(), linked_list()) -> linked_list().
 
 extend(#lns{head = undefined}, Lns) ->
     Lns;
@@ -74,19 +78,29 @@ extend(Lns1, Lns2) ->
     Nhead = append_node(head(Lns1), head(Lns2)),
     #lns{head = Nhead}.
 
+-spec to_list(linked_list()) -> list() | nil().
+
 to_list(Lns) ->
     to_list(Lns, []).
 
+-spec from_list(L :: list()
+		   | nil()) -> linked_list().
+
+from_list(X) when not is_list(X) ->
+    type_list_expected;
 from_list(L) ->
     prepend_all(lists:reverse(L), #lns{}).
+
+-spec pop(linked_list()) -> {atom(), linked_list()}.
 
 pop(#lns{head = undefined}) ->
     empty_lns;
 pop(_Lns = #lns{head = #node{value = V, next = Next}}) ->
     {V, #lns{head = Next}}.
 
-nth(N, Lns) ->
-    nth(N, 0, Lns#lns.head).
+-spec nth(N :: integer(), linked_list()) -> node@().
+
+nth(N, Lns) -> nth(N, 0, Lns#lns.head).
 
 %%%===================================================================
 %%% Show duplicates for two Linked Lists. It shows which nodes on the
@@ -105,6 +119,8 @@ nth(N, Lns) ->
 %%% A List of pairs, each contains the source node and the number of 
 %%% duplicate instances found in the second inputlinked list
 %%%===================================================================
+
+-spec show_duplicates(linked_list(), linked_list()) -> [{atom(), integer()}].
 
 show_duplicates(Lns1, Lns2) ->
     process_dups(Lns1, Lns2, fun show_dups/2).
@@ -125,6 +141,8 @@ show_duplicates(Lns1, Lns2) ->
 %%% The total number of duplicates found in the second Linked List
 %%% provided as input.
 %%%===================================================================
+
+-spec count_duplicates(linked_list(), linked_list()) -> integer().
 
 count_duplicates(Lns1, Lns2) ->
     process_dups(Lns1, Lns2, fun count_dups/2).
@@ -176,7 +194,7 @@ nth(N, I, #node{value = _V, next = Next}) ->
     nth(N, I + 1, Next).
 
 show_dups(undefined, undefined) ->
-    {0};
+    [{undefined, 0}];
 show_dups(Dict, undefined) ->
     dict:to_list(dict:filter(fun filter_predicate/2, Dict));
 show_dups(Dict, Next) ->
