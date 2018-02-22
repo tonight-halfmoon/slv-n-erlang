@@ -14,8 +14,8 @@
 	 show_duplicates/2]).
 
 -record(time_visited, {timestamp = 0}).
--record(node, {value = 'empty', next = nil, time_visited = #time_visited{}}).
--record(lns, {head = nil}).
+-record(node, {value = 'empty', next, time_visited = #time_visited{}}).
+-record(lns, {head}).
 
 %%%===================================================================
 %%%  API
@@ -29,16 +29,16 @@ head(Lns) ->
 
 tail(_ = #lns{head = #node{value = 'empty'}}) ->
     #node{};
-tail(Node = #node{value = _V, next = nil})->
+tail(Node = #node{value = _V, next = undefined})->
     Node;
 tail(#node{value = _V, next = Next}) ->
     tail(Next);
-tail(#lns{head = nil}) ->
-    nil;
+tail(#lns{head = undefined}) ->
+    undefined;
 tail(Lns) ->
     tail(Lns#lns.head).
 
-append(#lns{head = nil}, Data) ->
+append(#lns{head = undefined}, Data) ->
     #lns{head = #node{value = Data}};
 append(Lns, Data) ->
     Nhead = append_node(head(Lns), Data),
@@ -48,7 +48,7 @@ prepend(Lns, Data) ->
     Nhead = #node{value = Data, next = Lns#lns.head},
     #lns{head = Nhead}.
 
-visit_all(#lns{head = nil}) ->
+visit_all(#lns{head = undefined}) ->
     empty_lns;
 visit_all(Lns) ->
     Head = head(Lns),
@@ -60,7 +60,7 @@ merge_tails(Lns1, Lns2) ->
     Nhead = append_node(head(Lns1), tail(Lns2)),
     #lns{head = Nhead}.
 
-extend(#lns{head = nil}, Lns) ->
+extend(#lns{head = undefined}, Lns) ->
     Lns;
 extend(Lns1, Lns2) ->
     Nhead = append_node(head(Lns1), head(Lns2)),
@@ -72,7 +72,7 @@ to_list(Lns) ->
 from_list(L) ->
     prepend_all(lists:reverse(L), #lns{}).
 
-pop(#lns{head = nil}) ->
+pop(#lns{head = undefined}) ->
     empty_lns;
 pop(_Lns = #lns{head = #node{value = V, next = Next}}) ->
     {V, #lns{head = Next}}.
@@ -126,14 +126,14 @@ count_duplicates(Lns1, Lns2) ->
 %%% @private
 %%%===================================================================
 
-append_node(Head = #node{next = nil}, Node = #node{}) ->
+append_node(Head = #node{next = undefined}, Node = #node{}) ->
     Head#node{next = Node};
-append_node(Head = #node{next = nil}, Data) ->
+append_node(Head = #node{next = undefined}, Data) ->
     Head#node{next = #node{value = Data}};
 append_node(Head, Data) ->
     Head#node{next = append_node(Head#node.next, Data)}.
 
-visit_next(Head, _Next = nil) ->
+visit_next(Head, _Next = undefined) ->
     Head#node{time_visited = #time_visited{timestamp = os:system_time()}};
 visit_next(Head, Next) ->
     Head#node{time_visited = #time_visited{timestamp = os:system_time()},
@@ -142,9 +142,9 @@ visit_next(Head, Next) ->
 visit_node(#node{value = V, next = Next, time_visited = _Timestamp}) ->
     #node{value = V, next = Next, time_visited = #time_visited{timestamp = os:system_time()}}.
 
-to_list(#lns{head = nil}, L) ->
+to_list(#lns{head = undefined}, L) ->
    L;
-to_list(nil, L) ->
+to_list(undefined, L) ->
     lists:reverse(L);
 to_list(Lns = #lns{}, L) ->
     to_list(head(Lns), L);
@@ -160,27 +160,27 @@ prepend_all([H|T], Lns) ->
 
 nth(N, I, _) when N < I ->
     n_outside;
-nth(N, N, nil) ->
+nth(N, N, undefined) ->
     n_outside;
 nth(N, N, #node{value = V}) ->
     V;
 nth(N, I, #node{value = _V, next = Next}) ->
     nth(N, I + 1, Next).
 
-traverse(#lns{head = nil}) ->
+traverse(#lns{head = undefined}) ->
     dict:new();
 traverse(Lns) ->
     Dict = dict:new(),
     traverse(head(Lns), Dict).
 
-traverse(nil, Dict) ->
+traverse(undefined, Dict) ->
     Dict;
 traverse(Next, Dict) ->
     traverse(Next#node.next, dict:store(Next#node.value, 0, Dict)).
 
-show_dups(nil, nil) ->
+show_dups(undefined, undefined) ->
     {0};
-show_dups(Dict, nil) ->
+show_dups(Dict, undefined) ->
     dict:to_list(dict:filter(fun filter_predicate/2, Dict));
 show_dups(Dict, Next) ->
     show_dups(dict:update(Next#node.value, fun(V) -> V + 1 end, 0, Dict), Next#node.next).
@@ -190,9 +190,9 @@ filter_predicate(_Key, Value) when Value > 0 ->
 filter_predicate(_Key, Value) when Value =:= 0 ->
     false.
 
-count_dups(nil, nil) ->
+count_dups(undefined, undefined) ->
     0;
-count_dups(Dict, nil) ->
+count_dups(Dict, undefined) ->
     dict:fold(fun(_Key, Value, AccIn) ->
 		      case Value > 0 of
 			  true ->
@@ -204,10 +204,10 @@ count_dups(Dict, nil) ->
 count_dups(Dict, Next) ->
     count_dups(dict:update(Next#node.value, fun(V) -> V + 1 end, 0, Dict), Next#node.next).
 
-process_dups(_Lns1 = #lns{head = nil}, _Lns2, Fun) ->
-    Fun(nil, nil);
-process_dups(_Lns1, _Lns2 = #lns{head = nil}, Fun) ->
-    Fun(nil, nil);
+process_dups(_Lns1 = #lns{head = undefined}, _Lns2, Fun) ->
+    Fun(undefined, undefined);
+process_dups(_Lns1, _Lns2 = #lns{head = undefined}, Fun) ->
+    Fun(undefined, undefined);
 process_dups(Lns1, Lns2, Fun) ->
     Dict = traverse(Lns1),
     Fun(Dict, head(Lns2)).
