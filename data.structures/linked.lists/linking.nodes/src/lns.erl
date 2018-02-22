@@ -14,7 +14,7 @@
 	 show_duplicates/2]).
 
 -record(time_visited, {timestamp = 0 :: integer()}).
--record(node, {value :: atom(), next, time_visited :: #time_visited{}}).
+-record(node, {value :: atom(), next :: #node{}, time_visited :: #time_visited{}}).
 -record(lns, {head :: #node{}}).
 
 %%%===================================================================
