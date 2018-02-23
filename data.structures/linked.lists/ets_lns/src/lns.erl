@@ -21,6 +21,7 @@
 -export_type([linked_list/0]).
 
 -record(lns, {ntab = notable :: ets:tab()}).
+%-record(anode, {key1 :: integer(), key2 = erlang:timestamp(), data = erlang:term()}).
 
 -opaque linked_list() :: #lns{}.
 
@@ -28,6 +29,7 @@
 
 -define(initial_key, 1).
 -define(increment_key, 1).
+-define(decrement_key, -1).
 
 %%%===================================================================
 %%%  API
@@ -54,7 +56,7 @@ push(LL, Data) ->
 	'$end_of_table' ->
 	    ets:insert_new(LL#lns.ntab, {?initial_key, Data});
 	Key when is_integer(Key) ->
-	    ets:insert_new(LL#lns.ntab, {First - ?increment_key, Data})
+	    ets:insert_new(LL#lns.ntab, {First + ?decrement_key, Data})
     end.
 
 -spec from_list(L) -> LL when
@@ -85,16 +87,14 @@ tail(LL) ->
 -spec nth(N :: integer(), linked_list()) -> node@().
 
 nth(N, LL) ->
-    case ets:first(LL#lns.ntab) of
-	'$end_of_table' ->
-	    empty_linked_list;
-	Key when abs(Key) > Key ->
-	    lookup(LL, N + Key);
-	Key when Key > 1 ->
-	    lookup(LL, N + Key + 1);
-	Key when Key =:= 1 ->
-	    lookup(LL, N)
-    end.
+    nth(N, 0, LL#lns.ntab, ets:first(LL#lns.ntab)).
+
+nth(_N, _I, _Tab, '$end_of_table') ->
+    not_found;
+nth(N, N, Tab, Key) ->
+    {Key, ets:lookup_element(Tab, Key, 2)};
+nth(N, I, Tab, Key) ->
+    nth(N, I + 1, Tab, ets:next(Tab, Key)).
 
 info(LL) ->
     ets:info(LL#lns.ntab).
@@ -124,3 +124,11 @@ prepend_all([], LL) ->
 prepend_all([H|T], LL) ->
     push(LL, H),
     prepend_all(T, LL).
+
+%% key_uniform(State) ->
+%%     case rand:uniform(State) of
+%% 	{0.0, NewState} ->
+%% 	    key_uniform(NewState);
+%% 	Result ->
+%% 	    Result
+%%     end.

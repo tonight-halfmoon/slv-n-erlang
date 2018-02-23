@@ -44,29 +44,25 @@ api_new_test_() ->
     }.
 
 api_push_test_() ->
-    Data = 'v1',
-    Node = {1, Data},
     {
       "When function `push/2` is invoked on an empty Linked List, then the first node of the Linked List must be the node just got pushed",
       {
 	setup,
-	fun() -> Lns = lns:new(), lns:push(Lns, Data), Lns end,
-	fun(Lns) ->
-		[?_assertEqual(Node, lns:head(Lns))]
+	fun() -> Lns = lns:new(), lns:push(Lns, 'v1'), [Lns, {0, 'v1'}] end,
+	fun([Lns, {_, Data}]) ->
+		[?_assertMatch({Key, Data} when is_integer(Key), lns:head(Lns))]
 	end
       }
     }.
 
 api_push_2_test_() ->
-    Data = 'v3',
-    Head = {-1, Data},
     {
       "When function `push/2` is invoked on a Linked List, then the last element pushed is the head",
       {
 	setup,
-	fun() -> Lns = lns:new(), setup(Lns), lns:push(Lns, 'v3'), Lns  end,
-	fun(Lns) ->
-		[?_assertEqual(Head, lns:head(Lns))]
+	fun() -> Lns = lns:new(), setup(Lns), lns:push(Lns, 'v3'), [Lns, {-1, 'v3'}] end,
+	fun([Lns, {Key, Data}]) ->
+		[?_assertEqual({Key, Data}, lns:head(Lns))]
 	end
       }
     }.
@@ -83,6 +79,18 @@ api_nth_test_() ->
       }
     }.
 
+api_nth_in_between_pop_test_() ->
+    {
+      "When a client asks for the nth node of a Linked List, then the Nth node must be returned - setup 3 nodes with push/2 and then pop/1",
+      {
+	setup,
+	fun() -> Lns = lns:new(), setup(Lns, 3, fun lns:push/2), lns:pop(Lns), Lns end,
+	fun(Lns) ->
+		[?_assertEqual({0, 'v2'}, lns:nth(0, Lns))]
+	end
+      }
+    }.
+
 api_nth_setup_with_append_test_() ->
     {
       "When a client asks for the nth node of a Linked List, then the Nth node must be returned - setup with append/2",
@@ -90,7 +98,7 @@ api_nth_setup_with_append_test_() ->
 	setup,
 	fun() -> Lns = lns:new(), setup(Lns, 3, fun lns:append/2), Lns end,
 	fun(Lns) ->
-		[?_assertEqual({3, 'v3'}, lns:nth(3, Lns))]
+		[?_assertEqual({3, 'v3'}, lns:nth(2, Lns))]
 	end
       }
     }.
