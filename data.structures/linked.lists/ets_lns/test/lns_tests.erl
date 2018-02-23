@@ -141,14 +141,39 @@ api_pop_test_() ->
 	end
       }
     }.
+
 api_insert_test_() ->
     {
-      "When function `insert/3` is invoked on a given Linked List providing the Nth and data, then a new node is inserted to be the Nth element having the data provided",
+      "When function `insert/3` is invoked on a given Linked List providing the Nth and data, then a new node is inserted to be the Nth node, on the Linked List, having the data provided",
       {
 	setup,
-	fun() -> LL = lns:new(), setup(LL, 3, fun lns:append/2), lns:insert(LL, 2, 'v4'), [LL, [{1, v1}, {2, v4}, {3, v2}, {4, v3}]] end,
-	fun([LL, _Expected]) ->
+	fun() -> LL = lns:new(), setup(LL, 3, fun lns:append/2), lns:insert(LL, 2, 'v4'), [LL] end,
+	fun([LL]) ->
 		[?_assertMatch([{Key1, v1}, {_Key2, v4}, {_Key3, v2}, {_Key4, v3}] when Key1 == 1, lns:to_list(LL))]
+	end
+      }
+    }.
+
+api_insert_on_empty_LL_test_() ->
+    {
+      "When function `insert/3` is invoked on an empty given Linked List providing the Nth and data, then a new node is inserted to be the first node, on the Linked List, having the data provided",
+      {
+	setup,
+	fun() -> LL = lns:new(), lns:insert(LL, 2, 'v4'), [LL] end,
+	fun([LL]) ->
+		[?_assertMatch([{Key, v4}] when Key == 1, lns:to_list(LL))]
+	end
+      }
+    }.
+
+api_insert_on_1node_LL_test_() ->
+    {
+      "When function `insert/3` is invoked on a Linked List having only one node providing `Nth` value to be greater than 2 and data, then a new node is inserted to be the third and last node, on the Linked List, having the data provided",
+      {
+	setup,
+	fun() -> LL = lns:new(), setup(LL, 1, fun lns:append/2), lns:insert(LL, 5, 'v4'), [LL] end,
+	fun([LL]) ->
+		[?_assertMatch([{Key1, v1}, {Key2, v4}] when Key1 == 1; Key2 == 576460752303423488, lns:to_list(LL))]
 	end
       }
     }.

@@ -8,16 +8,16 @@
 %%%-------------------------------------------------------------------
 -module(lns).
 
--export([new/0, push/2,
-	 append/2,
+-include_lib("eunit/include/eunit.hrl").
+
+-export([new/0,
+	 push/2, append/2, insert/3,
 	 from_list/1,
 	 to_list/1,
-	 head/1,
-	 tail/1,
+	 head/1, tail/1,
 	 nth/2,
 	 info/1,
-	 pop/1,
-	 insert/3]).
+	 pop/1]).
 
 -export_type([linked_list/0]).
 
@@ -142,6 +142,38 @@ insert(Tab, '$end_of_table', _N, _I, Data) ->
 insert(Tab, KeyNext, N, N, Data) ->
     KeyPrev = ets:prev(Tab, KeyNext),
     NewKey = key_in_between(KeyPrev, KeyNext),
-    ets:insert_new(Tab, {NewKey, Data});
+    case NewKey == KeyPrev of
+	true ->
+	    incapable;
+	false ->
+	    ets:insert_new(Tab, {NewKey, Data})
+    end;
 insert(Tab, Key, N, I, Data) ->
     insert(Tab, ets:next(Tab, Key), N, I + 1, Data).
+
+
+%%%===================================================================
+%%% Unit Tests on Internal Functions
+%%% @private
+%%%===================================================================
+
+key_in_between_test() ->
+    ?assertEqual(0, key_in_between(0,0)).
+
+key_in_between_2_test() ->
+    ?assertEqual(0, key_in_between(1, -1)).
+
+key_in_between_3_test() ->
+    ?assertEqual(0, key_in_between(-1, 1)).
+
+key_in_between_4_test() ->
+    ?assertEqual(-1, key_in_between(-1, 0)).
+
+key_in_between_5_test() ->
+    ?assertEqual(0, key_in_between(-99, 99)).
+
+key_in_between_6_test() ->
+    ?assertEqual(98, key_in_between(97, 99)).
+
+key_in_between_7_test() ->
+    ?assertEqual(0, key_in_between(0, 1)).
