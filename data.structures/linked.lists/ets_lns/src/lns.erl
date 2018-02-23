@@ -16,7 +16,8 @@
 	 tail/1,
 	 nth/2,
 	 info/1,
-	 pop/1]).
+	 pop/1,
+	 insert/3]).
 
 -export_type([linked_list/0]).
 
@@ -28,8 +29,8 @@
 -type node@() :: term().
 
 -define(initial_key, 1).
--define(increment_key, 1).
--define(decrement_key, -1).
+-define(increment_key, 576460752303423487).
+-define(decrement_key, -134217727).
 
 %%%===================================================================
 %%%  API
@@ -39,14 +40,10 @@
 
 new() -> #lns{ntab = ets:new(ntab, [ordered_set])}.
 
+-spec append(linked_list(), erlang:term()) -> linked_list().
+
 append(LL, Data) ->
-    Last = ets:last(LL#lns.ntab),
-    case Last of
-	'$end_of_table' ->
-	    ets:insert_new(LL#lns.ntab, {?initial_key, Data});
-	Key when is_integer(Key) ->
-	    ets:insert_new(LL#lns.ntab, {Last + ?increment_key, Data})
-    end.
+    append(LL#lns.ntab, ets:last(LL#lns.ntab), Data).
 
 -spec push(linked_list(), atom()) -> linked_list().
 
@@ -89,13 +86,6 @@ tail(LL) ->
 nth(N, LL) ->
     nth(N, 0, LL#lns.ntab, ets:first(LL#lns.ntab)).
 
-nth(_N, _I, _Tab, '$end_of_table') ->
-    not_found;
-nth(N, N, Tab, Key) ->
-    {Key, ets:lookup_element(Tab, Key, 2)};
-nth(N, I, Tab, Key) ->
-    nth(N, I + 1, Tab, ets:next(Tab, Key)).
-
 info(LL) ->
     ets:info(LL#lns.ntab).
 
@@ -106,10 +96,20 @@ pop(LL) ->
     ets:take(LL#lns.ntab, Hkey),
     {lookup(LL, Hkey), LL}.
 
+-spec insert(LL :: linked_list(), Nth :: integer(), Data :: erlang:term()) -> linked_list().
+ 
+insert(LL, Nth, Data) ->
+    insert(LL#lns.ntab, ets:first(LL#lns.ntab), Nth, 1, Data).
+
 %%%===================================================================
 %%% Internal Functions
 %%% @private
 %%%===================================================================
+
+append(Tab, '$end_of_table', Data) ->
+    ets:insert_new(Tab, {?initial_key, Data});
+append(Tab, LastKey, Data) when is_integer(LastKey) ->
+    ets:insert_new(Tab, {LastKey + ?increment_key, Data}).
 
 lookup(LL, Key) ->
     case ets:lookup(LL#lns.ntab, Key) of
@@ -125,10 +125,23 @@ prepend_all([H|T], LL) ->
     push(LL, H),
     prepend_all(T, LL).
 
-%% key_uniform(State) ->
-%%     case rand:uniform(State) of
-%% 	{0.0, NewState} ->
-%% 	    key_uniform(NewState);
-%% 	Result ->
-%% 	    Result
-%%     end.
+nth(_N, _I, _Tab, '$end_of_table') ->
+    not_found;
+nth(N, N, Tab, Key) ->
+    {Key, ets:lookup_element(Tab, Key, 2)};
+nth(N, I, Tab, Key) ->
+    nth(N, I + 1, Tab, ets:next(Tab, Key)).
+
+key_in_between(KeyPrev, KeyNext) ->
+    KeyNext - KeyPrev bsr 1 + KeyPrev.
+
+insert(Tab, '$end_of_table', _N, 1, Data) ->
+    append(Tab, '$end_of_table', Data);
+insert(Tab, '$end_of_table', _N, _I, Data) ->
+    append(Tab, ets:last(Tab), Data);
+insert(Tab, KeyNext, N, N, Data) ->
+    KeyPrev = ets:prev(Tab, KeyNext),
+    NewKey = key_in_between(KeyPrev, KeyNext),
+    ets:insert_new(Tab, {NewKey, Data});
+insert(Tab, Key, N, I, Data) ->
+    insert(Tab, ets:next(Tab, Key), N, I + 1, Data).

@@ -60,7 +60,7 @@ api_push_2_test_() ->
       "When function `push/2` is invoked on a Linked List, then the last element pushed is the head",
       {
 	setup,
-	fun() -> Lns = lns:new(), setup(Lns), lns:push(Lns, 'v3'), [Lns, {-1, 'v3'}] end,
+	fun() -> Lns = lns:new(), setup(Lns), lns:push(Lns, 'v3'), [Lns, {-268435453, 'v3'}] end,
 	fun([Lns, {Key, Data}]) ->
 		[?_assertEqual({Key, Data}, lns:head(Lns))]
 	end
@@ -74,7 +74,7 @@ api_nth_test_() ->
 	setup,
 	fun() -> Lns = lns:new(), setup(Lns, 3, fun lns:push/2), Lns end,
 	fun(Lns) ->
-		[?_assertEqual({-1, 'v3'}, lns:nth(0, Lns))]
+		[?_assertEqual({-268435453, 'v3'}, lns:nth(0, Lns))]
 	end
       }
     }.
@@ -86,7 +86,7 @@ api_nth_in_between_pop_test_() ->
 	setup,
 	fun() -> Lns = lns:new(), setup(Lns, 3, fun lns:push/2), lns:pop(Lns), Lns end,
 	fun(Lns) ->
-		[?_assertEqual({0, 'v2'}, lns:nth(0, Lns))]
+		[?_assertEqual({-134217726, 'v2'}, lns:nth(0, Lns))]
 	end
       }
     }.
@@ -98,7 +98,7 @@ api_nth_setup_with_append_test_() ->
 	setup,
 	fun() -> Lns = lns:new(), setup(Lns, 3, fun lns:append/2), Lns end,
 	fun(Lns) ->
-		[?_assertEqual({3, 'v3'}, lns:nth(2, Lns))]
+		[?_assertEqual({1152921504606846975, 'v3'}, lns:nth(2, Lns))]
 	end
       }
     }.
@@ -108,7 +108,7 @@ api_to_list_test_() ->
       "when function `to_list` is invoked on a Linked List, then it must return a list of nodes found in the input Linked List",
       {
 	setup,
-	fun() -> LL = lns:new(), setup(LL, 3), [LL, [{-1,'v3'}, {0,'v2'}, {1,'v1'}]] end,
+	fun() -> LL = lns:new(), setup(LL, 3), [LL, [{-268435453,'v3'}, {-134217726,'v2'}, {1,'v1'}]] end,
 	fun([LL, Expected]) ->
 		[?_assertEqual(Expected, lns:to_list(LL))]
 	end
@@ -117,7 +117,7 @@ api_to_list_test_() ->
 
 api_from_list_test_() ->
     {
-      "When function `from_list` is invoked with a Erlang list as input, then it must return a Linked Lists of nodes, each node having the next index value from the Erlang List input",
+      "When function `from_list/1` is invoked with a Erlang list as input, then it must return a Linked Lists of nodes, each node having the next index value from the Erlang List input",
       {
 	setup,
 	fun() -> L = ['v1', 'v2', 'v3'], LL = lns:new(), setup(LL, 3), [L, LL] end,
@@ -130,14 +130,25 @@ api_from_list_test_() ->
 
 api_pop_test_() ->
     {
-      "When function `pop` is invoked on a given linked list, then it must extract the data from the head, delete the node, advance the head pointer to point at the next node in line",
+      "When function `pop/1` is invoked on a given linked list, then it must extract the data from the head, delete the node, advance the head pointer to point at the next node in line",
       {
 	setup,
-	fun() -> LL = lns:new(), setup(LL, 3, fun lns:append/2), Expected = [{2,v2},{3,v3}],
+	fun() -> LL = lns:new(), setup(LL, 3, fun lns:append/2), Expected = [{576460752303423488,v2},{1152921504606846975,v3}],
 		 {_Head , LLActual} = lns:pop(LL),
 		 [LLActual, Expected] end,
 	fun([LLActual, Expected]) ->
 		[?_assertEqual(Expected, lns:to_list(LLActual))]
+	end
+      }
+    }.
+api_insert_test_() ->
+    {
+      "When function `insert/3` is invoked on a given Linked List providing the Nth and data, then a new node is inserted to be the Nth element having the data provided",
+      {
+	setup,
+	fun() -> LL = lns:new(), setup(LL, 3, fun lns:append/2), lns:insert(LL, 2, 'v4'), [LL, [{1, v1}, {2, v4}, {3, v2}, {4, v3}]] end,
+	fun([LL, _Expected]) ->
+		[?_assertMatch([{Key1, v1}, {_Key2, v4}, {_Key3, v2}, {_Key4, v3}] when Key1 == 1, lns:to_list(LL))]
 	end
       }
     }.
