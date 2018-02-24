@@ -2,6 +2,10 @@
 %%% @author  <rosemary@SCUBA>
 %%% @copyright (C) 2018, 
 %%% @doc
+%%% 
+%%% Capability to insert `Nth` node is `58 nodes` in between at max with `bsr 1`; given 
+%%% -define(increment_key, 576460752303423487).
+%%% -define(decrement_key, -134217727).
 %%%
 %%% @end
 %%% On the 20th of February 2018
@@ -97,16 +101,27 @@ pop(LL) ->
     {lookup(LL, Hkey), LL}.
 
 -spec insert(LL :: linked_list(), Nth :: integer(), Data :: erlang:term()) -> linked_list().
- 
+
 insert(LL, Nth, Data) ->
-    insert(LL#lns.ntab, ets:first(LL#lns.ntab), Nth, 1, Data).
+    case First = ets:first(LL#lns.ntab) of
+	'$end_of_table' ->
+	    append(LL, Data);
+	First when First == Nth ->
+	    cannot_replace_the_head; %% Tentative bug
+	First when Nth < First ->
+	    neglected;
+	_ ->
+	    insert(LL#lns.ntab, ets:first(LL#lns.ntab), Nth, 1, Data)
+    end.
 
 %%%===================================================================
 %%% Internal Functions
 %%% @private
 %%%===================================================================
 
-append(Tab, '$end_of_table', Data) ->
+-spec append(linked_list(), '$end_of_table', Data :: erlang:term()) -> true | false
+     ; (linked_list(), LastKey :: integer(), Data :: erlang:term()) -> true | false.
+append(Tab, '$end_of_table', Data) -> %% assumes a fresh Linked List (empty LL). Tentative bug.
     ets:insert_new(Tab, {?initial_key, Data});
 append(Tab, LastKey, Data) when is_integer(LastKey) ->
     ets:insert_new(Tab, {LastKey + ?increment_key, Data}).
@@ -132,7 +147,9 @@ nth(N, N, Tab, Key) ->
 nth(N, I, Tab, Key) ->
     nth(N, I + 1, Tab, ets:next(Tab, Key)).
 
-key_in_between(KeyPrev, KeyNext) ->
+-spec key_in_between(KeyPrev :: integer(), KeyNext :: integer()) -> integer().
+%% Tentative fatal error! Incomplete function definition
+key_in_between(KeyPrev, KeyNext) when is_integer(KeyPrev) andalso is_integer(KeyNext) ->
     KeyNext - KeyPrev bsr 1 + KeyPrev.
 
 insert(Tab, '$end_of_table', _N, 1, Data) ->
@@ -151,7 +168,6 @@ insert(Tab, KeyNext, N, N, Data) ->
 insert(Tab, Key, N, I, Data) ->
     insert(Tab, ets:next(Tab, Key), N, I + 1, Data).
 
-
 %%%===================================================================
 %%% Unit Tests on Internal Functions
 %%% @private
@@ -159,6 +175,12 @@ insert(Tab, Key, N, I, Data) ->
 
 key_in_between_test() ->
     ?assertEqual(0, key_in_between(0,0)).
+
+key_in_between_1_1_test() ->
+    ?assertEqual(1, key_in_between(1,1)).
+
+key_in_between_0_1_test() ->
+    ?assertEqual(0, key_in_between(0, 1)).
 
 key_in_between_2_test() ->
     ?assertEqual(0, key_in_between(1, -1)).
@@ -175,5 +197,5 @@ key_in_between_5_test() ->
 key_in_between_6_test() ->
     ?assertEqual(98, key_in_between(97, 99)).
 
-key_in_between_7_test() ->
-    ?assertEqual(0, key_in_between(0, 1)).
+key_in_between_x_x_test() ->
+    ?assertEqual(99, key_in_between(99, 99)).

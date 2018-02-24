@@ -8,7 +8,7 @@
 
 -module(lns_tests).
 
--export([run_suite/0]).
+-export([run_suite/0, insert/2]).
 
 -include_lib("eunit/include/eunit.hrl").
 
@@ -177,3 +177,131 @@ api_insert_on_1node_LL_test_() ->
 	end
       }
     }.
+
+insert(LL, Nth) ->
+    insert(LL, 5764, 1, Nth).
+
+insert(_LL, N, N, _Nth) ->
+    true;
+insert(LL, N, I, Nth) ->
+    lns:insert(LL, Nth, list_to_atom(lists:concat(['v', I]))),
+    insert(LL, N, I + 1, Nth).
+
+api_incapability_of_insert_on_very_close_values_of_existent_KeyPrev_and_KeyNext_nodes_LL_test_() ->
+    {
+      "When function `insert/3` is invoked on a Linked List having an arbitrary number of nodes, providing an arbitrary `Nth` value to fall within the current size of Linked List provided and data, and it happens that the desired `Nth` value comes in between two keys: `KeyPrev` and `KeyNext` with delta of `1`, then a new node won't be inserted and function `insert/3` must return `incapable`",
+      {
+	setup,
+	fun() -> LL = lns:new(), setup(LL, 1, fun lns:append/2), insert(LL, 2), [LL] end,
+	fun([LL]) ->
+		[?_assertEqual(incapable, lns:insert(LL, 2, 'vx'))]
+	end
+      }
+    }.
+
+api_capability_of_insert_Nth_test_() ->
+    {
+      "Max capability to insert a `Nth` node in between; given %%% - increment_key = 576460752303423487).
+%%%  and - decrement_key = -134217727); and `key_in_between`'s computation is with `bsr 1`",
+      {
+	setup,
+	fun() -> fun() -> LL = lns:new(), lns:append(LL, 1), [lns:insert(LL, 2, 'vx') || _ <- lists:seq(1, 58)], LL end end,
+	fun(F1) ->
+		[?_assertEqual(true, lns:insert(F1(), 2, 'vx'))]
+	end
+      }
+    }.
+
+api_incapability_of_insert_more_than_58_nodes_in_between_test_() ->
+    {
+      "Incapability to insert a `Nth` node more than `58 nodes` in between; given %%% - increment_key = 576460752303423487).
+%%%  and - decrement_key = -134217727); and `key_in_between`'s computation is with `bsr 1`. In addition, the number of total nodes from original `PrevKey` to `NextKey` is 60 inclusive. Any more
+inserted nodes is neglected -- notice lists:seq(1, 90) in the setup fun's generator",
+      {
+	setup,
+	fun() -> LL = lns:new(), lns:append(LL, 1), [lns:insert(LL, 2, 'vx') || _ <- lists:seq(1, 90)], [LL] end,
+	fun([LL]) ->
+		[?_assertEqual(incapable, lns:insert(LL, 2, 'vx')),
+		 ?_assertEqual(60, length(lns:to_list(LL)))]
+	end
+      }
+    }.
+
+%% 46> F1 = fun() -> Lns = lns:new(), lns:append(Lns, 1), [lns:insert(Lns, 2, 'vx') || _ <- lists:seq(1, 58)], Lns end.
+%% #Fun<erl_eval.20.99386804>
+%% 47> lns:insert(F1(), 2, 'vx').
+%% true
+
+%% ok
+%% 29> F1 = fun() -> Lns = lns:new(), lns:append(Lns, 1), [lns:insert(Lns, 2, 'vx') || _ <- lists:seq(1, 60)], Lns end.
+%% #Fun<erl_eval.20.99386804>
+%% 30> length(lns:to_list(F1())).
+%% 60
+%% 31> F1 = fun() -> Lns = lns:new(), lns:append(Lns, 1), [lns:insert(Lns, 2, 'vx') || _ <- lists:seq(1, 61)], Lns end.
+%% ** exception error: no match of right hand side value #Fun<erl_eval.20.99386804>
+%% 32> f().
+%% ok
+%% 33> F1 = fun() -> Lns = lns:new(), lns:append(Lns, 1), [lns:insert(Lns, 2, 'vx') || _ <- lists:seq(1, 61)], Lns end.
+%% #Fun<erl_eval.20.99386804>
+%% 60
+
+%% [{1,vx},
+%%  {2,vx},
+%%  {4,vx},
+%%  {8,vx},
+%%  {16,vx},
+%%  {32,vx},
+%%  {64,vx},
+%%  {128,vx},
+%%  {256,vx},
+%%  {512,vx},
+%%  {1024,vx},
+%%  {2048,vx},
+%%  {4096,vx},
+%%  {8192,vx},
+%%  {16384,vx},
+%%  {32768,vx},
+%%  {65536,vx},
+%%  {131072,vx},
+%%  {262144,vx},
+%%  {524288,vx},
+%%  {1048576,vx},
+%%  {2097152,vx},
+%%  {4194304,vx},
+%%  {8388608,vx},
+%%  {16777216,vx},
+%%  {33554432,vx},
+%%  {67108864,vx},
+%%  {134217728,...},
+%%  {...}|...]
+%% 43>
+
+api_insert_0th_or_any_LessThanOne_test_() ->
+    {
+      "when function `insert/3` is invoked with `Nth` value being less than one, then no computation will be conducted and the function must return `neglected`", %% This is s tentative bug
+      {
+	setup,
+	fun() -> fun() -> Lns = lns:new(), lns:append(Lns, v1), lns:insert(Lns, 0, 'vx') end end,
+	fun(Actual) ->
+		[?_assertEqual(neglected, Actual())]
+	end
+      }
+    }.
+
+api_insert_given_Nth_to_be_accidently_equals_the_head_key_test_() ->
+    {
+      "when function `insert/3` is invoked with `Nth` value being equals the head's key, then the new node will be inserted to be the second", %% This is s tentative bug
+      {
+	setup,
+	fun() -> fun() -> Lns = lns:new(), lns:append(Lns, v1), lns:insert(Lns, 1, 'vx') end end,
+	fun(Actual) ->
+		[?_assertEqual(cannot_replace_the_head, Actual())]
+	end
+      }
+    }.
+
+%% 91> F1 = fun() -> Lns = lns:new(), lns:append(Lns, v1), lns:insert(Lns, 1, vx), Lns end.
+%% #Fun<erl_eval.20.99386804>
+%% 92> lns:to_list(F1()).
+%% [{1,v1},{576460752303423488,vx}]
+%% 93>
