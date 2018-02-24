@@ -26,7 +26,6 @@
 -export_type([linked_list/0]).
 
 -record(lns, {ntab = notable :: ets:tab()}).
-%-record(anode, {key1 :: integer(), key2 = erlang:timestamp(), data = erlang:term()}).
 
 -opaque linked_list() :: #lns{}.
 
