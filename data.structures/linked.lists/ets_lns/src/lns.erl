@@ -3,6 +3,8 @@
 %%% @copyright (C) 2018, 
 %%% @doc
 %%% 
+%%% Defining A Linked Lists API utilising Erlang module `ets`
+%%%
 %%% Capability to insert `Nth` node is `58 nodes` in between at max with `bsr 1`; given 
 %%% -define(increment_key, 576460752303423487).
 %%% -define(decrement_key, -134217727).
