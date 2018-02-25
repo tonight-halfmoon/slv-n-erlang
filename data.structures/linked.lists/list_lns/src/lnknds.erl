@@ -10,7 +10,8 @@
 
 -export([new/0, new_node/1,
 	 push/2,
-	 from_list/1, to_list/1
+	 from_list/1, to_list/1,
+	 head/1, nth/2
 	]).
 
 -export_type([linknodes/0]).
@@ -44,6 +45,22 @@ from_list(L) ->
 
 to_list(Linknodes) ->
     to_list(Linknodes#linked_list.list, []).
+
+-spec head(Linknodes :: linknodes()) -> #node{}.
+
+head(Linknodes) ->
+    nth(1, Linknodes).
+
+-spec nth(N :: integer(), linknodes()) -> erlang:term().
+
+nth(N, Linknodes) when N > length(Linknodes#linked_list.list) ->
+    'outisde+';
+nth(N, _Linknodes) when N < 1 ->
+    'outside-';
+nth(_, []) ->
+    empty;
+nth(N, Linknodes) ->
+    lists:nth(N, Linknodes#linked_list.list).
 
 %%%===================================================================
 %%% Internal Functions

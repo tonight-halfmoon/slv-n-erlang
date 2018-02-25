@@ -73,7 +73,7 @@ api_from_list_assert_node_creation_timestamp_test_() ->
 
 api_to_list_test_() ->
     {
-      "When function `to_list/1` is invoked on Linked List, then it must return a Erlang type `list()` having the same size of the source Linked List, each index has a pair of `Key` and `Data` from the next source Linked List's Node",
+      "When function `to_list/1` is invoked on a Linked List, then it must return a Erlang type `list()` having the same size of the source Linked List, each index has a pair of `Key` and `Data` from the next source Linked List's Node",
       {
 	setup,
 	fun() -> SourceList = [list_to_atom(lists:concat(['v', X])) || X <- lists:seq(1,3)],
@@ -81,6 +81,48 @@ api_to_list_test_() ->
 	end,
 	fun(SourceLinkedList) ->
 		[?_assertMatch([{_Tc1, v1}, {_Tc2, v2}, {_Tc3, v3}], ?module:to_list(SourceLinkedList))]
+	end
+      }
+    }.
+
+api_head_test_() ->
+    {
+      "When function `head/1` is invoked on a Linked List, then it must return the first node in the Linked List provided",
+      {
+	setup,
+	fun() -> SourceList = [list_to_atom(lists:concat(['v', X])) || X <- lists:seq(1,3)],
+		 ?module:from_list(SourceList)
+	end,
+	fun(SourceLinkedList) ->
+		[?_assertMatch({node,_Tc, {data, v1}, {time_created, undefined}}, ?module:head(SourceLinkedList))]
+	end
+      }
+    }.
+
+api_nth_test_() ->
+    {
+      "When function `nth/2` is invoked on a Linked List and `N` integer value provided > 1 and < the size of the Linked List input, then it must return the Nth node in the input Linked List",
+      {
+	setup,
+	fun() -> SourceList = [list_to_atom(lists:concat(['v', X])) || X <- lists:seq(1,3)],
+		 ?module:from_list(SourceList)
+	end,
+	fun(SourceLinkedList) ->
+		[?_assertMatch({node,_Tc, {data, v2}, {time_created, undefined}}, ?module:nth(2, SourceLinkedList))]
+	end
+      }
+    }.
+
+api_nth_with_N_greater_than_size_test_() ->
+    {
+      "When function `nth/2` is invoked on a Linked List and `N` integer value provided > the size of the input Linked List, then it must return message `outside+`",
+      {
+	setup,
+	fun() -> SourceList = [list_to_atom(lists:concat(['v', X])) || X <- lists:seq(1,3)],
+		 ?module:from_list(SourceList)
+	end,
+	fun(SourceLinkedList) ->
+		[?_assertMatch('outisde+', ?module:nth(4, SourceLinkedList))]
 	end
       }
     }.
