@@ -9,9 +9,10 @@
 -module(lnknds).
 
 -export([new/0, new_node/1,
-	 push/2, append/2,
+	 push/2, append/2, insert/3,
 	 from_list/1, to_list/1,
-	 head/1, nth/2, tail/1
+	 head/1, nth/2, tail/1,
+	 pop/1
 	]).
 
 -export_type([linknodes/0]).
@@ -40,6 +41,11 @@ push(Linknodes, Data) ->
 
 append(Linknodes, Data) ->
     Linknodes#linked_list{list = insert_new(Linknodes#linked_list.list, Data, fun append/3)}.
+
+-spec insert(LinkedList :: linknodes(), Nth :: integer(), Data :: erlang:term()) -> linknodes().
+
+insert(Linknodes, Nth, Data) ->
+    Linknodes#linked_list{list = insert_new(Linknodes#linked_list.list, {Nth, Data}, fun append/3)}.
 
 -spec from_list(erlang:list() | []) -> linknodes().
 
@@ -72,6 +78,12 @@ nth(N, Linknodes) ->
 
 tail(Linknodes) ->
     lists:last(Linknodes#linked_list.list).
+
+-spec pop(linknodes()) -> linknodes().
+
+pop(Linknodes) ->
+    [H|T] = Linknodes#linked_list.list,
+    {H, Linknodes#linked_list{list = T}}.
 
 %%%===================================================================
 %%% Internal Functions
@@ -110,12 +122,23 @@ to_list([], Result) ->
 to_list(_ListOfNodes = [_H = #node{key = Key, data = #data{value = Data}, time_created = _Tc}|T], Result) ->
     to_list(T, [{Key, Data}|Result]).
 
--spec insert_new(erlang:list(), erlang:term(), fun()) -> erlang:list().
+-spec insert_new(L :: erlang:list(), {Nth :: integer(), Data :: erlang:term()} | erlang:term(), fun()) -> erlang:list().
 
-insert_new(L, Data, InsertMethodFun) ->
-    InsertMethodFun(L, Data, fun new_node/1).
+insert_new(L, Object, InsertMethodFun) ->
+    InsertMethodFun(L, Object, fun new_node/1).
 
--spec append(erlang:list(), erlang:term(), fun()) -> erlang:list().
+-spec append(L :: erlang:list(), {Nth :: integer(), Data :: erlang:term()}, fun()) -> erlang:list();
+	    (L :: erlang:list(), Data :: erlang:term(), fun()) -> erlang:list().
 
+append(L, {Nth, Data}, NewNodeFun) ->
+    case Nth of
+	Nth when Nth < 1 ->
+	    'outside-';
+	Nth when Nth - 1 > length(L) ->
+	    'outside+';
+	Nth ->
+	    {LH, LT} = lists:split(Nth - 1, L),
+	    lists:append([LH, [NewNodeFun(Data)], LT])
+    end;
 append(L, Data, NewNodeFun) ->
     lists:append(L, [NewNodeFun(Data)]).

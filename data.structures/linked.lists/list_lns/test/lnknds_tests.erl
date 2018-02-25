@@ -166,3 +166,31 @@ api_append_on_empty_linked_list_test_() ->
 	end
       }
     }.
+
+api_insert_test_() ->
+    {
+      "When function `insert/3` is invoked on a Linked List, Nth integer and data value provided, then it must insert a new node having the data provided in the Linked List to be the Nth node, and return the updated Linked List",
+      {
+	setup,
+	fun() -> SourceList = [list_to_atom(lists:concat(['v', X])) || X <- lists:seq(1,3)],
+		 ?module:from_list(SourceList)
+	end,
+	fun(LinkedList) ->
+		[?_assertMatch({linked_list,[_Node1, {node, _Tc2, {data, V2}, _Tv2}, _Node2, _Node3]} when V2 ==  'v2x', ?module:insert(LinkedList, 2, 'v2x'))]
+	end
+      }
+    }.
+
+api_pop_test_() ->
+    {
+      "When function `pop/1` is invoked on a Linked List, then it must remove the head of the Linked List, and return a tuple of the head node and the updated Linked List",
+      {
+	setup,
+	fun() -> SourceList = [list_to_atom(lists:concat(['v', X])) || X <- lists:seq(1,3)],
+		 ?module:from_list(SourceList)
+	end,
+	fun(LinkedList) ->
+		[?_assertMatch({{node, _Tc1, {data, V1}, _Tv1}, {linked_list,[_Node2, _Node3]}} when V1 ==  'v1', ?module:pop(LinkedList))]
+	end
+      }
+    }.
