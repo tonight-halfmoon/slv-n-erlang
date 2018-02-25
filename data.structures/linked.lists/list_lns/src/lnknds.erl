@@ -9,9 +9,9 @@
 -module(lnknds).
 
 -export([new/0, new_node/1,
-	 push/2,
+	 push/2, append/2,
 	 from_list/1, to_list/1,
-	 head/1, nth/2
+	 head/1, nth/2, tail/1
 	]).
 
 -export_type([linknodes/0]).
@@ -34,12 +34,18 @@ new() -> #linked_list{list = []}.
 -spec push(Linknodes :: linknodes(), Data :: erlang:term()) -> Result :: linknodes().
 
 push(Linknodes, Data) ->
-    Linknodes#linked_list{list = push(Linknodes#linked_list.list, Data, fun new_node/1)}.
+    Linknodes#linked_list{list = insert_new(Linknodes#linked_list.list, Data, fun push/3)}.
+
+-spec append(Linknodes :: linknodes(), Data :: erlang:term()) -> Result :: linknodes().
+
+append(Linknodes, Data) ->
+    Linknodes#linked_list{list = insert_new(Linknodes#linked_list.list, Data, fun append/3)}.
 
 -spec from_list(erlang:list() | []) -> linknodes().
 
 from_list(L) ->
-    from_list(lists:reverse(L), new()).
+    Linknodes = new(),
+    Linknodes#linked_list{list = from_list(lists:reverse(L), Linknodes#linked_list.list)}.
 
 -spec to_list(linknodes()) -> erlang:list().
 
@@ -62,6 +68,11 @@ nth(_, []) ->
 nth(N, Linknodes) ->
     lists:nth(N, Linknodes#linked_list.list).
 
+-spec tail(LinkedList :: linknodes()) -> Last :: #node{}.
+
+tail(Linknodes) ->
+    lists:last(Linknodes#linked_list.list).
+
 %%%===================================================================
 %%% Internal Functions
 %%% @private
@@ -75,10 +86,12 @@ key_uniform(State) ->
 	    Result
     end.
 
-from_list([], Linknodes) ->
-    Linknodes;
-from_list([H|T], Linknodes) ->
-    from_list(T, push(Linknodes, H)).
+-spec from_list(SourceList :: erlang:list(), Result :: erlang:list()) -> Resul :: erlang:list().
+
+from_list([], Result) ->
+    Result;
+from_list([H|T], Result) ->
+    from_list(T, insert_new(Result, H, fun push/3)).
 
 -spec push(L :: erlang:list() | [], Data :: erlang:term(), NewNodeFun :: fun()) -> erlang:list().
 
@@ -96,3 +109,13 @@ to_list([], Result) ->
     lists:reverse(Result);
 to_list(_ListOfNodes = [_H = #node{key = Key, data = #data{value = Data}, time_created = _Tc}|T], Result) ->
     to_list(T, [{Key, Data}|Result]).
+
+-spec insert_new(erlang:list(), erlang:term(), fun()) -> erlang:list().
+
+insert_new(L, Data, InsertMethodFun) ->
+    InsertMethodFun(L, Data, fun new_node/1).
+
+-spec append(erlang:list(), erlang:term(), fun()) -> erlang:list().
+
+append(L, Data, NewNodeFun) ->
+    lists:append(L, [NewNodeFun(Data)]).

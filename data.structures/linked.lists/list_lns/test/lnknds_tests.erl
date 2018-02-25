@@ -126,3 +126,43 @@ api_nth_with_N_greater_than_size_test_() ->
 	end
       }
     }.
+
+api_tail_test_() ->
+    {
+      "When function `tail/1` is invoked on a Linked List, then it must return the last node in the Linked List provided",
+      {
+	setup,
+	fun() -> SourceList = [list_to_atom(lists:concat(['v', X])) || X <- lists:seq(1,3)],
+		 ?module:from_list(SourceList)
+	end,
+	fun(SourceLinkedList) ->
+		[?_assertMatch({node, _Tc, {data, V3}, _Tv} when V3 == 'v3', ?module:tail(SourceLinkedList))]
+	end
+      }
+    }.
+
+api_append_test_() ->
+    {
+      "When function `append/2` is invoked on a Linked List and data value provided, then it must append to the last a new node having the data provided to the Linked List and return the updated Linked List",
+      {
+	setup,
+	fun() -> SourceList = [list_to_atom(lists:concat(['v', X])) || X <- lists:seq(1,3)],
+		 ?module:from_list(SourceList)
+	end,
+	fun(SourceLinkedList) ->
+		[?_assertMatch({linked_list,[_Node1, _Node2, _Node3, {node, _Tc4, {data, V4}, _Tv4}]} when V4 ==  'v4', ?module:append(SourceLinkedList, 'v4'))]
+	end
+      }
+    }.
+
+api_append_on_empty_linked_list_test_() ->
+    {
+      "When function `append/2` is invoked on a empty Linked List and data value provided, then it must append a new node having the data provided to the Linked List and return the updated Linked List with the new node appended to be the first node",
+      {
+	setup,
+	fun() -> ?module:new() end,
+	fun(LinkedList) ->
+		[?_assertMatch({linked_list,[{node, _Tcx, {data, VX}, _Tvx}]} when VX ==  'vx', ?module:append(LinkedList, 'vx'))]
+	end
+      }
+    }.
