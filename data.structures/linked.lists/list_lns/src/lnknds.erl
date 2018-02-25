@@ -12,14 +12,16 @@
 	 push/2, append/2, insert/3,
 	 from_list/1, to_list/1,
 	 head/1, nth/2, tail/1,
-	 pop/1
+	 pop/1,
+	 find/2,
+	 remove/2
 	]).
 
 -export_type([linknodes/0]).
 
--record(time_created, {timestamp :: erlang:timestmap()}).
--record(data, {value :: erlang:term()}).
--record(node, {key = 1 :: integer(), data = #data{}, time_created = #time_created{}}).
+-record(time_visited, {timestamp :: erlang:timestmap()}).
+-record(data, {value :: term()}).
+-record(node, {key :: integer(), data = #data{}, time_visited = #time_visited{}}).
 -record(linked_list, {list = nolist :: [#node{}] | []}).
 
 -opaque linknodes() :: #linked_list{}.
@@ -32,38 +34,39 @@
 
 new() -> #linked_list{list = []}.
 
--spec push(Linknodes :: linknodes(), Data :: erlang:term()) -> Result :: linknodes().
+-spec push(Linknodes :: linknodes(), Data :: term()) -> Result :: linknodes().
 
 push(Linknodes, Data) ->
     Linknodes#linked_list{list = insert_new(Linknodes#linked_list.list, Data, fun push/3)}.
 
--spec append(Linknodes :: linknodes(), Data :: erlang:term()) -> Result :: linknodes().
+-spec append(Linknodes :: linknodes(), Data :: term()) -> Result :: linknodes().
 
 append(Linknodes, Data) ->
     Linknodes#linked_list{list = insert_new(Linknodes#linked_list.list, Data, fun append/3)}.
 
--spec insert(LinkedList :: linknodes(), Nth :: integer(), Data :: erlang:term()) -> linknodes().
+-spec insert(LinkedList :: linknodes(), Nth :: integer(), Data :: term()) -> linknodes().
 
 insert(Linknodes, Nth, Data) ->
     Linknodes#linked_list{list = insert_new(Linknodes#linked_list.list, {Nth, Data}, fun append/3)}.
 
--spec from_list(erlang:list() | []) -> linknodes().
+-spec from_list([T, ...] | []) -> linknodes() when T :: term().
 
 from_list(L) ->
     Linknodes = new(),
     Linknodes#linked_list{list = from_list(lists:reverse(L), Linknodes#linked_list.list)}.
 
--spec to_list(linknodes()) -> erlang:list().
+-spec to_list(linknodes()) -> [Tuple, ...] when
+      Tuple :: {integer(), term()}.
 
 to_list(Linknodes) ->
-    to_list(Linknodes#linked_list.list, []).
+    to_tuplelist(Linknodes#linked_list.list, []).
 
 -spec head(Linknodes :: linknodes()) -> #node{}.
 
 head(Linknodes) ->
     nth(1, Linknodes).
 
--spec nth(N :: integer(), linknodes()) -> erlang:term().
+-spec nth(N :: integer(), linknodes()) -> term().
 
 nth(N, Linknodes) when N > length(Linknodes#linked_list.list) ->
     'outisde+';
@@ -85,6 +88,28 @@ pop(Linknodes) ->
     [H|T] = Linknodes#linked_list.list,
     {H, Linknodes#linked_list{list = T}}.
 
+-spec find(Data :: term(), linknodes()) -> Result :: #node{} | 'false'.
+
+find(Data, Linknodes) ->
+    case lists:keyfind(Data, 2, to_list(Linknodes)) of
+	{Tc, V} ->
+	    #node{key = Tc, data = #data{value = V}};
+	{Tc, V, Tv} ->
+	    #node{key = Tc, data = #data{value = V}, time_visited = #time_visited{timestamp = Tv}};
+	false ->
+	    false
+    end.
+
+-spec remove(Data :: term(), linknodes()) -> linknodes().
+
+remove(Data, Linknodes) ->
+    Linknodes#linked_list{list = from_tuplelist(lists:reverse(remove(Data, 2, to_list(Linknodes))))}.
+
+-spec remove(Key :: term(), N :: integer(), L :: erlang:list()) -> Result :: erlang:list().
+
+remove(Key, N, L) ->
+    lists:keydelete(Key, N, L).
+
 %%%===================================================================
 %%% Internal Functions
 %%% @private
@@ -98,37 +123,60 @@ key_uniform(State) ->
 	    Result
     end.
 
--spec from_list(SourceList :: erlang:list(), Result :: erlang:list()) -> Resul :: erlang:list().
+-spec from_list(SourceList, Result) -> Result when
+      SourceList :: [T, ...],
+      Result :: linknodes(),
+      T :: term().
 
 from_list([], Result) ->
     Result;
 from_list([H|T], Result) ->
     from_list(T, insert_new(Result, H, fun push/3)).
 
--spec push(L :: erlang:list() | [], Data :: erlang:term(), NewNodeFun :: fun()) -> erlang:list().
+-spec push(L :: erlang:list() | [], Data :: term(), NewNodeFun :: fun()) -> erlang:list().
 
 push(L, Data, NewNodeFun) ->
     [NewNodeFun(Data)|L].
 
--spec new_node(erlang:term()) -> #node{}.
+-spec new_node(term()) -> #node{}.
 
 new_node(Data) ->
     #node{key = key_uniform(os:system_time()), data = #data{value = Data}}.
 
--spec to_list(ListOfNodes :: erlang:list(), Result :: erlang:list()) -> Result :: erlang:list().
+-spec new_node(Key, Data, Tv) -> #node{} when
+      Key :: erlang:timestamp(),
+      Data :: term(),
+      Tv :: erlang:timestamp().
 
-to_list([], Result) ->
+new_node(Key, Data, Tv) ->
+    #node{key = Key, data = #data{value = Data}, time_visited = #time_visited{timestamp = Tv}}.
+
+-spec to_tuplelist(ListOfNodes, Result) -> Result when
+      ListOfNodes :: [#node{}, ...],
+      Result :: [{Key, Data}, ...], 
+      Key :: erlang:timestamp(), 
+      Data :: term().
+
+to_tuplelist([], Result) ->
     lists:reverse(Result);
-to_list(_ListOfNodes = [_H = #node{key = Key, data = #data{value = Data}, time_created = _Tc}|T], Result) ->
-    to_list(T, [{Key, Data}|Result]).
+to_tuplelist(_ListOfNodes = [_H = #node{key = Key, data = #data{value = Data}, time_visited = _Tc}|T], Result) ->
+    to_tuplelist(T, [{Key, Data}|Result]).
 
--spec insert_new(L :: erlang:list(), {Nth :: integer(), Data :: erlang:term()} | erlang:term(), fun()) -> erlang:list().
+-spec insert_new(L, Object, Fun) -> Result when
+      L :: erlang:list(),
+      Object :: {Nth, Data} 
+	      | term(),
+      Nth :: integer(),
+      Data :: term(),
+      Fun :: fun(),
+      Result :: [T, ...],
+      T :: #node{}.
 
 insert_new(L, Object, InsertMethodFun) ->
     InsertMethodFun(L, Object, fun new_node/1).
 
--spec append(L :: erlang:list(), {Nth :: integer(), Data :: erlang:term()}, fun()) -> erlang:list();
-	    (L :: erlang:list(), Data :: erlang:term(), fun()) -> erlang:list().
+-spec append(L :: erlang:list(), {Nth :: integer(), Data :: term()}, fun()) -> erlang:list();
+	    (L :: erlang:list(), Data :: term(), fun()) -> erlang:list().
 
 append(L, {Nth, Data}, NewNodeFun) ->
     case Nth of
@@ -142,3 +190,16 @@ append(L, {Nth, Data}, NewNodeFun) ->
     end;
 append(L, Data, NewNodeFun) ->
     lists:append(L, [NewNodeFun(Data)]).
+
+from_tuplelist(L) ->
+    from_tuplelist(L, []).
+
+from_tuplelist([], Result) ->
+    Result;
+from_tuplelist([H|T], Result) ->
+    case H of
+	{Key, Data, Tv} ->
+	    from_tuplelist(T, [new_node(Key, Data, Tv)|Result]);
+	{Key, Data} ->
+	    from_tuplelist(T, [new_node(Key, Data, undefined)|Result])
+    end.
