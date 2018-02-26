@@ -232,7 +232,36 @@ api_remove_test_() ->
 		 ?module:from_list(SourceList)
 	end,
 	fun(LinkedList) ->
-		[?_assertMatch({linked_list,[{node, _Tc1,{data,v1},{time_visited,undefined}},{node, _Tc2,{data,v3},{time_visited,undefined}}]}, ?module:remove('v2', LinkedList))]
+		[?_assertMatch({linked_list,[{node, _Tc1,{data,v1},{time_visited,undefined}},{node, _Tc3,{data,v3},{time_visited,undefined}}]}, ?module:remove('v2', LinkedList))]
 	end
       }
     }.
+
+api_take_test_() ->
+    {
+      "Function `take/2` searches the linked list `LinkedList1` for a node whose data element compares equal to `Data` argument provided. Returns `Node, LinkedList2}` if such a node is founded, otherwise false. Node is defined as a `#node{}`. `LinkedList2` is a copy of `LinkedList1` where the first occurance of `Node` has been removed.",
+      {
+	setup,
+	fun() -> SourceList = [list_to_atom(lists:concat(['v', X])) || X <- lists:seq(1,3)],
+		 ?module:from_list(SourceList)
+	end,
+	fun(LinkedList1) ->
+		[?_assertMatch({{node, _Tcn, {data, 'v2'}, {time_visited, undefined}}, {linked_list,[{node, _Tc1,{data,v1},{time_visited,undefined}},{node, _Tc3,{data,v3},{time_visited,undefined}}]}}, ?module:take('v2', LinkedList1))]
+	end
+      }
+    }.
+
+api_take_when_not_found_test_() ->
+    {
+      "Function `take/2` searches the linked list `LinkedList1` for a node whose data element compares equal to `Data` argument provided. Returns `false` when such a node is not found.",
+      {
+	setup,
+	fun() -> SourceList = [list_to_atom(lists:concat(['v', X])) || X <- lists:seq(1,3)],
+		 ?module:from_list(SourceList)
+	end,
+	fun(LinkedList1) ->
+		[?_assertMatch(false, ?module:take('v1--', LinkedList1))]
+	end
+      }
+    }.
+

@@ -14,7 +14,7 @@
 	 head/1, nth/2, tail/1,
 	 pop/1,
 	 find/2,
-	 remove/2
+	 remove/2, take/2
 	]).
 
 -export_type([linknodes/0]).
@@ -49,7 +49,8 @@ append(Linknodes, Data) ->
 insert(Linknodes, Nth, Data) ->
     Linknodes#linked_list{list = insert_new(Linknodes#linked_list.list, {Nth, Data}, fun append/3)}.
 
--spec from_list([T, ...] | []) -> linknodes() when T :: term().
+-spec from_list([T, ...] | []) -> linknodes() when
+      T :: term().
 
 from_list(L) ->
     Linknodes = new(),
@@ -97,7 +98,7 @@ find(Data, Linknodes) ->
 	{Tc, V, Tv} ->
 	    #node{key = Tc, data = #data{value = V}, time_visited = #time_visited{timestamp = Tv}};
 	false ->
-	    false
+	    'false'
     end.
 
 -spec remove(Data :: term(), linknodes()) -> linknodes().
@@ -105,10 +106,18 @@ find(Data, Linknodes) ->
 remove(Data, Linknodes) ->
     Linknodes#linked_list{list = from_tuplelist(lists:reverse(remove(Data, 2, to_list(Linknodes))))}.
 
--spec remove(Key :: term(), N :: integer(), L :: erlang:list()) -> Result :: erlang:list().
+-spec take(Data, Linknodes) -> {Taken, Linknodes} | 'false' when
+      Data :: term(),
+      Taken :: #node{},
+      Linknodes :: linknodes().
 
-remove(Key, N, L) ->
-    lists:keydelete(Key, N, L).
+take(Data, Linknodes) ->
+    case take(Data, 2, to_list(Linknodes)) of
+	{Tuple, UpdatedLinknodes} ->
+	    {from_tuple(Tuple), Linknodes#linked_list{list = from_tuplelist(lists:reverse(UpdatedLinknodes))}};
+	false ->
+	    'false'
+    end.
 
 %%%===================================================================
 %%% Internal Functions
@@ -150,6 +159,18 @@ new_node(Data) ->
 
 new_node(Key, Data, Tv) ->
     #node{key = Key, data = #data{value = Data}, time_visited = #time_visited{timestamp = Tv}}.
+
+-spec from_tuple(Tuple) -> Node when
+      Tuple :: tuple(),
+      Node :: #node{}.
+
+from_tuple(Tuple) ->
+    case Tuple of
+	{Key, Data, Tv} ->
+	    new_node(Key, Data, Tv);
+	{Key, Data} ->
+	    new_node(Key, Data, undefined)
+    end.
 
 -spec to_tuplelist(ListOfNodes, Result) -> Result when
       ListOfNodes :: [#node{}, ...],
@@ -197,9 +218,22 @@ from_tuplelist(L) ->
 from_tuplelist([], Result) ->
     Result;
 from_tuplelist([H|T], Result) ->
-    case H of
-	{Key, Data, Tv} ->
-	    from_tuplelist(T, [new_node(Key, Data, Tv)|Result]);
-	{Key, Data} ->
-	    from_tuplelist(T, [new_node(Key, Data, undefined)|Result])
+    from_tuplelist(T, [from_tuple(H)|Result]).
+
+-spec remove(Key :: term(), N :: integer(), L :: erlang:list()) -> Result :: erlang:list().
+
+remove(Key, N, L) ->
+    lists:keydelete(Key, N, L).
+
+-spec take(Key :: term(), N :: integer(), L :: erlang:lest()) -> {Taken, L2} | 'false' when
+      Taken :: tuple(),
+      L2 :: erlang:list().
+
+take(Key, N, L) ->
+    case lists:keytake(Key, N, L) of
+	{value, Tuple, UpdatedLinknodes} ->
+	    {Tuple, UpdatedLinknodes};
+	false ->
+	    'false'
     end.
+
