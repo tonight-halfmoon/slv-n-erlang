@@ -133,11 +133,10 @@ api_pop_test_() ->
       "When function `pop/1` is invoked on a given linked list, then it must extract the data from the head, delete the node, advance the head pointer to point at the next node in line",
       {
 	setup,
-	fun() -> LL = lns:new(), setup(LL, 3, fun lns:append/2), Expected = [{576460752303423488,v2},{1152921504606846975,v3}],
-		 {_Head , LLActual} = lns:pop(LL),
-		 [LLActual, Expected] end,
+	fun() -> LL = lns:new(), setup(LL, 3, fun lns:append/2),
+		 [lns:pop(LL), v1] end,
 	fun([LLActual, Expected]) ->
-		[?_assertEqual(Expected, lns:to_list(LLActual))]
+		[?_assertEqual(Expected, LLActual)]
 	end
       }
     }.

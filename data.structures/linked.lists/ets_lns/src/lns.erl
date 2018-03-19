@@ -98,8 +98,8 @@ info(LL) ->
 
 pop(LL) ->
     Hkey = ets:first(LL#lns.ntab),
-    ets:take(LL#lns.ntab, Hkey),
-    {lookup(LL, Hkey), LL}.
+    [{Hkey, E}] = ets:take(LL#lns.ntab, Hkey), % must be only one object
+    E.
 
 -spec insert(LL :: linked_list(), Nth :: integer(), Data :: erlang:term()) -> linked_list().
 
