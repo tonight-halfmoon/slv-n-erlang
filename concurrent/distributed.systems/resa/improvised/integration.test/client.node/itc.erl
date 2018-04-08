@@ -1,4 +1,4 @@
--module(integration_test_client).
+-module(itc).
 -export([start/0, start/2, run/0, stop/0]).
 -import(user_interface, [connect/0, allocate/0, free/1, stats/0, disconnect/0]).
 -import(client, [client/1]).
@@ -58,7 +58,7 @@ connect_client() ->
 connect_client(Client_name) ->
     case user_interface:connect() of
 	{ok, Pid} ->
-	    global:register_name(Client_name, Pid, fun flobal:notify_all_name/3),
+	    global:register_name(Client_name, Pid, fun global:notify_all_name/3),
 	    io:format("Client ~p successfully connected. Pid is ~p~n", [Client_name, Pid]);
 	{already_connected, Pid} ->
 	    io:format("Client ~p already connected. Pid is ~p~n", [Client_name, Pid])

@@ -2,6 +2,7 @@
 -export([allocate/0, free/1, stats/0, connect/0, disconnect/0]).
 -include("interface_client.hrl").
 -include("../config/config.hrl").
+-import(client, [rpc/2]).
 
 connect() ->
     case whereis(?client_name) of 
@@ -12,34 +13,22 @@ connect() ->
 	    {already_connected, whereis(?client_name)}
     end.
 
-disconnect() ->
+gw(Procedure) ->
     case whereis(?client_name) of
 	undefined ->
 	    already_disconnected;
 	_ ->
-	    ?client_name ! disconnect
-    end.
+	    rpc(?client_name, Procedure)
+     end.
+
+disconnect() ->
+    gw(disconnect).
 
 allocate() ->
-    case whereis(?client_name) of
-	undefined ->
-	    disconnected;
-	_ ->
-	    ?client_name ! attempt2allocate
-    end.
+    gw(attempt2allocate).
 
 free(Resource) ->
-    case whereis(?client_name) of
-	undefined ->
-	    disconnected;
-	_ ->
-	    ?client_name ! #attempt2free{resource=Resource}
-    end.
+    gw(#attempt2free{resource=Resource}).
 
 stats() ->
-    case whereis(?client_name) of
-	undefined ->
-	    disconnected;
-	_ ->
-	    ?client_name ! attempt4stats
-    end.
+    gw(attempt4stats).

@@ -1,5 +1,5 @@
 -module(client).
--export([client/1]).
+-export([client/1, rpc/2]).
 -include("../config/config.hrl").
 -include("interface_client.hrl").
 -include("../config/telecommunication.hrl").
@@ -8,6 +8,9 @@ client(Server_node) ->
     {?server, Server_node} ! #connect{client_pid=self()},
     await_result(),
     interact(Server_node).
+
+rpc(Name, Query) ->
+    Name ! Query.
 
 interact(Server_node) ->
     receive

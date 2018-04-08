@@ -1,4 +1,4 @@
--module(integration_test_server).
+-module(its).
 -export([start/0, run/0, stop/0]).
 -import(user_interface, [connect/0, allocate/0, free/1, stats/0, disconnect/0]).
 -import(client, [client/1]).
