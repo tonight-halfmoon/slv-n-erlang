@@ -5,21 +5,13 @@
 -import(client, [rpc/2]).
 
 connect() ->
-    case whereis(?client_name) of 
+    case whereis(?client_name) of
 	undefined ->
-	    register(?client_name, spawn(client, client, [?server_node])), %% short names vs. fully qualified names. Dynamic configuration needed. Check Integration Test.
+	    register(?client_name, spawn(client, client, [?server_node])),
 	    {ok, whereis(?client_name)};
 	_ ->
 	    {already_connected, whereis(?client_name)}
     end.
-
-gw(Procedure) ->
-    case whereis(?client_name) of
-	undefined ->
-	    already_disconnected;
-	_ ->
-	    rpc(?client_name, Procedure)
-     end.
 
 disconnect() ->
     gw(disconnect).
@@ -32,3 +24,11 @@ free(Resource) ->
 
 stats() ->
     gw(attempt4stats).
+
+gw(Procedure) ->
+    case whereis(?client_name) of
+	undefined ->
+	    already_disconnected;
+	_ ->
+	    rpc(?client_name, Procedure)
+     end.
