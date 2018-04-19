@@ -1,5 +1,5 @@
 -module(geometry).
--export([areas/1, formatted_output/2]).
+-export([areas/1, apply_formatted/2]).
 
 %% rosemary@SCUBA:[226]~/..rlang/cdojo$ erl
 %% Erlang/OTP 20 [erts-9.3] [source] [64-bit] [smp:8:8] [ds:8:8:10] [async-threads:10] [hipe] [kernel-poll:false]
@@ -10,17 +10,17 @@
 %% 2> geometry:
 %% areas/1             formatted_output/2  module_info/0       
 %% module_info/1        
-%% 2> geometry:formatted_output(fun geometry:areas/1, [{circle,3}]).
+%% 2> geometry:apply_formatted(fun geometry:areas/1, [{circle,3}]).
 %% 28.27
 %% ok
-%% 3> geometry:formatted_output(fun geometry:areas/1, [{square,3}]).
+%% 3> geometry:apply_formatted(fun geometry:areas/1, [{square,3}]).
 %% 9
 %% ok
 %% 4> q().
 %% ok
 
 
-formatted_output(F, L) ->
+apply_formatted(F, L) ->
     Result = F(L),
     case is_float(Result) of
 	true ->
