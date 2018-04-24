@@ -25,10 +25,10 @@
 %% ok
 
 start() ->
-    spawn(?MODULE, handle_event, [fun geometry:areas/1]).
+    Pid = spawn(?MODULE, handle_event, [fun geometry:areas/1]).
 
 rpc(ServerPid, Query) ->
-    ServerPid ! {self(), Query},
+    ServerPid ! {request, self(), Query},
     receive
 	{ServerPid, ok, Reply} when is_float(Reply) ->
 	    io:format("~.2f~n", [Reply]);
@@ -37,13 +37,13 @@ rpc(ServerPid, Query) ->
 	%    io:format("Big Area: ~p~n", [Reply]);
 	{ServerPid, ok, Reply} ->
 	    io:format("~p~n", [Reply])
-        after 5000 ->
-	    exit(timeout)
     end.
 
 handle_event(F) ->
     receive
-	{From, Query} ->
+	{request, From, Query} ->
 	    From ! {self(), ok, F(Query)},
 	    handle_event(F)
+    after 10000 ->
+	    exit(timeout)
     end.
