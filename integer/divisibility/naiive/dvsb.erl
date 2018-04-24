@@ -9,8 +9,6 @@ dvsbl_by(0, _) ->
     true;
 dvsbl_by(_, 0) ->
     undefined;
-dvsbl_by(X, Y) when not is_integer(X); not is_integer(Y) ->
-    <<"Both parameters must be integers">>;
 dvsbl_by(X, Y) ->
     if X rem Y =:= 0 ->
 	    true;

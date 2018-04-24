@@ -8,8 +8,6 @@ dvsb_by3(0) ->
     true;
 dvsb_by3(N) when N =< 9 ->
     dvsb:dvsbl_by(N, 3);
-dvsb_by3(N) when not is_integer(N) ->
-    <<"n must be an integer">>;
 dvsb_by3(N) ->
     dvsb:dvsbl_by(sdi:sdi(N), 3).
 
