@@ -1,9 +1,9 @@
 -module(server).
--export([start/1, loop/1, rpc/2]).
+-export([start/1, init/1, rpc/2]).
 
 start(F) ->
-    process_flag(trap_exit, true),
-    spawn(?MODULE, loop, [F]).
+   %% process_flag(trap_exit, true),
+    spawn(?MODULE, init, [F]).
 
 rpc(Server, {From, Query}) ->
     Server ! {request, From, Query},
@@ -11,6 +11,10 @@ rpc(Server, {From, Query}) ->
 	{reply, ok, Response} ->
 	    Response
     end.
+
+init(F) ->
+    process_flag(trap_exit, true),
+    loop(F).
 
 loop(F) ->
     receive
@@ -24,7 +28,7 @@ loop(F) ->
     after 360000 ->
 	    io:format("Timeout. Server shutdown.~n", []),
 	    exit(timeout)
-	end.
+    end.
 
 %% 1> server:start(fun geometry:areas/1).
 %% <0.63.0>
