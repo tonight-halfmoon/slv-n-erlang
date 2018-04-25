@@ -5,5 +5,7 @@ request_server(Server, Request) ->
     Server ! {request, self(), Request},
     receive
 	{Server, ok, Reply} ->
-	    io:format("~p received ~p~n", [self(), Reply])
-	end.
+	    {response, ok, Reply};
+	M ->
+	    {response, error, M}
+    end.

@@ -6,7 +6,7 @@ start() ->
 
 loop(F) ->
     receive
-	{request, From, Query} ->
-	    From ! {self(), ok, F(Query)},
+	{request, From, Shapes} ->
+	    From ! {self(), ok, F(Shapes)},
 	    loop(F)
     end.
