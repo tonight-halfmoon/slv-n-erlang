@@ -7,11 +7,11 @@ request_server(Server, Request) ->
 request(Server, Request) ->
     Server ! {request, self(), Request},
     receive
-	    {math_server, ok, Reply} ->
-	    	io:format("~p received from Math Server: ~p~n", [self(), Reply]);
-	    Message ->
-	    	io:format("~p received: ~p~n", [self(), Message])
-	end.
+	{math_server, ok, Reply} ->
+	    io:format("~p received from Math Server: ~p~n", [self(), Reply]);
+	Message ->
+	    io:format("~p received: ~p~n", [self(), Message])
+    end.
 
 % extra evaluation on Emulator
 % Eshell V9.3  (abort with ^G)
