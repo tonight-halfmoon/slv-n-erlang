@@ -1,4 +1,4 @@
--module(user_interface).
+-module(math_user_interface).
 -export([start_client/1]).
 
 start_client(Server) ->

@@ -1,4 +1,4 @@
--module(user_interface).
+-module(math_user_interface).
 -export([request_server/2]).
 
 request_server(Server, Request) ->

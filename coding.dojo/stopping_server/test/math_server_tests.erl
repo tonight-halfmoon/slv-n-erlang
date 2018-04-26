@@ -18,13 +18,15 @@ server_response_ok_test() ->
 	    ?assertEqual({MathServer, ok, 40.27433388230814}, Response)
     end.
 
-%server_response_error_test() ->
-%    Shapes = [{ellipse, 3,1}],
-%    MathServer = start(),
-%    
-%    MathServer ! {request, self(), Shapes},
-    
-%    receive
-%	Response ->
-%	    ?assertEqual({MathServer, error, 0}, Response)
-%   end.
+server_stop_when_receive_stop_request_ok_test() ->
+	MathServer = start(),
+	
+	?assert(is_process_alive(MathServer)),
+
+	MathServer ! stop,
+
+	receive
+	after 50 -> ok end,
+
+	?assertNot(is_process_alive(MathServer)).
+
