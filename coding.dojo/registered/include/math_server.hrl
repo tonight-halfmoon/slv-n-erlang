@@ -1,0 +1,1 @@
+-define(MathServer, cdojo_math_server).
