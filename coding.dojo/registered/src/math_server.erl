@@ -16,6 +16,8 @@ stop() ->
 call(Shapes) ->
     ?MathServer ! {request, self(), Shapes},
     Reply = receive
+		{response, error, Why} ->
+		    {error, Why};
 		{response, ok, Areas} ->
 		    Areas
 	    end,
@@ -28,8 +30,8 @@ shutdown_math_server() ->
     	Pid ->
     	    case is_process_alive(Pid) of
     		true ->
-    		    ?MathServer ! stop,
-    		    unregister(?MathServer);
+		    ?MathServer ! stop,
+		    unregister(?MathServer);
     		false ->
     		    unregister(?MathServer)
     	    end
@@ -43,8 +45,14 @@ loop(F) ->
 	stop ->
             exit(normal);
 	{request, From, Query} ->
-	    From ! {response, ok, F(Query)},
-	    loop(F)
+	    case catch F(Query) of
+		Areas when is_float(Areas); is_integer(Areas) ->
+		    From ! {response, ok, F(Query)},
+		    loop(F);
+		Bad ->
+		    From ! {response, error, Bad},
+		    loop(F)
+	    end
     after 1500000 ->
 	    io:format("Timeout. Server shutdown.~n", []),
 	    exit(timeout)

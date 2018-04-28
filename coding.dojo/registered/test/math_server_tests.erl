@@ -26,12 +26,25 @@ stop_test() ->
 
 call_shapes_request_math_server_respond_areas_test() ->
     start(),
+    ?assert(is_process_alive(whereis(?MathServer))),
     Shapes = [{circle, 3}],
 
     Areas = call(Shapes),
+    aftereach(),
 
-    ?assertEqual(28.274333882308138, Areas),
-    aftereach().
+    ?assertEqual(28.274333882308138, Areas).
+
+call_shapes_request_notify_user_when_something_went_wrong_test() ->
+    start(),
+    ?assert(is_process_alive(whereis(?MathServer))),
+    Shapes = [{ellipse, 3, 6}],
+    
+    Reply = call(Shapes),
+    aftereach(),
+    
+    ?assertMatch({error,
+		  {'EXIT',
+		   {function_clause, _Detail}}}, Reply).
 
 aftereach() ->
     stop().
