@@ -7,10 +7,20 @@
 
 start_test() ->
     start(),
-
     ?assert(is_process_alive(whereis(?MathServer))),
 
     aftereach().
+
+%% start_more_than_once_test() ->
+%%     start(),
+%%     ?assert(is_process_alive(whereis(?MathServer))),
+%%     MathServerPid = whereis(?MathServer),
+
+%%     start(),
+    
+%%     MathServerPid2 = whereis(?MathServer),
+%%     ?assertEqual(MathServerPid, MathServerPid2),
+%%     aftereach().
 
 stop_test() ->
     start(),
