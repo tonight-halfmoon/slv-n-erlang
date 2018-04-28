@@ -11,16 +11,18 @@ start_test() ->
 
     aftereach().
 
-%% start_more_than_once_test() ->
-%%     start(),
-%%     ?assert(is_process_alive(whereis(?MathServer))),
-%%     MathServerPid = whereis(?MathServer),
+already_started_test() ->
+    start(),
+    ?assert(is_process_alive(whereis(?MathServer))),
 
-%%     start(),
+    Result = case catch start() of
+		 M ->
+		     M
+	     end,
     
-%%     MathServerPid2 = whereis(?MathServer),
-%%     ?assertEqual(MathServerPid, MathServerPid2),
-%%     aftereach().
+    ?assertEqual(already_started, Result),
+    
+    aftereach().
 
 stop_test() ->
     start(),
@@ -34,7 +36,7 @@ stop_test() ->
     ?assertNot(is_process_alive(MathServerPid)),
     aftereach().
 
-call_shapes_request_math_server_respond_areas_test() ->
+call_server_respond_with_areas_calculated_test() ->
     start(),
     ?assert(is_process_alive(whereis(?MathServer))),
     Shapes = [{circle, 3}],
@@ -44,7 +46,7 @@ call_shapes_request_math_server_respond_areas_test() ->
 
     ?assertEqual(28.274333882308138, Areas).
 
-call_shapes_request_notify_user_when_something_went_wrong_test() ->
+call_notify_user_when_something_went_wrong_test() ->
     start(),
     ?assert(is_process_alive(whereis(?MathServer))),
     Shapes = [{ellipse, 3, 6}],
@@ -55,6 +57,19 @@ call_shapes_request_notify_user_when_something_went_wrong_test() ->
     ?assertMatch({error,
 		  {'EXIT',
 		   {function_clause, _Detail}}}, Reply).
+
+call_when_server_has_shutdown_test() ->
+    start(),
+    ?assert(is_process_alive(whereis(?MathServer))),
+    Shapes = [{circle, 3}],
+    stop(),
+    
+    Result = case catch call(Shapes) of
+		 M ->
+		     M 
+	     end,
+   
+    ?assertEqual({'EXIT', timeout}, Result).
 
 aftereach() ->
     stop().

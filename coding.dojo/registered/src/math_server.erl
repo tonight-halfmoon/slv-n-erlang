@@ -8,23 +8,39 @@
 -include_lib("eunit/include/eunit.hrl").
 
 start() ->
-    register(?MathServer, spawn(?MODULE, init, [fun geometry:areas/1])).
+    start(?MathServer).
 
 stop() ->
     stop(?MathServer).
 
 call(Shapes) ->
     ?MathServer ! {request, self(), Shapes},
-    Reply = receive
-		{response, error, Why} ->
-		    {error, Why};
-		{response, ok, Areas} ->
-		    Areas
-	    end,
-    Reply.
+    receive
+	{response, error, Why} ->
+	    {error, Why};
+	{response, ok, Areas} ->
+	    Areas
+    after 50 -> exit(timeout)
+    end.
 
 init(F) ->
     loop(F).
+
+start(RegName) ->
+    case is_alive(RegName) of
+	true ->
+	    already_started;
+	false ->
+	    register(RegName, spawn(?MODULE, init, [fun geometry:areas/1]))
+    end.
+
+is_alive(RegName) ->
+    case whereis(RegName) of
+	undefined ->
+	    false;
+	Pid when is_pid(Pid) ->
+	    true
+    end.
 
 stop(RegName) ->
     stop(whereis(RegName), RegName).
@@ -40,22 +56,22 @@ stop(Pid, RegName) ->
     end.
 
 send_stop_protocol(RegName) ->
-   RegName ! stop.
+    RegName ! stop.
 
 loop(F) ->
     receive
 	stop ->
-            exit(normal);
+            exit(shutdown);
 	{request, From, Query} ->
 	    case catch F(Query) of
 		Areas when is_float(Areas); is_integer(Areas) ->
 		    From ! {response, ok, F(Query)},
 		    loop(F);
-		Bad ->
-		    From ! {response, error, Bad},
+		Result ->
+		    From ! {response, error, Result},
 		    loop(F)
 	    end
     after 3000 ->
 	    io:format("Timeout. Server shutdown.~n", []),
 	    exit(timeout)
-	end.
+    end.
