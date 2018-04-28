@@ -19,9 +19,9 @@ already_started_test() ->
 		 M ->
 		     M
 	     end,
-    
+
     ?assertEqual(already_started, Result),
-    
+
     aftereach().
 
 stop_test() ->
@@ -50,10 +50,10 @@ call_notify_user_when_something_went_wrong_test() ->
     start(),
     ?assert(is_process_alive(whereis(?MathServer))),
     Shapes = [{ellipse, 3, 6}],
-    
+
     Reply = call(Shapes),
     aftereach(),
-    
+
     ?assertMatch({error,
 		  {'EXIT',
 		   {function_clause, _Detail}}}, Reply).
@@ -63,12 +63,12 @@ call_when_server_has_shutdown_test() ->
     ?assert(is_process_alive(whereis(?MathServer))),
     Shapes = [{circle, 3}],
     stop(),
-    
+
     Result = case catch call(Shapes) of
 		 M ->
-		     M 
+		     M
 	     end,
-   
+
     ?assertEqual({'EXIT', timeout}, Result).
 
 aftereach() ->
