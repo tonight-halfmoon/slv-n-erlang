@@ -11,7 +11,7 @@ start() ->
     register(?MathServer, spawn(?MODULE, init, [fun geometry:areas/1])).
 
 stop() ->
-    shutdown_math_server().
+    stop(?MathServer).
 
 call(Shapes) ->
     ?MathServer ! {request, self(), Shapes},
@@ -23,22 +23,24 @@ call(Shapes) ->
 	    end,
     Reply.
 
-shutdown_math_server() ->
-    case whereis(?MathServer) of
-    	undefined -> 
-    	    true;
-    	Pid ->
-    	    case is_process_alive(Pid) of
-    		true ->
-		    ?MathServer ! stop,
-		    unregister(?MathServer);
-    		false ->
-    		    unregister(?MathServer)
-    	    end
-    end.
-
 init(F) ->
     loop(F).
+
+stop(RegName) ->
+    stop(whereis(RegName), RegName).
+
+stop(undefined, _RegName) ->
+    ok;
+stop(Pid, RegName) ->
+    case is_process_alive(Pid) of
+	true ->
+	    send_stop_protocol(RegName);
+	false ->
+	    ok
+    end.
+
+send_stop_protocol(RegName) ->
+   RegName ! stop.
 
 loop(F) ->
     receive
@@ -53,7 +55,7 @@ loop(F) ->
 		    From ! {response, error, Bad},
 		    loop(F)
 	    end
-    after 1500000 ->
+    after 3000 ->
 	    io:format("Timeout. Server shutdown.~n", []),
 	    exit(timeout)
 	end.
