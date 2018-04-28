@@ -73,4 +73,3 @@ call_when_server_has_shutdown_test() ->
 
 aftereach() ->
     stop().
-
