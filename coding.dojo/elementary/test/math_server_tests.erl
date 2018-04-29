@@ -8,7 +8,7 @@ start_ok_test() ->
     ?assertMatch(Pid when is_pid(Pid), MathServerPid),
     ?assertEqual(true, is_process_alive(MathServerPid)).
 
-response_ok_test() ->
+respond_with_ack_and_value_test() ->
     Shapes = [{circle, 3}, {rectangle, 3, 4}],
     MathServerPid = start(),
     
@@ -16,7 +16,7 @@ response_ok_test() ->
    
     receive
 	Response ->
-	    ?assertEqual({MathServerPid, ok, 40.27433388230814}, Response)
+	    ?assertEqual({reply, ok, 40.27433388230814}, Response)
     end.
 
 %response_error_test() ->
@@ -27,5 +27,5 @@ response_ok_test() ->
     
 %    receive
 %	Response ->
-%	    ?assertEqual({MathServer, error, 0}, Response)
+%	    ?assertEqual({reply, error, 0}, Response)
 %   end.
