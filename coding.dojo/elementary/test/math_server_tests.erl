@@ -2,23 +2,24 @@
 -include_lib("eunit/include/eunit.hrl").
 -import(math_server, [start/0]).
 
-server_start_ok_test() ->
-    MathServer = start(),
+start_ok_test() ->
+    MathServerPid = start(),
     
-    ?assertMatch(Pid when is_pid(Pid), MathServer).
+    ?assertMatch(Pid when is_pid(Pid), MathServerPid),
+    ?assertEqual(true, is_process_alive(MathServerPid)).
 
-server_response_ok_test() ->
+response_ok_test() ->
     Shapes = [{circle, 3}, {rectangle, 3, 4}],
-    MathServer = start(),
+    MathServerPid = start(),
     
-    MathServer ! {request, self(), Shapes},
+    MathServerPid ! {request, self(), Shapes},
    
     receive
 	Response ->
-	    ?assertEqual({MathServer, ok, 40.27433388230814}, Response)
+	    ?assertEqual({MathServerPid, ok, 40.27433388230814}, Response)
     end.
 
-%server_response_error_test() ->
+%response_error_test() ->
 %    Shapes = [{ellipse, 3,1}],
 %    MathServer = start(),
 %    

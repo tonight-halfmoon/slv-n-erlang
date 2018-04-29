@@ -7,6 +7,8 @@ start() ->
 loop(F) ->
     receive
 	{request, From, Shapes} ->
+	    receive after 4000 -> ok end,
+		
 	    From ! {self(), ok, F(Shapes)},
 	    loop(F)
     end.
