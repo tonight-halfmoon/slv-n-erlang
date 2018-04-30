@@ -11,7 +11,7 @@ cast(MathServerPid, Message) ->
 loop(F) ->
     receive
 	{print, Shapes} ->
-	    receive after 14000 -> ok end,
+	    receive after 5000 -> ok end,
 	    io:format("Areas ~p~n", [F(Shapes)]),
 	    loop(F)
     end.
