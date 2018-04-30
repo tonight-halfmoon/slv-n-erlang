@@ -1,0 +1,19 @@
+
+% try too nodes in the same directory of the module.
+
+
+/../registered$ erl -sname t -pa ebin/
+(t@localhost)12> math_server:start().
+(t@localhost)12> whereis(cdojo_math_server).
+
+~/../registered$ erl -sname s -pa ebin/
+(s@localhost)18> net_kernel:connect_node('t@localhost').
+(s@localhost)18> nodes().
+(s@localhost)18> rpc:call('t@localhost', math_server, call, [[{circle, 3}]]).
+(s@localhost)18> rpc:call('t@localhost', math_server, stop, []).
+
+
+%% or start from the second node
+
+(s@localhost)18> rpc:call('t@localhost', math_server, start, []).
+(s@localhost)18> {cdojo_math_server, 't@localhost'} ! stop.

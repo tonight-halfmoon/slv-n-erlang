@@ -71,7 +71,7 @@ loop(F) ->
 		    From ! {response, error, Result},
 		    loop(F)
 	    end
-    after 3000 ->
+    after 90000 ->
 	    io:format("Timeout. Server shutdown.~n", []),
 	    exit(timeout)
     end.

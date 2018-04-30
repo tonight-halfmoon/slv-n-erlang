@@ -1,6 +1,8 @@
 
 % The first node
- 
+% -name for longnames
+% -sname for shortnames
+
 ~/..synchronous$ erl -name t -pa ebin/
 
 t@localhost.jpat.org)23> Pid = spawn('t@localhost.jpat.org', math_server, loop, [fun geomrtry:areas/1]).

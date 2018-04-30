@@ -4,11 +4,12 @@
 start() ->
     spawn(?MODULE, loop, [fun geometry:areas/1]).
 
-call(MathServerPid, Message) ->
-    MathServerPid ! Message,
-    receive {reply, ok, Areas} ->
+call(MathServerPid, Request) ->
+    MathServerPid ! Request,
+    receive
+	{reply, ok, Areas} ->
 	    Areas
-   end.
+    end.
 
 loop(F) ->
     receive
