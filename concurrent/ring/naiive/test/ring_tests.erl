@@ -34,27 +34,29 @@ node_send_quit_message_to_recv_node_then_recv_node_die_test() ->
     receive after 50 -> ok end,
     ?assertNot(is_process_alive(NodePid2)).
 
-fetched_message_in_next_node_is_sent_from_the_adjacent_fromer_node_test() ->
+message_being_sent_around_the_ring_test() ->
     Message = initial_message,
     N = 3,
     Nodes = start(N, Message),
-    LastNode = hd(lists:reverse(tl(Nodes))),
-    NearestLastNode = lists:nth(N -1, Nodes),
+    LastNode = lists:last(Nodes),
     FirstNode = hd(Nodes),
-    SecondNode = hd(lists:delete(FirstNode, Nodes)),
+    SecondNode = lists:nth(2, Nodes),
+    ReplyFromFirstNode = fetch_message(FirstNode),
+    ReplyFromSecondNode = fetch_message(SecondNode),
+    ReplyFromLastNode = fetch_message(LastNode),
 
-    Reply = fetch_message(LastNode),
+    ?assertMatch({Message, SendNode} when SendNode == LastNode, ReplyFromFirstNode),
+    ?assertMatch({Message, SendNode} when SendNode == FirstNode, ReplyFromSecondNode),
+    ?assertMatch({Message, SendNode} when SendNode == SecondNode, ReplyFromLastNode).
 
-    ?assertMatch({_Message, SendNode} when SendNode == NearestLastNode, Reply),
+terminate_gracefully_when_ring_nodes_receive_a_quit_message_test() ->
+    Message = initial_message,
+    N = 3,
+    Nodes = start(N, Message),
 
-    ReplySecond = fetch_message(SecondNode),
+    send_message(self(), hd(Nodes), quit),
+    receive after 50 -> ok end,
 
-    ?assertMatch({_Message, SendNode} when SendNode == FirstNode, ReplySecond).
-
-%when_quit_message_sent_by_first_node_it_must_be_propagated_to_the_following_nodes_until_the_ring_stop_test() ->
-%    Message = initial_message,
-%    N = 3,
-%    Nodes = start(N, Message),
-%    FirstNode = hd(Nodes),
-%    LastNode =  hd(lists:reverse(tl(Nodes)))
-%	.
+    ?assertNot(is_process_alive(hd(Nodes))),
+    ?assertNot(is_process_alive(lists:nth(2, Nodes))),
+    ?assertNot(is_process_alive(lists:last(Nodes))).

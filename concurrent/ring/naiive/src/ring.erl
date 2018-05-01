@@ -11,7 +11,10 @@
 start(N, M) ->
     start(N, 0, [], M).
 
-start(0, 0, Nodes, _M) ->
+start(0, 0, Nodes, M) ->
+    Last = lists:last(Nodes),
+    Head = hd(Nodes),
+    send_message(Last, Head, M),
     Nodes;
 start(N, I, [], M) ->
     Node = spawn_node(),
@@ -29,16 +32,21 @@ node_proc(State = #state{message = Message, from = SendNode}) ->
 	{mailbox, From, NewMessage} ->
 	    NewState = #state{message= NewMessage, from = From},
 	    node_proc(NewState);
-	{quit, _From} ->
-	    SendNode ! {quit, self()},
-	    ok
+	quit ->
+	    Alive = is_pid(SendNode) andalso is_process_alive(SendNode), 
+	    if  Alive == true ->
+		    send_message(self(), SendNode, quit),
+		    ok;
+		Alive == false ->
+		    ok
+	    end
     end.
 
 spawn_node() ->
     spawn(fun() -> node_proc(#state{}) end).
 
-send_message(SendNode, RecvNode, quit) ->
-    RecvNode ! {quit, SendNode}; 
+send_message(_SendNode, RecvNode, quit) ->
+    RecvNode ! quit; 
 send_message(SendNode, RecvNode, Message) ->
     RecvNode ! {mailbox, SendNode, Message},
     ok.
