@@ -2,13 +2,10 @@
 -export([spawn_node/0, spawn_next/1, parent_of/1,
 	 init/1,
 	 send_message/3, fetch_message/1, send_quit_message/1,
-	 set_child/2,
 	 start/2]).
 
 -define(NOTEST, true).
 -include_lib("eunit/include/eunit.hrl").
-
--record(state, {parent, message, child}).
 
 spawn_node() ->
     spawn_node({client, self()}).
@@ -36,20 +33,20 @@ send_quit_message(To) ->
 send_message(From, To, Message) ->
     To ! {mailbox, From, Message}.
 
-set_child(Parent, Child) ->
-    Parent ! {set_child, Child}.
-
 start(N, Message) ->
-    start(N, 0, Message, []).
+    Nodes = start(N, 0, []),
+    send_message(self(), _First = hd(Nodes), Message),
+    Nodes.
 
-start(0, 0, Message, Nodes) ->
-    send_message(self(), _Last = hd(Nodes), Message),
+start(0, 0, Nodes) ->
+    First = lists:last(Nodes),
+    set_parent(First, hd(Nodes)),
     Nodes;
-start(N, I, Message, []) ->
-    start(N - 1, I, Message, [spawn_node({client, self()})]);
-start(N, I, Message, Nodes = [H|_]) ->
+start(N, I, []) ->
+    start(N - 1, I, [spawn_node({client, self()})]);
+start(N, I, Nodes = [H|_]) ->
     NextNode = spawn_node(H),
-    start(N -1, I, Message, [NextNode|Nodes]).
+    start(N -1, I, [NextNode|Nodes]).
 
 spawn_node({client, _Pid}) ->
     spawn(?MODULE, init, [root]);
@@ -57,39 +54,33 @@ spawn_node(ParentPid) ->
     spawn(?MODULE, init, [ParentPid]).
 
 init(root) ->
-    loop(#state{parent = self()});
+    loop({self(), mailbox});
 init(ParentPid) ->
-    loop(#state{parent = ParentPid}).
+    loop({ParentPid, mailbox}).
 
-loop(State = #state{parent = Parent, message = _LastMessage, child = _Child}) ->
+loop({Parent, Mailbox} = State) ->
     receive
-	{set_child, Node} ->
-	    NewState = State#state{child = Node},
-	    loop(NewState);
+	{set_parent, NewParent} ->
+	    loop({NewParent, Mailbox});
 	{your_parent, From} ->
 	    From ! {reply, Parent},
 	    loop(State);
-	{mailbox, From, NewMessage} ->
-	    NewState = State#state{message = NewMessage},
-	    send_message(From, Parent, NewMessage),
+	{mailbox, _From, NewMessage} ->
+	    send_message(self(), Parent, NewMessage),
+	    NewState = {Parent, NewMessage},
 	    loop(NewState);
 	{fetch_message, From} ->
-	    From ! {reply, State#state.message},
+	    From ! {reply, Mailbox},
 	    loop(State);
 	quit ->
-	    %% ?assert(is_process_alive(Child)),
-	    %% case is_pid(Child) andalso is_process_alive(Child) of 
-	    %% 	true ->
-	    %% 	    Child ! quit;
-	    %% 	false ->
-	    %% 	    ok
-	    %% end,
-	    ?assert(is_process_alive(Parent)),
-	    case Parent == self() of
+	    case Parent == self() andalso is_process_alive(Parent) of
 	    	true ->
 	    	    ok;
-	    	false ->    
+	    	false ->
 	    	    send_quit_message(Parent),
 		    ok
 	    end
     end.
+
+set_parent(Node, Parent) ->
+    Node ! {set_parent, Parent}.
