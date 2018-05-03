@@ -1,20 +1,20 @@
--module(math_server).
+-module(server).
 -export([start/0, stop/0, call/1,
 	init/1]).
 
--include("math_server.hrl").
+-include("server.hrl").
 
 -define(NOTEST, true).
 -include_lib("eunit/include/eunit.hrl").
 
 start() ->
-    start(?MathServer).
+    start(?math_server).
 
 stop() ->
-    stop(?MathServer).
+    stop(?math_server).
 
 call(Shapes) ->
-    ?MathServer ! {request, self(), Shapes},
+    ?math_server ! {request, self(), Shapes},
     receive
 	{response, error, Why} ->
 	    {error, Why};
@@ -27,31 +27,31 @@ call(Shapes) ->
 init(F) ->
     loop(F).
 
-start(RegName) ->
-    case whereis(RegName) of
+start(Name) ->
+    case whereis(Name) of
 	undefined ->
 	    Pid = spawn(?MODULE, init, [fun geometry:areas/1]),
-	    register(RegName, Pid),
+	    register(Name, Pid),
 	    {ok, Pid};
 	Pid when is_pid(Pid) ->
 	    {error, already_started}
     end.
 
-stop(RegName) ->
-    stop(whereis(RegName), RegName).
+stop(Name) ->
+    stop(whereis(Name), Name).
 
-stop(undefined, _RegName) ->
+stop(undefined, _Name) ->
     ok;
-stop(Pid, RegName) ->
+stop(Pid, Name) ->
     case is_process_alive(Pid) of
 	true ->
-	    send_stop_protocol(RegName);
+	    send_stop_protocol(Name);
 	false ->
 	    ok
     end.
 
-send_stop_protocol(RegName) ->
-    RegName ! stop.
+send_stop_protocol(Name) ->
+    Name ! stop.
 
 loop(F) ->
     receive

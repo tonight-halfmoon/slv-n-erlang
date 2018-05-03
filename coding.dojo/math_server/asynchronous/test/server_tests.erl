@@ -1,6 +1,6 @@
--module(math_server_tests).
+-module(server_tests).
 -include_lib("eunit/include/eunit.hrl").
--import(math_server, [start/0, cast/2]).
+-import(server, [start/0, cast/2]).
 
 start_ok_test() ->
     MathServerPid = start(),

@@ -1,4 +1,4 @@
--module(math_server).
+-module(server).
 -export([start/0, loop/1, cast/2]).
 
 start() ->

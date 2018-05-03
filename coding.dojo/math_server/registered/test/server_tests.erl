@@ -1,19 +1,19 @@
--module(math_server_tests).
+-module(server_tests).
 -include_lib("eunit/include/eunit.hrl").
 
--import(math_server, [start/0, stop/0, call/1]).
+-import(server, [start/0, stop/0, call/1]).
 
--include("math_server.hrl").
+-include("server.hrl").
 
 start_test() ->
     start(),
-    ?assert(is_process_alive(whereis(?MathServer))),
+    ?assert(is_process_alive(whereis(?math_server))),
 
     aftereach().
 
 already_started_test() ->
     start(),
-    ?assert(is_process_alive(whereis(?MathServer))),
+    ?assert(is_process_alive(whereis(?math_server))),
 
     Result = case catch start() of
 		 M ->
@@ -26,19 +26,19 @@ already_started_test() ->
 
 stop_test() ->
     start(),
-    ?assert(is_process_alive(whereis(?MathServer))),
-    MathServerPid = whereis(?MathServer),
+    ?assert(is_process_alive(whereis(?math_server))),
+    MathServerPid = whereis(?math_server),
 
     stop(),
     receive after 50 -> ok end,
 
-    ?assertEqual(undefined, whereis(?MathServer)),
+    ?assertEqual(undefined, whereis(?math_server)),
     ?assertNot(is_process_alive(MathServerPid)),
     aftereach().
 
 call_server_respond_with_areas_calculated_test() ->
     start(),
-    ?assert(is_process_alive(whereis(?MathServer))),
+    ?assert(is_process_alive(whereis(?math_server))),
     Shapes = [{circle, 3}],
 
     Areas = call(Shapes),
@@ -48,7 +48,7 @@ call_server_respond_with_areas_calculated_test() ->
 
 call_notify_user_when_something_went_wrong_test() ->
     start(),
-    ?assert(is_process_alive(whereis(?MathServer))),
+    ?assert(is_process_alive(whereis(?math_server))),
     Shapes = [{ellipse, 3, 6}],
 
     Reply = call(Shapes),
@@ -60,7 +60,7 @@ call_notify_user_when_something_went_wrong_test() ->
 
 call_when_server_has_shutdown_test() ->
     start(),
-    ?assert(is_process_alive(whereis(?MathServer))),
+    ?assert(is_process_alive(whereis(?math_server))),
     Shapes = [{circle, 3}],
     stop(),
 

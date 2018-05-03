@@ -1,11 +1,11 @@
--module(math_server).
+-module(server).
 -export([start/0, loop/1, call/2]).
 
 start() ->
     spawn(?MODULE, loop, [fun geometry:areas/1]).
 
-call(MathServerPid, Request) ->
-    MathServerPid ! Request,
+call(Server, Request) ->
+    Server ! Request,
     receive
 	{reply, ok, Areas} ->
 	    Areas

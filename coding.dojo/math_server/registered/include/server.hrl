@@ -1,0 +1,1 @@
+-define(math_server, coding_dojo_math_server).
