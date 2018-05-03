@@ -20,26 +20,21 @@ call(Shapes) ->
 	    {error, Why};
 	{response, ok, Areas} ->
 	    Areas
-    after 50 -> exit(timeout)
+    after 50 ->
+	    exit(timeout)
     end.
 
 init(F) ->
     loop(F).
 
 start(RegName) ->
-    case is_alive(RegName) of
-	true ->
-	    already_started;
-	false ->
-	    register(RegName, spawn(?MODULE, init, [fun geometry:areas/1]))
-    end.
-
-is_alive(RegName) ->
     case whereis(RegName) of
 	undefined ->
-	    false;
+	    Pid = spawn(?MODULE, init, [fun geometry:areas/1]),
+	    register(RegName, Pid),
+	    {ok, Pid};
 	Pid when is_pid(Pid) ->
-	    true
+	    {error, already_started}
     end.
 
 stop(RegName) ->

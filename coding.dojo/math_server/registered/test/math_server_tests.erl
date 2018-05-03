@@ -20,7 +20,7 @@ already_started_test() ->
 		     M
 	     end,
 
-    ?assertEqual(already_started, Result),
+    ?assertEqual({error, already_started}, Result),
 
     aftereach().
 
