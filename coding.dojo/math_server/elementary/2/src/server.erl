@@ -3,7 +3,8 @@
 	 loop/1]).
 
 start() ->
-    spawn(?MODULE, loop, [fun geometry:areas/1]).
+    Pid = spawn(?MODULE, loop, [fun geometry:areas/1]),
+    {ok, Pid}.
 
 sum_areas(Shapes, ServerPid) ->
     ServerPid ! {request, self(), Shapes},
@@ -13,7 +14,8 @@ sum_areas(Shapes, ServerPid) ->
     end.
 
 stop(ServerPid) ->
-    ServerPid ! stop.
+    ServerPid ! stop,
+    {ok, stopped}.
 
 loop(F) ->
     receive
