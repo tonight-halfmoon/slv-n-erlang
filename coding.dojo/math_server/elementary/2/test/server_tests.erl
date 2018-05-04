@@ -7,7 +7,7 @@ start_test() ->
 
     ?assertMatch(Pid when is_pid(Pid), ServerPid),
     
-    stop(ServerPid).
+    {ok, stopped} = stop(ServerPid).
 
 sum_areas_test() ->
     {ok, Pid} = start(),
@@ -17,15 +17,17 @@ sum_areas_test() ->
 
     ?assertEqual({ok, 52.27433388230814}, Result),
 
-    stop(Pid).
+    {ok, stopped} = stop(Pid).
 
 stop_test() ->
     {ok, Pid} = start(),
 
     {ok, stopped} = stop(Pid),
 
-    receive after 50 -> ok end,
-    ?assertNot(is_process_alive(Pid)).
+    receive after 1 -> ok end,
+    ?assertNot(is_process_alive(Pid)),
+    
+    {ok, stopped} = stop(Pid).
 
 sum_unknown_areas_test() ->
     {ok, Pid} = start(),
@@ -35,4 +37,4 @@ sum_unknown_areas_test() ->
 
     ?assertMatch({error, {function_clause, _Detail}}, Result),
 
-    stop(Pid).
+    {ok, stopped} = stop(Pid).
