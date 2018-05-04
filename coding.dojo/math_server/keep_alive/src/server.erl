@@ -1,26 +1,35 @@
 -module(server).
--export([start/0, sum_areas/2, stop/1,
-	 init/1,
-	 on_exit/1]).
+-export([start/0, sum_areas/1, stop/0,
+	 init/1]).
 
 -include("server.hrl").
 
 start() ->
-    Pid = spawn(?MODULE, init, [fun geometry:areas/1]),
-    register(?math_server, Pid),
-    spawn(?MODULE, on_exit, [Pid]),
-    {ok, Pid}.
+    case whereis(?math_server) of
+	undefined ->
+	    Pid = spawn(?MODULE, init, [fun geometry:areas/1]),
+	    register(?math_server, Pid),
+	    on_exit(Pid, fun keep_alive/1),
+	    {ok, Pid};
+	Pid when is_pid(Pid) ->
+	    {error, already_started}
+    end.
 
-sum_areas(Shapes, Pid) ->
-    Pid ! {request, self(), Shapes},
+sum_areas(Shapes) ->
+    ?math_server ! {request, self(), Shapes},
     receive
-	{reply, Pid, Result} ->
+	{reply, ?math_server, Result} ->
 	    Result
     end.
 
-stop(Pid) ->
-    Pid ! stop,
-    {ok, stopped}.
+stop() ->
+    case whereis(?math_server) of
+	undefined ->
+	    {error, already_stopped};
+	Pid when is_pid(Pid) ->
+	    ?math_server ! stop,
+	    {ok, stopped}
+    end.
 
 init(F) ->
     loop(F).
@@ -29,7 +38,7 @@ loop(F) ->
     receive
 	{request, Client, Shapes} ->
 	    Result = eval(F, Shapes),
-	    Client ! {reply, self(), Result},
+	    Client ! {reply, ?math_server, Result},
 	    loop(F);
 	stop ->
 	    exit(normal);
@@ -47,19 +56,18 @@ eval(F, Shapes) ->
 	    {ok, Sum}
     end.
 
-on_exit(Pid) ->
+on_exit(Pid, F) ->
+    spawn( fun() ->
     process_flag(trap_exit, true),
     link(Pid),
-    on_exit(Pid, fun keep_alive/1).
-
-on_exit(Pid, F) ->
     receive
 	{'EXIT', Pid, Why} ->
 	    F(Why),
 	    exit(normal);
 	M ->
 	    M
-    end.
+    end
+	   end).
 
 keep_alive(intin_crash) ->
     start();
