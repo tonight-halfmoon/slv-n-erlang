@@ -43,7 +43,7 @@ loop(F) ->
 	stop ->
 	    exit(normal);
 	crash ->
-	    exit(intin_crash);
+	    exit(intended_crash);
 	_M ->
 	    loop(F)
     end.
@@ -69,7 +69,7 @@ on_exit(Pid, F) ->
     end
 	   end).
 
-keep_alive(intin_crash) ->
+keep_alive(intended_crash) ->
     start();
 keep_alive(_Why) ->
     ok.

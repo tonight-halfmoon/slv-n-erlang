@@ -50,4 +50,8 @@ never_die_test() ->
     stop().
 
 start_consecuative_twice_test() ->
-    ok.
+    {ok, _Pid} = start(),
+
+    {error, already_started} = start(),
+
+    stop().
