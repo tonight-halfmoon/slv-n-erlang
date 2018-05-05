@@ -6,13 +6,13 @@
 -include("server.hrl").
 
 start_test() ->
-    start(),
+    {ok, _Pid} = start(),
     ?assert(is_process_alive(whereis(?math_server))),
 
     aftereach().
 
 already_started_test() ->
-    start(),
+    {ok, _Pid} = start(),
     ?assert(is_process_alive(whereis(?math_server))),
 
     Result = case catch start() of
@@ -25,19 +25,20 @@ already_started_test() ->
     aftereach().
 
 stop_test() ->
-    start(),
+    {ok, _Pid} = start(),
     ?assert(is_process_alive(whereis(?math_server))),
     MathServerPid = whereis(?math_server),
 
     stop(),
-    receive after 50 -> ok end,
+
+    receive after 1 -> ok end,
 
     ?assertEqual(undefined, whereis(?math_server)),
     ?assertNot(is_process_alive(MathServerPid)),
     aftereach().
 
 call_server_respond_with_areas_calculated_test() ->
-    start(),
+    {ok, _Pid} = start(),
     ?assert(is_process_alive(whereis(?math_server))),
     Shapes = [{circle, 3}],
 
@@ -47,11 +48,12 @@ call_server_respond_with_areas_calculated_test() ->
     ?assertEqual(28.274333882308138, Areas).
 
 call_notify_user_when_something_went_wrong_test() ->
-    start(),
+    {ok, _Pid} = start(),
     ?assert(is_process_alive(whereis(?math_server))),
     Shapes = [{ellipse, 3, 6}],
 
     Reply = call(Shapes),
+
     aftereach(),
 
     ?assertMatch({error,
@@ -59,7 +61,7 @@ call_notify_user_when_something_went_wrong_test() ->
 		   {function_clause, _Detail}}}, Reply).
 
 call_when_server_has_shutdown_test() ->
-    start(),
+    {ok, _Pid} = start(),
     ?assert(is_process_alive(whereis(?math_server))),
     Shapes = [{circle, 3}],
     stop(),
