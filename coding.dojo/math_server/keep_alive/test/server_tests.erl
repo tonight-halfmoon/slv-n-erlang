@@ -8,7 +8,7 @@ start_test() ->
 
     ?assertMatch(Pid when is_pid(Pid), ServerPid),
 
-    stop().
+    {ok, stopped} = stop().
 
 sum_areas_test() ->
     Shapes = [{circle, 3}, {rectangle, 4, 6}],
@@ -18,17 +18,17 @@ sum_areas_test() ->
 
     ?assertEqual({ok, 52.27433388230814}, Result),
 
-    stop().
+    {ok, stopped} = stop().
 
 stop_test() ->
     {ok, Pid} = start(),
 
     {ok, stopped} = stop(),
 
-    receive after 10 -> ok end,
+    receive after 1 -> ok end,
     ?assertNot(is_process_alive(Pid)),
 
-    stop().
+    {error, already_stopped} = stop().
 
 sum_unknown_areas_test() ->
     {ok, _Pid} = start(),
@@ -38,7 +38,7 @@ sum_unknown_areas_test() ->
 
     ?assertMatch({error, {function_clause, _Detail}}, Result),
 
-    stop().
+    {ok, stopped} = stop().
 
 never_die_test() ->
     {ok, Pid} = start(),
@@ -47,11 +47,11 @@ never_die_test() ->
 
     ?assert(is_process_alive(whereis(?math_server))),
 
-    stop().
+    {ok, stopped} = stop().
 
 start_consecuative_twice_test() ->
     {ok, _Pid} = start(),
 
     {error, already_started} = start(),
 
-    stop().
+    {ok, stopped} = stop().
