@@ -42,7 +42,7 @@ sum_areas_test() ->
     ?assert(is_process_alive(whereis(?math_server))),
     Shapes = [{circle, 3}],
 
-    Areas = sum_areas(Shapes),
+    {ok, Areas} = sum_areas(Shapes),
     aftereach(),
 
     ?assertEqual(28.274333882308138, Areas).

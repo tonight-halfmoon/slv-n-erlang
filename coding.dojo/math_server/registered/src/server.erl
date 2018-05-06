@@ -19,10 +19,10 @@ sum_areas(Shapes) ->
 call({sum_areas, Shapes}) ->
     ?math_server ! {request, self(), sum_areas, Shapes},
     receive
-	{response, error, Why} ->
+	{reply, {sum_areas, error, Why}} ->
 	    {error, Why};
-	{response, ok, Areas} ->
-	    Areas
+	{reply, {sum_areas, ok, Areas}} ->
+	    {ok, Areas}
     after 50 ->
 	    exit(timeout)
     end.
@@ -63,10 +63,10 @@ loop(F) ->
 	{request, From, sum_areas, Query} ->
 	    case catch F(Query) of
 		Areas when is_float(Areas); is_integer(Areas) ->
-		    From ! {response, ok, F(Query)},
+		    From ! {reply, {sum_areas, ok, F(Query)}},
 		    loop(F);
 		Result ->
-		    From ! {response, error, Result},
+		    From ! {reply, {sum_areas, error, Result}},
 		    loop(F)
 	    end
     after 40000 ->
