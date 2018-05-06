@@ -1,5 +1,5 @@
 -module(server).
--export([start/0, stop/0, call/1,
+-export([start/0, stop/0, sum_areas/1,
 	init/1]).
 
 -include("server.hrl").
@@ -13,8 +13,11 @@ start() ->
 stop() ->
     stop(?math_server).
 
-call(Shapes) ->
-    ?math_server ! {request, self(), Shapes},
+sum_areas(Shapes) ->
+    call({sum_areas, Shapes}).
+
+call({sum_areas, Shapes}) ->
+    ?math_server ! {request, self(), sum_areas, Shapes},
     receive
 	{response, error, Why} ->
 	    {error, Why};
@@ -57,7 +60,7 @@ loop(F) ->
     receive
 	stop ->
             exit(shutdown);
-	{request, From, Query} ->
+	{request, From, sum_areas, Query} ->
 	    case catch F(Query) of
 		Areas when is_float(Areas); is_integer(Areas) ->
 		    From ! {response, ok, F(Query)},
@@ -66,7 +69,7 @@ loop(F) ->
 		    From ! {response, error, Result},
 		    loop(F)
 	    end
-    after 90000 ->
+    after 40000 ->
 	    io:format("Timeout. Server shutdown.~n", []),
 	    exit(timeout)
     end.

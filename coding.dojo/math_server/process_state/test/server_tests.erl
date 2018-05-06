@@ -28,7 +28,7 @@ stop_test() ->
     
     {error, already_stopped} = stop(Pid).
 
-sum_unknown_areas_test() ->
+sum_areas_unknown_shapes_test() ->
     {ok, Pid} = start(),
     Shapes = [{circle, 3, 3}],
 
@@ -38,7 +38,7 @@ sum_unknown_areas_test() ->
 
     {ok, stopped, _Error} = stop(Pid).
 
-server_send_last_shapes_sum_areas_to_client_when_stop_test() ->
+server_send_last_shapes_areas_sum_to_client_when_stop_test() ->
     Shapes = [{circle, 0.873}, {square, 0.293}],
     ExpectedState = {{ok, 2.4801478674877355}, Shapes},
     {ok, Pid} = start(), 

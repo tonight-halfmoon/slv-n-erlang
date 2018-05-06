@@ -30,7 +30,7 @@ stop_test() ->
 
     {error, already_stopped} = stop().
 
-sum_unknown_areas_test() ->
+sum_areas_unknown_shapes_test() ->
     {ok, _Pid} = start(),
     Shapes = [{circle, 3, 3}],
 
@@ -40,7 +40,7 @@ sum_unknown_areas_test() ->
 
     {ok, stopped} = stop().
 
-never_die_test() ->
+server_keep_alive_test() ->
     {ok, Pid} = start(),
 
     Pid ! crash,

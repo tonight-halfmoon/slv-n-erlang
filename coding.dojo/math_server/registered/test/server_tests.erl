@@ -1,7 +1,7 @@
 -module(server_tests).
 -include_lib("eunit/include/eunit.hrl").
 
--import(server, [start/0, stop/0, call/1]).
+-import(server, [start/0, stop/0, sum_areas/1]).
 
 -include("server.hrl").
 
@@ -37,22 +37,22 @@ stop_test() ->
     ?assertNot(is_process_alive(MathServerPid)),
     aftereach().
 
-call_server_respond_with_areas_calculated_test() ->
+sum_areas_test() ->
     {ok, _Pid} = start(),
     ?assert(is_process_alive(whereis(?math_server))),
     Shapes = [{circle, 3}],
 
-    Areas = call(Shapes),
+    Areas = sum_areas(Shapes),
     aftereach(),
 
     ?assertEqual(28.274333882308138, Areas).
 
-call_notify_user_when_something_went_wrong_test() ->
+sum_areas_unknown_shapes_test() ->
     {ok, _Pid} = start(),
     ?assert(is_process_alive(whereis(?math_server))),
     Shapes = [{ellipse, 3, 6}],
 
-    Reply = call(Shapes),
+    Reply = sum_areas(Shapes),
 
     aftereach(),
 
@@ -60,13 +60,13 @@ call_notify_user_when_something_went_wrong_test() ->
 		  {'EXIT',
 		   {function_clause, _Detail}}}, Reply).
 
-call_when_server_has_shutdown_test() ->
+timeout_test() ->
     {ok, _Pid} = start(),
     ?assert(is_process_alive(whereis(?math_server))),
     Shapes = [{circle, 3}],
     stop(),
 
-    Result = case catch call(Shapes) of
+    Result = case catch sum_areas(Shapes) of
 		 M ->
 		     M
 	     end,
