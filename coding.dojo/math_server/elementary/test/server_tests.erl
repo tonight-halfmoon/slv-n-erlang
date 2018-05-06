@@ -29,7 +29,7 @@ stop_test() ->
     
     {ok, stopped} = stop(Pid).
 
-sum_unknown_areas_test() ->
+sum_areas_unknown_shapes_test() ->
     {ok, Pid} = start(),
     Shapes = [{circle, 3, 3}],
 
