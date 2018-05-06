@@ -32,9 +32,7 @@ call({sum_areas, Shapes}) ->
 	{reply, {sum_areas, error, Why}} ->
 	    {error, Why};
 	{reply, {sum_areas, ok, Areas}} ->
-	    {ok, Areas};
-	{reply, {connect_client, ClientConnectSuccess = {ok, client_connected, Pid}}} ->
-	    Pid ! ClientConnectSuccess
+	    {ok, Areas}
     after 50 ->
 	    exit(timeout)
     end.
