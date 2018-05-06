@@ -81,7 +81,8 @@ when_client_disconnected_server_shutdown_test() ->
     {ok, ServerPid} = start(),
     {ok, client_connected, Client} = connect_client(Client),
     Shapes = [{circle, 4}],
-    sum_areas({Client, Shapes}),
+    {ok, Sum} = sum_areas(Shapes),
+    ?assertEqual(50.26548245743669, Sum),
 
     exit(Client, unit_testing),
 
