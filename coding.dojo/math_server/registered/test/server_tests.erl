@@ -27,14 +27,14 @@ already_started_test() ->
 stop_test() ->
     {ok, _Pid} = start(),
     ?assert(is_process_alive(whereis(?math_server))),
-    MathServerPid = whereis(?math_server),
+    ServerPid = whereis(?math_server),
 
     stop(),
 
     receive after 1 -> ok end,
 
     ?assertEqual(undefined, whereis(?math_server)),
-    ?assertNot(is_process_alive(MathServerPid)),
+    ?assertNot(is_process_alive(ServerPid)),
     aftereach().
 
 sum_areas_test() ->
@@ -42,10 +42,10 @@ sum_areas_test() ->
     ?assert(is_process_alive(whereis(?math_server))),
     Shapes = [{circle, 3}],
 
-    {ok, Areas} = sum_areas(Shapes),
+    {ok, Sum} = sum_areas(Shapes),
     aftereach(),
 
-    ?assertEqual(28.274333882308138, Areas).
+    ?assertEqual(28.274333882308138, Sum).
 
 sum_areas_unknown_shapes_test() ->
     {ok, _Pid} = start(),

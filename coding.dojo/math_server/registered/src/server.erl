@@ -17,7 +17,7 @@ sum_areas(Shapes) ->
     call({sum_areas, Shapes}).
 
 call({sum_areas, Shapes}) ->
-    ?math_server ! {request, self(), sum_areas, Shapes},
+    ?math_server ! {request, self(), {sum_areas, Shapes}},
     receive
 	{reply, {sum_areas, error, Why}} ->
 	    {error, Why};
@@ -60,10 +60,10 @@ loop(F) ->
     receive
 	stop ->
             exit(shutdown);
-	{request, From, sum_areas, Query} ->
-	    case catch F(Query) of
-		Areas when is_float(Areas); is_integer(Areas) ->
-		    From ! {reply, {sum_areas, ok, F(Query)}},
+	{request, From, {sum_areas, Shapes}} ->
+	    case catch F(Shapes) of
+		Sum when is_float(Sum); is_integer(Sum) ->
+		    From ! {reply, {sum_areas, ok, Sum}},
 		    loop(F);
 		Result ->
 		    From ! {reply, {sum_areas, error, Result}},
