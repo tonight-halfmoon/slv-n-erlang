@@ -1,7 +1,7 @@
 -module(server_tests).
 -include_lib("eunit/include/eunit.hrl").
 
--import(server, [start/0, stop/0, sum_areas/1,
+-import(server, [start/0, stop/0, sum_areas/2,
 		 connect_client/1]).
 
 -include("server.hrl").
@@ -41,55 +41,56 @@ stop_test() ->
 
 sum_areas_test() ->
     {ok, _Pid} = start(),
-    ?assert(is_process_alive(whereis(?math_server))),
-    Shapes = [{circle, 3}],
+    Shapes = [{circle, 0.3}],
+    Client = spawn(fun() -> receive {reply, {sum_areas, ok, Areas}} ->
+				    ?assertEqual(0.2827433388230814, Areas) after 4 -> exit(timeout) end end),
+    {ok, client_connected, Client} = connect_client(Client),
 
-    {ok, Sum} = sum_areas(Shapes),
-    aftereach(),
+    sum_areas(Shapes, Client),
 
-    ?assertEqual(28.274333882308138, Sum).
+    receive after 4 -> ok end,
+    exit(Client, unit_testing),
+    aftereach().
 
 sum_areas_unknown_shapes_test() ->
     {ok, _Pid} = start(),
-    ?assert(is_process_alive(whereis(?math_server))),
     Shapes = [{ellipse, 3, 6}],
+    Client = spawn(fun() ->  receive Reply ->
+				      ?assertMatch({reply, {sum_areas, error,  {'EXIT',
+							     {function_clause, _Detail}}}}, Reply)
+			      after 4 -> exit(timeout) end end),
 
-    Reply = sum_areas(Shapes),
+    sum_areas(Shapes, Client),
 
-    aftereach(),
-
-    ?assertMatch({error,
-		  {'EXIT',
-		   {function_clause, _Detail}}}, Reply).
+    receive after 4 -> ok end,
+    exit(Client, unit_testing),
+    aftereach().
 
 timeout_test() ->
     {ok, _Pid} = start(),
-    ?assert(is_process_alive(whereis(?math_server))),
     Shapes = [{circle, 3}],
     stop(),
+    Client = spawn(fun() -> receive Reply -> ?assertEqual({'EXIT', timeout}, Reply) after 4 -> exit(timeout) end end),
 
-    Result = case catch sum_areas(Shapes) of
-		 M ->
-		     M
-	     end,
+    sum_areas(Shapes, Client),
 
-    ?assertEqual({'EXIT', timeout}, Result).
+    exit(Client, unit_testing),
+    aftereach().
 
 when_client_disconnected_server_shutdown_test() ->
-    Client = spawn(fun() -> process_flag(trap_exit, true), receive {'EXIT', _F, W} -> exit(W); M -> M end end),
-
     {ok, ServerPid} = start(),
-    {ok, client_connected, Client} = connect_client(Client),
-    Shapes = [{circle, 4}],
-    {ok, Sum} = sum_areas(Shapes),
-    ?assertEqual(50.26548245743669, Sum),
+    {ok, client_connected, Client} = connect_client(spawn(fun() -> receive _ -> ok end end)),
+
+    receive after 5 -> ok end,
 
     exit(Client, unit_testing),
 
     receive after 4 -> ok end,
 
     ?assertNot(is_process_alive(ServerPid)),
-    ?assertEqual(undefined, whereis(?math_server)).
+    ?assertEqual(undefined, whereis(?math_server)),
+
+    aftereach().
 
 aftereach() ->
     stop().

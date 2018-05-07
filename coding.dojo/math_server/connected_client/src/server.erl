@@ -1,5 +1,5 @@
 -module(server).
--export([start/0, stop/0, sum_areas/1,
+-export([start/0, stop/0, sum_areas/2,
 	 connect_client/1,
 	 init/1]).
 
@@ -14,8 +14,8 @@ start() ->
 stop() ->
     stop(?math_server).
 
-sum_areas(Shapes) ->
-    call({sum_areas, Shapes}).
+sum_areas(Shapes, Client) ->
+    cast({sum_areas, Shapes}, Client).
 
 connect_client(Pid) ->
     call({connect_client, Pid}).
@@ -25,17 +25,13 @@ call({connect_client, Client}) ->
     receive
 	{reply, {connect_client, {ok, client_connected, Client}}} ->
 	    {ok, client_connected, Client}
-    end;
-call({sum_areas, Shapes}) ->
-    ?math_server ! {request, self(), {sum_areas, Shapes}},
-    receive
-	{reply, {sum_areas, error, Why}} ->
-	    {error, Why};
-	{reply, {sum_areas, ok, Areas}} ->
-	    {ok, Areas}
     after 50 ->
 	    exit(timeout)
     end.
+
+cast({sum_areas, Shapes}, Client) ->
+    ?math_server ! {request, {sum_areas, Shapes}, Client},
+    {ok, noreply}.
 
 init(F) ->
     process_flag(trap_exit, true),
@@ -74,8 +70,8 @@ loop(F) ->
 	    exit(Why);
 	stop ->
             exit(shutdown);
-	{request, From, {sum_areas, Shapes}} ->
-	    handle_sum_areas(F, From, Shapes),
+	{request, {sum_areas, Shapes}, Client} ->
+	    handle_sum_areas(F, Shapes, Client),
 	    loop(F);
 	{request, From, {connect_client, Client}} ->
 	    handle_connect_client(From, Client),
@@ -85,12 +81,12 @@ loop(F) ->
 	    exit(timeout)
     end.
 
-handle_sum_areas(F, From, Shapes) ->
+handle_sum_areas(F, Shapes, Client) ->
     case catch F(Shapes) of
 	Areas when is_float(Areas); is_integer(Areas) ->
-	    From ! {reply, {sum_areas, ok, Areas}};
+	    Client ! {reply, {sum_areas, ok, Areas}};
 	Result ->
-	    From ! {reply, {sum_areas, error, Result}}
+	    Client ! {reply, {sum_areas, error, Result}}
     end.
 
 handle_connect_client(From, Client) ->
