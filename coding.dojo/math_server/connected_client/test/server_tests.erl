@@ -8,13 +8,13 @@
 
 start_test() ->
     {ok, _Pid} = start(),
+
     ?assert(is_process_alive(whereis(?math_server))),
 
     aftereach().
 
 already_started_test() ->
     {ok, _Pid} = start(),
-    ?assert(is_process_alive(whereis(?math_server))),
 
     Result = case catch start() of
 		 M ->
@@ -27,12 +27,14 @@ already_started_test() ->
 
 stop_test() ->
     {ok, _Pid} = start(),
-    ?assert(is_process_alive(whereis(?math_server))),
+
     ServerPid = whereis(?math_server),
 
     stop(),
-
-    receive after 1 -> ok end,
+    
+    receive after 1 ->
+		    ok
+	    end,
 
     ?assertEqual(undefined, whereis(?math_server)),
     ?assertNot(is_process_alive(ServerPid)),
@@ -48,7 +50,10 @@ sum_areas_test() ->
 
     sum_areas(Shapes, Client),
 
-    receive after 4 -> ok end,
+    receive after 4 ->
+		    ok
+	    end,
+
     exit(Client, unit_testing),
     aftereach().
 
@@ -85,7 +90,9 @@ when_client_disconnected_server_shutdown_test() ->
 
     exit(Client, unit_testing),
 
-    receive after 4 -> ok end,
+    receive after 4 ->
+		    ok
+	    end,
 
     ?assertNot(is_process_alive(ServerPid)),
     ?assertEqual(undefined, whereis(?math_server)),
