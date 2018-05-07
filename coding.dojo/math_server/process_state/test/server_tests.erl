@@ -6,7 +6,7 @@ start_test() ->
     {ok, ServerPid} = start(),
 
     ?assertMatch(Pid when is_pid(Pid), ServerPid),
-    
+
     {ok, stopped, _state} = stop(ServerPid).
 
 sum_areas_test() ->
@@ -25,12 +25,12 @@ stop_test() ->
     {ok, stopped, {}} = stop(Pid),
 
     ?assertNot(is_process_alive(Pid)),
-    
+
     {error, already_stopped} = stop(Pid).
 
 sum_areas_unknown_shapes_test() ->
     {ok, Pid} = start(),
-    Shapes = [{circle, 3, 3}],
+    Shapes = [{ellipse, 3, 3}],
 
     Result = sum_areas(Shapes, Pid),
 

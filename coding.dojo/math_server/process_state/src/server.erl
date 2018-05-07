@@ -8,7 +8,7 @@ start() ->
     {ok, Pid}.
 
 sum_areas(Shapes, ServerPid) ->
-    ServerPid ! {request, self(), Shapes},
+    ServerPid ! {request, self(), {sum_areas, Shapes}},
     receive
 	{reply, ServerPid, Result} ->
 	    Result
@@ -42,7 +42,7 @@ loop_keep_state(ClientPid, Pid, State) ->
 
 loop(F, State) ->
     receive
-	{request, Client, Shapes} ->
+	{request, Client, {sum_areas, Shapes}} ->
 	    Result = eval(F, Shapes),
 	    Client ! {reply, self(), Result},
 	    NewState = {Result, Shapes},
