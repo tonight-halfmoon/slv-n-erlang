@@ -7,13 +7,13 @@
 
 start_test() ->
     {ok, _Pid} = start(),
+
     ?assert(is_process_alive(whereis(?math_server))),
 
     aftereach().
 
 already_started_test() ->
     {ok, _Pid} = start(),
-    ?assert(is_process_alive(whereis(?math_server))),
 
     Result = case catch start() of
 		 M ->
@@ -25,31 +25,30 @@ already_started_test() ->
     aftereach().
 
 stop_test() ->
-    {ok, _Pid} = start(),
-    ?assert(is_process_alive(whereis(?math_server))),
-    ServerPid = whereis(?math_server),
+    {ok, Pid} = start(),
 
     stop(),
 
     receive after 1 -> ok end,
 
     ?assertEqual(undefined, whereis(?math_server)),
-    ?assertNot(is_process_alive(ServerPid)),
+    ?assertNot(is_process_alive(Pid)),
+
     aftereach().
 
 sum_areas_test() ->
     {ok, _Pid} = start(),
-    ?assert(is_process_alive(whereis(?math_server))),
     Shapes = [{circle, 3}],
 
     {ok, Sum} = sum_areas(Shapes),
+
     aftereach(),
 
     ?assertEqual(28.274333882308138, Sum).
 
 sum_areas_unknown_shapes_test() ->
     {ok, _Pid} = start(),
-    ?assert(is_process_alive(whereis(?math_server))),
+
     Shapes = [{ellipse, 3, 6}],
 
     Reply = sum_areas(Shapes),
@@ -62,7 +61,6 @@ sum_areas_unknown_shapes_test() ->
 
 timeout_test() ->
     {ok, _Pid} = start(),
-    ?assert(is_process_alive(whereis(?math_server))),
     Shapes = [{circle, 3}],
     stop(),
 
