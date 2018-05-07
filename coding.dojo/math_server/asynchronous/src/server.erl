@@ -16,7 +16,7 @@ stop(ServerPid) ->
 
 loop(F) ->
     receive
-	{request, Client, Shapes} ->
+	{request, Client, {sum_areas, Shapes}} ->
 	    Result = eval(F, Shapes),
 	    Client ! {reply, self(), Result},
 	    loop(F);
@@ -33,7 +33,7 @@ eval(F, Shapes) ->
     end.
 
 async_client(ClientPid, Shapes, ServerPid) ->
-    ServerPid ! {request, self(), Shapes},
+    ServerPid ! {request, self(), {sum_areas, Shapes}},
     receive
 	{reply, ServerPid, Result} ->
 	    ClientPid ! Result,
