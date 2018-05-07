@@ -5,7 +5,7 @@
 start_test() ->
     {ok, ServerPid} = start(),
 
-    ?assertMatch(Pid when is_pid(Pid), ServerPid),
+    ?assert(is_process_alive(ServerPid)),
     
     {ok, stopped} = stop(ServerPid).
 
@@ -24,7 +24,9 @@ stop_test() ->
 
     {ok, stopped} = stop(Pid),
 
-    receive after 1 -> ok end,
+    receive after 1
+		      -> ok
+	    end,
     ?assertNot(is_process_alive(Pid)),
     
     {ok, stopped} = stop(Pid).
