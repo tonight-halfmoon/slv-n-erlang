@@ -32,7 +32,7 @@ stop_test() ->
 
 sum_areas_unknown_shapes_test() ->
     {ok, _Pid} = start(),
-    Shapes = [{circle, 3, 3}],
+    Shapes = [{ellipse, 3, 3}],
 
     Result = sum_areas(Shapes),
 

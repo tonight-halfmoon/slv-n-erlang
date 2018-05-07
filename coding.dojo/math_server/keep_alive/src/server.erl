@@ -16,7 +16,7 @@ start() ->
     end.
 
 sum_areas(Shapes) ->
-    ?math_server ! {request, self(), Shapes},
+    ?math_server ! {request, self(), {sum_areas, Shapes}},
     receive
 	{reply, ?math_server, Result} ->
 	    Result
@@ -36,7 +36,7 @@ init(F) ->
 
 loop(F) ->
     receive
-	{request, Client, Shapes} ->
+	{request, Client, {sum_areas, Shapes}} ->
 	    Result = eval(F, Shapes),
 	    Client ! {reply, ?math_server, Result},
 	    loop(F);
