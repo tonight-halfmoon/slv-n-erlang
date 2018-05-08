@@ -12,7 +12,7 @@ start() ->
     start(?math_server).
 
 stop() ->
-    stop(?math_server).
+    stop(whereis(?math_server), ?math_server).
 
 sum_areas(Shapes, Client) ->
     cast({sum_areas, Shapes}, Client).
@@ -47,17 +47,15 @@ start(Name) ->
 	    {error, already_started}
     end.
 
-stop(Name) ->
-    stop(whereis(Name), Name).
-
 stop(undefined, _Name) ->
-    ok;
+    {error, already_stopped};
 stop(Pid, Name) ->
     case is_process_alive(Pid) of
 	true ->
-	    send_stop_protocol(Name);
+	    send_stop_protocol(Name),
+	    {ok, stopped};
 	false ->
-	    ok
+	    {error, already_stopped}
     end.
 
 send_stop_protocol(Name) ->

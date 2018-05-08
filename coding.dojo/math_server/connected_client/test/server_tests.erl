@@ -11,27 +11,27 @@ start_test() ->
 
     ?assert(is_process_alive(whereis(?math_server))),
 
-    aftereach().
+    {ok, stopped} = stop().
 
 already_started_test() ->
     {ok, _Pid} = start(),
 
-    Result = case catch start() of
-		 M ->
-		     M
-	     end,
+    Reply = case catch start() of
+		M ->
+		    M
+	    end,
 
-    ?assertEqual({error, already_started}, Result),
+    ?assertEqual({error, already_started}, Reply),
 
-    aftereach().
+    {ok, stopped} = stop().
 
 stop_test() ->
     {ok, _Pid} = start(),
 
     ServerPid = whereis(?math_server),
 
-    stop(),
-    
+    {ok, stopped} = stop(),
+
     receive after 1 ->
 		    ok
 	    end,
@@ -39,14 +39,44 @@ stop_test() ->
     ?assertEqual(undefined, whereis(?math_server)),
     ?assertNot(is_process_alive(ServerPid)),
 
-    aftereach().
+    {error, already_stopped} = stop().
 
 sum_areas_test() ->
     {ok, _Pid} = start(),
     Shapes = [{circle, 0.3}],
-    Client = spawn(fun() -> receive {reply, {sum_areas, ok, Areas}} ->
-				    ?assertEqual(0.2827433388230814, Areas) after 4 -> exit(timeout) end end),
+    Client = spawn(fun() ->
+			   receive
+			       {reply, {sum_areas, ok, Sum}} ->
+				   ?assertEqual(0.2827433388230814, Sum)
+			   after 4 ->
+				   exit(timeout)
+			   end
+		   end),
+
     {ok, client_connected, Client} = connect_client(Client),
+
+    {ok, noreply} = sum_areas(Shapes, Client),
+
+    receive after 4 ->
+		    ok
+	    end,
+
+    exit(Client, unit_testing),
+    receive after 4 ->
+		    ok
+	    end,
+    {error, already_stopped} = stop().
+
+sum_areas_unknown_shapes_test() ->
+    {ok, _Pid} = start(),
+    Shapes = [{ellipse, 3, 6}],
+    Client = spawn(fun() -> receive
+				Reply ->
+				    ?assertMatch({reply, {sum_areas, {error, {function_clause, _Detail}}}}, Reply)
+			    after 4 ->
+				    exit(timeout)
+			    end
+		   end),
 
     sum_areas(Shapes, Client),
 
@@ -55,20 +85,7 @@ sum_areas_test() ->
 	    end,
 
     exit(Client, unit_testing),
-    aftereach().
-
-sum_areas_unknown_shapes_test() ->
-    {ok, _Pid} = start(),
-    Shapes = [{ellipse, 3, 6}],
-    Client = spawn(fun() ->  receive Reply ->
-				      ?assertMatch({reply, {sum_areas, {error, {function_clause, _Detail}}}}, Reply)
-			      after 4 -> exit(timeout) end end),
-
-    sum_areas(Shapes, Client),
-
-    receive after 4 -> ok end,
-    exit(Client, unit_testing),
-    aftereach().
+    {ok, stopped} = stop().
 
 timeout_test() ->
     {ok, _Pid} = start(),
@@ -79,13 +96,19 @@ timeout_test() ->
     sum_areas(Shapes, Client),
 
     exit(Client, unit_testing),
-    aftereach().
+    {ok, stopped} = stop().
 
 when_client_disconnected_server_shutdown_test() ->
     {ok, ServerPid} = start(),
-    {ok, client_connected, Client} = connect_client(spawn(fun() -> receive _ -> ok end end)),
+    {ok, client_connected, Client} = connect_client(spawn(fun() ->
+								  receive _ ->
+									  ok
+								  end
+							  end)),
 
-    receive after 5 -> ok end,
+    receive after 5 ->
+		    ok
+	    end,
 
     exit(Client, unit_testing),
 
@@ -96,7 +119,4 @@ when_client_disconnected_server_shutdown_test() ->
     ?assertNot(is_process_alive(ServerPid)),
     ?assertEqual(undefined, whereis(?math_server)),
 
-    aftereach().
-
-aftereach() ->
-    stop().
+    {error, already_stopped} = stop().
