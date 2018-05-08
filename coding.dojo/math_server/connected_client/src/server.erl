@@ -71,24 +71,22 @@ loop(F) ->
 	stop ->
             exit(shutdown);
 	{request, {sum_areas, Shapes}, Client} ->
-	    handle_sum_areas(F, Shapes, Client),
+	    Result = eval(F, Shapes),
+	    Client ! {reply, {sum_areas, Result}},
 	    loop(F);
 	{request, From, {connect_client, Client}} ->
-	    handle_connect_client(From, Client),
+	    link(Client),
+	    From ! {reply, {connect_client, {ok, client_connected, Client}}},
 	    loop(F)
     after 40000 ->
 	    io:format("Timeout. Server shutdown.~n", []),
 	    exit(timeout)
     end.
 
-handle_sum_areas(F, Shapes, Client) ->
-    case catch F(Shapes) of
-	Areas when is_float(Areas); is_integer(Areas) ->
-	    Client ! {reply, {sum_areas, ok, Areas}};
+eval(Fun, Args) ->
+    case catch Fun(Args) of
+	{'EXIT', Why} ->
+	    {error, Why};
 	Result ->
-	    Client ! {reply, {sum_areas, error, Result}}
+	    {ok, Result}
     end.
-
-handle_connect_client(From, Client) ->
-    link(Client),
-    From ! {reply, {connect_client, {ok, client_connected, Client}}}.

@@ -61,8 +61,7 @@ sum_areas_unknown_shapes_test() ->
     {ok, _Pid} = start(),
     Shapes = [{ellipse, 3, 6}],
     Client = spawn(fun() ->  receive Reply ->
-				      ?assertMatch({reply, {sum_areas, error,  {'EXIT',
-							     {function_clause, _Detail}}}}, Reply)
+				      ?assertMatch({reply, {sum_areas, {error, {function_clause, _Detail}}}}, Reply)
 			      after 4 -> exit(timeout) end end),
 
     sum_areas(Shapes, Client),
