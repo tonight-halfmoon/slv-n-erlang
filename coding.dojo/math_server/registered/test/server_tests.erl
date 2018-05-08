@@ -10,41 +10,43 @@ start_test() ->
 
     ?assert(is_process_alive(whereis(?math_server))),
 
-    aftereach().
+    {ok, stopped} = stop().
 
 already_started_test() ->
     {ok, _Pid} = start(),
 
-    Result = case catch start() of
-		 M ->
-		     M
-	     end,
+    Reply = case catch start() of
+		M ->
+		    M
+	    end,
 
-    ?assertEqual({error, already_started}, Result),
+    ?assertEqual({error, already_started}, Reply),
 
-    aftereach().
+    {ok, stopped} = stop().
 
 stop_test() ->
     {ok, Pid} = start(),
 
-    stop(),
+    {ok, stopped} = stop(),
 
-    receive after 1 -> ok end,
+    receive after 1 ->
+		    ok
+	    end,
 
     ?assertEqual(undefined, whereis(?math_server)),
     ?assertNot(is_process_alive(Pid)),
 
-    aftereach().
+    {error, already_stopped} = stop().
 
 sum_areas_test() ->
     {ok, _Pid} = start(),
     Shapes = [{circle, 3}],
 
-    {ok, Sum} = sum_areas(Shapes),
+    Reply = sum_areas(Shapes),
 
-    aftereach(),
+    {ok, stopped} = stop(),
 
-    ?assertEqual(28.274333882308138, Sum).
+    ?assertEqual({ok, 28.274333882308138}, Reply).
 
 sum_areas_unknown_shapes_test() ->
     {ok, _Pid} = start(),
@@ -53,7 +55,7 @@ sum_areas_unknown_shapes_test() ->
 
     Reply = sum_areas(Shapes),
 
-    aftereach(),
+    {ok, stopped} = stop(),
 
     ?assertMatch({error,
 		  {function_clause, _Detail}}, Reply).
@@ -63,12 +65,9 @@ timeout_test() ->
     Shapes = [{circle, 3}],
     stop(),
 
-    Result = case catch sum_areas(Shapes) of
-		 M ->
-		     M
-	     end,
-
-    ?assertEqual({'EXIT', timeout}, Result).
-
-aftereach() ->
-    stop().
+    Reply = case catch sum_areas(Shapes) of
+		M ->
+		    M
+	    end,
+    
+    ?assertEqual({'EXIT', timeout}, Reply).
