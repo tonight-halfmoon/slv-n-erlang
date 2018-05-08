@@ -14,9 +14,9 @@ sum_areas_test() ->
     Shapes = [{circle, 3}, {rectangle, 4, 6}],
     {ok, _Pid} = start(),
 
-    Result = sum_areas(Shapes),
+    Reply = sum_areas(Shapes),
 
-    ?assertEqual({ok, 52.27433388230814}, Result),
+    ?assertEqual({ok, 52.27433388230814}, Reply),
 
     {ok, stopped} = stop().
 
@@ -25,7 +25,10 @@ stop_test() ->
 
     {ok, stopped} = stop(),
 
-    receive after 1 -> ok end,
+    receive after 1 ->
+		    ok
+	    end,
+
     ?assertNot(is_process_alive(Pid)),
 
     {error, already_stopped} = stop().
@@ -34,16 +37,16 @@ sum_areas_unknown_shapes_test() ->
     {ok, _Pid} = start(),
     Shapes = [{ellipse, 3, 3}],
 
-    Result = sum_areas(Shapes),
+    Reply = sum_areas(Shapes),
 
-    ?assertMatch({error, {function_clause, _Detail}}, Result),
+    ?assertMatch({error, {function_clause, _Detail}}, Reply),
 
     {ok, stopped} = stop().
 
 server_keep_alive_test() ->
     {ok, Pid} = start(),
 
-    Pid ! crash,
+    Pid ! intented_crash,
 
     ?assert(is_process_alive(whereis(?math_server))),
 

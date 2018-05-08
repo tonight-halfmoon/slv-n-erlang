@@ -42,7 +42,7 @@ loop(F) ->
 	    loop(F);
 	stop ->
 	    exit(normal);
-	crash ->
+	intented_crash ->
 	    exit(intended_crash);
 	_M ->
 	    loop(F)
@@ -56,18 +56,18 @@ eval(Fun, Args) ->
 	    {ok, Result}
     end.
 
-on_exit(Pid, F) ->
-    spawn( fun() ->
-    process_flag(trap_exit, true),
-    link(Pid),
-    receive
-	{'EXIT', Pid, Why} ->
-	    F(Why),
-	    exit(normal);
-	M ->
-	    M
-    end
-	   end).
+on_exit(Pid, Fun) ->
+    spawn(fun() ->
+		  process_flag(trap_exit, true),
+		  link(Pid),
+		  receive
+		      {'EXIT', Pid, Why} ->
+			  Fun(Why),
+			  exit(normal);
+		      M ->
+			  M
+		  end
+	  end).
 
 keep_alive(intended_crash) ->
     start();
