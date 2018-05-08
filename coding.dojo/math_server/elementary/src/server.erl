@@ -27,10 +27,10 @@ loop(F) ->
 	    ok
     end.
 
-eval(F, Shapes) ->
-    case catch F(Shapes) of
+eval(Fun, Args) ->
+    case catch Fun(Args) of
 	{'EXIT', Why} ->
 	    {error, Why};
-	Sum ->
-	    {ok, Sum}
+	Result ->
+	    {ok, Result}
     end.
