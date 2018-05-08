@@ -48,12 +48,12 @@ loop(F) ->
 	    loop(F)
     end.
 
-eval(F, Shapes) ->
-    case catch F(Shapes) of
+eval(Fun, Args) ->
+    case catch Fun(Args) of
 	{'EXIT', Why} ->
 	    {error, Why};
-	Sum ->
-	    {ok, Sum}
+	Result ->
+	    {ok, Result}
     end.
 
 on_exit(Pid, F) ->
