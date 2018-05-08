@@ -61,9 +61,9 @@ loop(F) ->
 	stop ->
             exit(shutdown);
 	{request, From, {sum_areas, Shapes}} ->
-	    case handle_sum_areas(F, Shapes) of
-		{ok, Sum}->
-		    From ! {reply, {sum_areas, ok, Sum}},
+	    case eval(F, Shapes) of
+		{ok, Result}->
+		    From ! {reply, {sum_areas, ok, Result}},
 		    loop(F);
 		{error, Why}->
 		    From ! {reply, {sum_areas, error, Why}},
@@ -74,10 +74,10 @@ loop(F) ->
 	    exit(timeout)
     end.
 
-handle_sum_areas(F, Shapes) ->
-    case catch F(Shapes) of
+eval(Fun, Args) ->
+    case catch Fun(Args) of
 	{'EXIT', Why} ->
 	    {error, Why};
-	Sum ->
-	    {ok, Sum}
+	Result ->
+	    {ok, Result}
     end.
