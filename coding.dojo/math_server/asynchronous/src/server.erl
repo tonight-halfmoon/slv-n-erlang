@@ -7,7 +7,7 @@ start() ->
     {ok, Pid}.
 
 sum_areas(Shapes, ServerPid) ->
-    Pid = spawn(?MODULE, async_client, [self(), Shapes, ServerPid]),
+    Pid = spawn(?MODULE, async_client, [self(), {sum_areas, Shapes}, ServerPid]),
     {ok, Pid}.
 
 stop(ServerPid) ->
@@ -24,16 +24,16 @@ loop(F) ->
 	    ok
     end.
 
-eval(F, Shapes) ->
-    case catch F(Shapes) of
+eval(Fun, Args) ->
+    case catch Fun(Args) of
 	{'EXIT', Why} ->
 	    {error, Why};
-	Sum ->
-	    {ok, Sum}
+	Result ->
+	    {ok, Result}
     end.
 
-async_client(ClientPid, Shapes, ServerPid) ->
-    ServerPid ! {request, self(), {sum_areas, Shapes}},
+async_client(ClientPid, Request, ServerPid) ->
+    ServerPid ! {request, self(), Request},
     receive
 	{reply, ServerPid, Result} ->
 	    ClientPid ! Result,
