@@ -56,8 +56,7 @@ sum_areas_unknown_shapes_test() ->
     aftereach(),
 
     ?assertMatch({error,
-		  {'EXIT',
-		   {function_clause, _Detail}}}, Reply).
+		  {function_clause, _Detail}}, Reply).
 
 timeout_test() ->
     {ok, _Pid} = start(),

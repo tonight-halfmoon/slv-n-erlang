@@ -61,15 +61,23 @@ loop(F) ->
 	stop ->
             exit(shutdown);
 	{request, From, {sum_areas, Shapes}} ->
-	    case catch F(Shapes) of
-		Sum when is_float(Sum); is_integer(Sum) ->
+	    case handle_sum_areas(F, Shapes) of
+		{ok, Sum}->
 		    From ! {reply, {sum_areas, ok, Sum}},
 		    loop(F);
-		Result ->
-		    From ! {reply, {sum_areas, error, Result}},
+		{error, Why}->
+		    From ! {reply, {sum_areas, error, Why}},
 		    loop(F)
 	    end
     after 40000 ->
 	    io:format("Timeout. Server shutdown.~n", []),
 	    exit(timeout)
+    end.
+
+handle_sum_areas(F, Shapes) ->
+    case catch F(Shapes) of
+	{'EXIT', Why} ->
+	    {error, Why};
+	Sum ->
+	    {ok, Sum}
     end.
