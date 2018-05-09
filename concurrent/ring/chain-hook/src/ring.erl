@@ -1,11 +1,25 @@
 -module(ring).
--export([spawn_node/0, spawn_next/1, parent_of/1,
+-export([start/2,
 	 init/1,
-	 send_message/3, fetch_message/1, send_quit_message/1,
-	 start/2]).
+	 send_message/3, fetch_message/1, send_quit_message/1]).
 
 -define(NOTEST, true).
 -include_lib("eunit/include/eunit.hrl").
+
+start(N, Message) ->
+    Nodes = start(N, 0, []),
+    send_message(self(), _First = hd(Nodes), Message),
+    Nodes.
+
+start(0, 0, Nodes) ->
+    First = lists:last(Nodes),
+    set_parent(First, hd(Nodes)),
+    Nodes;
+start(N, I, []) ->
+    start(N - 1, I, [spawn_node({client, self()})]);
+start(N, I, Nodes = [H|_]) ->
+    NextNode = spawn_node(H),
+    start(N -1, I, [NextNode|Nodes]).
 
 spawn_node() ->
     spawn_node({client, self()}).
@@ -31,22 +45,7 @@ send_quit_message(To) ->
     To ! quit.
 
 send_message(From, To, Message) ->
-    To ! {mailbox, From, Message}.
-
-start(N, Message) ->
-    Nodes = start(N, 0, []),
-    send_message(self(), _First = hd(Nodes), Message),
-    Nodes.
-
-start(0, 0, Nodes) ->
-    First = lists:last(Nodes),
-    set_parent(First, hd(Nodes)),
-    Nodes;
-start(N, I, []) ->
-    start(N - 1, I, [spawn_node({client, self()})]);
-start(N, I, Nodes = [H|_]) ->
-    NextNode = spawn_node(H),
-    start(N -1, I, [NextNode|Nodes]).
+    To ! {new_message, From, Message}.
 
 spawn_node({client, _Pid}) ->
     spawn(?MODULE, init, [root]);
@@ -65,7 +64,7 @@ loop({Parent, Mailbox} = State) ->
 	{your_parent, From} ->
 	    From ! {reply, Parent},
 	    loop(State);
-	{mailbox, _From, NewMessage} ->
+	{new_message, _From, NewMessage} ->
 	    send_message(self(), Parent, NewMessage),
 	    NewState = {Parent, NewMessage},
 	    loop(NewState);
