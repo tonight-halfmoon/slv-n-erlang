@@ -23,10 +23,11 @@ stop_test() ->
     {ok, Pid} = start(),
 
     {ok, stopped} = stop(Pid),
-
+    
     receive after 1 ->
 		    ok
 	    end,
+
     ?assertNot(is_process_alive(Pid)),
 
     {ok, stopped} = stop(Pid).
