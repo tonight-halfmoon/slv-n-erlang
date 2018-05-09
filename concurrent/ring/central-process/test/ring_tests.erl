@@ -2,7 +2,7 @@
 -include_lib("eunit/include/eunit.hrl").
 -import(ring, [start/2, spawn_node/0, send_message/3, fetch_message/1]).
 
-start_n_nodes_test() ->
+start_ring_n_nodes_test() ->
     N = 3,
     M = initial_message,
 
@@ -25,7 +25,7 @@ node_send_message_to_node_test() ->
     Reply = fetch_message(NodePid2),
     ?assertEqual({Message, NodePid}, Reply).
 
-node_send_quit_message_to_recv_node_then_recv_node_die_test() ->
+when_node_receive_quit_message_then_the_node_terminate_test() ->
     NodePid = spawn_node(),
     NodePid2 = spawn_node(),
 
@@ -34,7 +34,7 @@ node_send_quit_message_to_recv_node_then_recv_node_die_test() ->
     receive after 50 -> ok end,
     ?assertNot(is_process_alive(NodePid2)).
 
-message_being_sent_around_the_ring_test() ->
+send_message_around_the_ring_test() ->
     Message = initial_message,
     N = 3,
     Nodes = start(N, Message),
@@ -49,7 +49,7 @@ message_being_sent_around_the_ring_test() ->
     ?assertMatch({Message, SendNode} when SendNode == FirstNode, ReplyFromSecondNode),
     ?assertMatch({Message, SendNode} when SendNode == SecondNode, ReplyFromLastNode).
 
-terminate_gracefully_when_ring_nodes_receive_a_quit_message_test() ->
+when_ring_nodes_receive_a_quit_message_then_they_terminate_gracefully_test() ->
     Message = initial_message,
     N = 3,
     Nodes = start(N, Message),
