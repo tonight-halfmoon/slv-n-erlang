@@ -4,7 +4,7 @@
 
 start_ring_N_nodes_and_send_M_message_around_and_terminate_all_nodes_gracefully_test() ->
     Message = initial_message,
-    {ok, noreply, Nodes} = start(3, 3, Message),
+    {ok, Nodes} = start(3, 3, Message),
 
     receive after 1 ->
 		    ok

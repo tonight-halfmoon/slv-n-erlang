@@ -7,7 +7,7 @@ start(M, N, Message) ->
     Nodes = spawn_nodes(N, 0, []),
     Reordered = [H|_] = lists:reverse(Nodes),
     send_messages(M, H, Message),
-    {ok, noreply, Reordered}.
+    {ok, Reordered}.
 
 stop(First) ->
     First ! {quit, self()},
