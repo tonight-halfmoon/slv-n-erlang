@@ -1,8 +1,6 @@
 -module(ring).
 -export([start/2, stop/1, fetch_message/1,
-	 loop/1]).
-
--record(state, {message, from = undefined}).
+	 loop/2]).
 
 start(N, M) ->
     Nodes = start(N, 0, [], M),
@@ -32,22 +30,21 @@ start(N, I, Nodes = [H|_], M) ->
     H ! {new_message, Node, M},
     start(N - 1, I, [Node|Nodes], M).
 
-loop(State = #state{message = Message, from = PrevNode}) ->
+loop(Previous, Message) ->
     receive
 	{fetch_message, From} ->
-	    From ! {reply, self(),  {Message, PrevNode}},
-	    loop(State);
+	    From ! {reply, self(),  {Message, Previous}},
+	    loop(Previous, Message);
 	{new_message, Node, NewMessage} ->
-	    NewState = #state{message= NewMessage, from = Node},
-	    loop(NewState);
+	    loop(Node, NewMessage);
 	quit ->
-	    case PrevNode of
+	    case Previous of
 		undefined ->
 		    ok;
 		Pid when is_pid(Pid) ->
-		    PrevNode ! quit
+		    Previous ! quit
 	    end
     end.
 
 spawn_node() ->
-    spawn(?MODULE, loop, [#state{}]).
+    spawn(?MODULE, loop, [undefined, []]).
