@@ -20,10 +20,9 @@ fetch_message(Node) ->
 
 setup_ring(N) ->
     Nodes = spawn_nodes(N, 0, []),
-    Last = hd(Nodes),
     Reversed = [H|_] = lists:reverse(Nodes),
-    H ! {set_next, Last},
-    {Last, Reversed}.
+    H ! {set_next, hd(Nodes)},
+    {H, Reversed}.
 
 spawn_nodes(0, 0, Nodes) ->
     Nodes;
