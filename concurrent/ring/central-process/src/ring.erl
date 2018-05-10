@@ -11,23 +11,28 @@ stop(Node) ->
     Node ! quit,
     {ok, noreply}.
 
-fetch_message(NodePid) ->
-    NodePid ! {fetch_message, self()},
+fetch_message(Node) ->
+    Node ! {fetch_message, self()},
     receive
 	{reply, Message} ->
 	    Message
     end.
 
+setup_ring(N) ->
+    Nodes = spawn_nodes(N, 0, []),
+    Last = hd(Nodes),
+    Reversed = [H|_] = lists:reverse(Nodes),
+    H ! {set_next, Last},
+    {Last, Reversed}.
+
 spawn_nodes(0, 0, Nodes) ->
     Nodes;
 spawn_nodes(N, I, []) ->
-    spawn_nodes(N - 1, I, [spawn_node(undefined)]);
-spawn_nodes(N, I, Nodes = [H|_]) ->
-    Next = spawn_node(H),
-    spawn_nodes(N -1, I, [Next|Nodes]).
-
-spawn_node(Args) ->
-    spawn(?MODULE, init, [Args]).
+    Node = spawn(?MODULE, init, [undefined]),
+    spawn_nodes(N - 1, I, [Node]);
+spawn_nodes(N, I, Nodes = [H|_T]) ->
+    Next = spawn(?MODULE, init, [H]),
+    spawn_nodes(N - 1, I, [Next|Nodes]).
 
 init(undefined) ->
     loop({undefined, []});
@@ -36,7 +41,7 @@ init(Pid) when is_pid(Pid) ->
 
 loop({Next, Messages} = State) ->
     receive
-	{send_message, Message} ->
+	{send_message, Message, _from} ->
 	    Next ! {new_message, {Message, self()}},
 	    loop(State);
 	{new_message, {Message, Node}} when Node == self() ->
@@ -58,11 +63,10 @@ loop({Next, Messages} = State) ->
 		    ok;
 	    	Pid when is_pid(Pid) ->
 		    Next ! quit
-	    end
+	    end;
+	_M ->
+	    ok
     end.
-
-set_next(Node, Next) ->
-    Node ! {set_next, Next}.
 
 send_messages(M, Node, Message) ->
     send_message(M, 0, Node, Message).
@@ -70,12 +74,5 @@ send_messages(M, Node, Message) ->
 send_message(M, M, _Node, _Message) ->
     {ok, noreply};
 send_message(M, I, Node, Message) ->
-    Node ! {send_message, Message},
+    Node ! {send_message, Message, self()},
     send_message(M, I + 1, Node, Message).
-
-setup_ring(N) ->
-    Nodes = spawn_nodes(N, 0, []),
-    Last = hd(Nodes),
-    Reversed = [H|_] = lists:reverse(Nodes),
-    set_next(H, Last),
-    {Last, Reversed}.
