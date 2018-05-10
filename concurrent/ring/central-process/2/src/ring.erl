@@ -3,12 +3,9 @@
 	 init/1]).
 
 start(M, N, Message) ->
-    Nodes = spawn_nodes(N, 0, []),
-    Reordered = [H|_] = lists:reverse(Nodes),
-    Last = hd(Nodes),
-    set_next(H, Last),
-    send_messages(M, Last, Message),
-    {ok, Reordered}.
+    {Last, Nodes} = setup_ring(N),
+    {ok, noreply} = send_messages(M, Last, Message),
+    {ok, Nodes}.
 
 stop(Node) ->
     Node ! quit,
@@ -71,7 +68,14 @@ send_messages(M, Node, Message) ->
     send_message(M, 0, Node, Message).
 
 send_message(M, M, _Node, _Message) ->
-    ok;
+    {ok, noreply};
 send_message(M, I, Node, Message) ->
     Node ! {send_message, Message},
     send_message(M, I + 1, Node, Message).
+
+setup_ring(N) ->
+    Nodes = spawn_nodes(N, 0, []),
+    Last = hd(Nodes),
+    Reversed = [H|_] = lists:reverse(Nodes),
+    set_next(H, Last),
+    {Last, Reversed}.
