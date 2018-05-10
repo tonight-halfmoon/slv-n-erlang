@@ -8,11 +8,11 @@ start_ring_N_nodes_and_send_M_message_around_and_terminate_all_nodes_gracefully_
     Message = initial_message,
     {ok, Nodes} = start(M, N, Message),
 
+    ExpectedMessages = [Message || _X <- lists:seq(1, M)],
+
     receive after 1 ->
 		    ok
 	    end,
-
-    ExpectedMessages = [Message || _X <- lists:seq(1, M)],
 
     lists:foreach(fun(Next) ->
 			  ?assertEqual(ExpectedMessages, fetch_message(Next)) end, Nodes),
