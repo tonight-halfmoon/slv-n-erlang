@@ -1,11 +1,14 @@
 -module(ring).
--export([start/2, stop/1, fetch_message/1,
+-export([start/3, stop/1, fetch_message/1,
 	 init/1]).
 
-start(N, Message) ->
-    Nodes = start(N, 0, []),
-    hd(Nodes) ! {new_message, self(), Message},
-    {ok, Nodes}.
+start(M, N, Message) ->
+    Nodes = spawn_nodes(N, 0, []),
+    Reordered = [H|_] = lists:reverse(Nodes),
+    Last = hd(Nodes),
+    set_next(H, Last),
+    send_messages(M, Last, Message),
+    {ok, Reordered}.
 
 stop(Node) ->
     Node ! quit,
@@ -18,45 +21,57 @@ fetch_message(NodePid) ->
 	    Message
     end.
 
-start(0, 0, Nodes) ->
-    First = lists:last(Nodes),
-    set_parent(First, hd(Nodes)),
+spawn_nodes(0, 0, Nodes) ->
     Nodes;
-start(N, I, []) ->
-    start(N - 1, I, [spawn_node({client, self()})]);
-start(N, I, Nodes = [H|_]) ->
+spawn_nodes(N, I, []) ->
+    spawn_nodes(N - 1, I, [spawn_node(undefined)]);
+spawn_nodes(N, I, Nodes = [H|_]) ->
     NextNode = spawn_node(H),
-    start(N -1, I, [NextNode|Nodes]).
+    spawn_nodes(N -1, I, [NextNode|Nodes]).
 
-spawn_node({client, _Pid}) ->
-    spawn(?MODULE, init, [undefined]);
-spawn_node(ParentPid) ->
-    spawn(?MODULE, init, [ParentPid]).
+spawn_node(Args) ->
+    spawn(?MODULE, init, [Args]).
 
 init(undefined) ->
-    loop({self(), undefiend});
+    loop({{head, undefined}, []});
 init(Pid) when is_pid(Pid) ->
-    loop({Pid, undefined}).
+    loop({{link, Pid}, []}).
 
-loop({Parent, LastMessage} = State) ->
+loop({{Type, Next} = Node, Messages} = State) ->
     receive
 	{new_message, _From, NewMessage} ->
-	    Parent ! {new_message, self(), NewMessage},
-	    NewState = {Parent, NewMessage},
-	    loop(NewState);
+	    case Node of
+		{head, Next} ->
+		    NewState = {{head, Next}, [NewMessage|Messages]},
+		    loop(NewState);
+		{link, Next} ->
+		    NewState = {{Type, Next}, [NewMessage|Messages]},
+		    Next ! {new_message, self(), NewMessage},
+		    loop(NewState)
+	    end;
 	{fetch_message, From} ->
-	    From ! {reply, LastMessage},
+	    From ! {reply, Messages},
 	    loop(State);
-	{set_parent, NewParent} ->
-	    loop({NewParent, LastMessage});
+	{set_next, NewNext} ->
+	    NewState = {{Type, NewNext}, Messages},
+	    loop(NewState);
 	quit ->
-	    case Parent of
+	    case Next of
 		undefined ->
 		    ok;
 	    	Pid when is_pid(Pid) ->
-	    	    Parent ! quit
+		    Next ! quit
 	    end
     end.
 
-set_parent(Node, Parent) ->
-    Node ! {set_parent, Parent}.
+set_next(Node, Next) ->
+    Node ! {set_next, Next}.
+
+send_messages(M, Node, Message) ->
+    send_message(M, 0, Node, Message).
+
+send_message(M, M, _Node, _Message) ->
+    ok;
+send_message(M, I, Node, Message) ->
+    Node ! {new_message, self(), Message},
+    send_message(M, I + 1, Node, Message).

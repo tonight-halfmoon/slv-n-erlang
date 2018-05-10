@@ -1,19 +1,26 @@
 -module(ring_tests).
 -include_lib("eunit/include/eunit.hrl").
--import(ring, [start/2, stop/1, fetch_message/1]).
+-import(ring, [start/3, stop/1, fetch_message/1]).
 
-start_ring_N_nodes_and_send_a_message_around_and_terminate_all_nodes_gracefully_test() ->
-    N = 5,
-    Message = "hello",
-    {ok, Nodes} = start(N, Message),
+start_ring_N_nodes_and_send_M_messages_around_and_terminate_all_nodes_gracefully_test() ->
+    N = 4,
+    M = 3,
+    Message = initial_message,
+    {ok, Nodes} = start(M, N, Message),
+
+    ExpectedMessages = [Message || _X <- lists:seq(1, M)],
+
+    receive after 1 ->
+		    ok
+	    end,
 
     lists:foreach(fun(Next) ->
-			  ?assertEqual(Message, fetch_message(Next))
+			  ?assertEqual(ExpectedMessages, fetch_message(Next))
 		  end, Nodes),
 
     {ok, noreply} = stop(hd(Nodes)),
 
-    receive after 50 ->
+    receive after 1 ->
 		    ok
 	    end,
 
