@@ -1,0 +1,4 @@
+  Data = io:get_line(""),
+    %io:format("~s~n", [Data]),
+    L = lists:map(fun erlang:list_to_integer/1, string:tokens(string:strip(Data, right, $\n), " ")),
+    

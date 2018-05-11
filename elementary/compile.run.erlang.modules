@@ -1,0 +1,8 @@
+
+erlc module.erl
+erl -noshell -s module function -s init stop
+
+
+%% compile all erlang modules (*.erl)
+$ erl -make
+

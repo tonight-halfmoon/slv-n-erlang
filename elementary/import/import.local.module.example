@@ -1,0 +1,1 @@
+%-import(stack, [pop/1,push/2]).

@@ -1,0 +1,1 @@
+o:fwrite("Step:~w, GCD:~w, Divisor:~w, Cdvs:~w~n", [Nex_step,GCD,Divisor,Cdvs]),

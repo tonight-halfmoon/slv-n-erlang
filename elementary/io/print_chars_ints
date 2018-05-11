@@ -1,0 +1,7 @@
+print_output([]) -> io:fwrite("~n");
+print_output(L) when is_list(L) ->
+    [H|T] = L,
+    print_output(H),
+    print_output(T);
+print_output(X) ->
+    io:fwrite("~c", [X]).	

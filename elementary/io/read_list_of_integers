@@ -1,0 +1,8 @@
+
+read_list(_) ->
+    case io:get_line("") of
+         eof ->
+            [];
+        Line ->
+            lists:map(fun erlang:list_to_integer/1,string:tokens(Line,"\r\n\t "))
+    end.

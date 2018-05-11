@@ -1,0 +1,2 @@
+-define(server, resa_server).
+-define(stats, stats_provider).

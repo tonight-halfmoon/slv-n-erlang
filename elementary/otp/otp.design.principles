@@ -1,0 +1,13 @@
+The OTP design principles define how to structure Erlang code in terms of processes, modules, and directories.
+
+Supervision Trees
+A basic concept in Erlang/OTP is the supervision tree. This is a process structuring model based on the idea of workers and supervisors.
+- Workers are processes that perform computations, that is, they do the actual work.
+
+- Supervisors are processes that monitor the behaviour of workers. A supervisor can restart a worker if something goes wrong.
+
+- The supervisoin tree is a hierarchical arrangement of code into supervisords and workers, which makes it possible to design and program fault-tolerant software.
+
+Behaviours are formalizations of these common patterns. The idea is to divide the code for a process in a generic part (a behaviour module) and a specific part (a callback module).
+
+

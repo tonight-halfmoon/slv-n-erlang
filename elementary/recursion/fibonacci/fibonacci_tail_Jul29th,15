@@ -1,0 +1,9 @@
+-module(fibonacci_tail).
+-export([tail_fib/1]).
+
+tail_fib(N) -> tail_fib(N, 0, 1).
+
+tail_fib(0, Acc2, Acc1) -> Acc1;
+tail_fib(1, Acc2, Acc1) -> Acc1;
+
+tail_fib(N, Acc2, Acc1) -> tail_fib(N - 1, Acc2, Acc2 + Acc1). 

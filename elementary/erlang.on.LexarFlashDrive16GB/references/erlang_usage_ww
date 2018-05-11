@@ -1,0 +1,28 @@
+Many companies are using Erlang in their production systems:
+
+• Amazon uses Erlang to implement SimpleDB, providing database services as a part of the Amazon Elastic Compute Cloud (EC2).
+
+• Yahoo! uses it in its social bookmarking service, Delicious, which has more than 5 million users and 150 million bookmarked URLs.
+
+• Facebook uses Erlang to power the backend of its chat service, handling more than 100 million active users.
+
+• WhatsApp uses Erlang to run messaging servers, achieving up to 2 million connected users per server.
+
+• T-Mobile uses Erlang in its SMS and authentication systems.
+
+• Motorola is using Erlang in call processing products in the public-safety industry.
+
+• Ericsson uses Erlang in its support nodes, used in GPRS and 3G mobile networks worldwide.
+
+
+The most popular open source Erlang applications include the following:
+
+• The 3D subdivision modeler Wings 3D, used to model and texture polygon meshes.
+
+• The Ejabberd system, which provides an Extensible Messaging and Presence Protocol (XMPP) based instant messaging (IM) application server.
+
+• The CouchDB “schema-less” document-oriented database, providing scalability across multicore and multiserver clusters.
+
+• The MochiWeb library that provides support for building lightweight HTTP servers. It is used to power services such as MochiBot and MochiAds, which serve dynamically generated content to millions of viewers daily.
+
+• RabbitMQ, an AMQP messaging protocol implementation. AMQP is an emerging standard for high-performance enterprise messaging.

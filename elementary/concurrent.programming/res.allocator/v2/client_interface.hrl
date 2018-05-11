@@ -1,0 +1,3 @@
+-define(server_node, resa_server@localhost).
+-define(client_name, resa_client).
+-record(attempt2free, {resource}).

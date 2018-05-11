@@ -1,0 +1,3 @@
+{ok, [Str]} = io:fread("", "~s"),
+io:fwrite("~s~n", [Str]),
+    

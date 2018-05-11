@@ -1,0 +1,27 @@
+with this way to print 
+%lists:map(fun(X) -> io:format("~c", [X]) end, str_mngl(P,Q)),
+    
+Test Case #0:   0.13s Test Case #1:   0.13s Test Case #2:   0.13s Test Case #3:   0.13s Test Case #4:   0.13s Test Case #5:   0.16s Test Case #6:   0.2s Test Case #7:   0.49s Test Case #8:   0.99s Test Case #9:   8.38s Test Case #10:   12s
+
+But with the way: 
+io:fwrite("~s", [str_mngl(P,Q)]),
+Test Case #0:   0.12s Test Case #1:   0.12s Test Case #2:   0.12s Test Case #3:   0.12s Test Case #4:   0.12s Test Case #5:   0.12s Test Case #6:   0.12s Test Case #7:   0.17s Test Case #8:   0.33s Test Case #9:   4.99s Test Case #10:   12s
+
+Because I was adding to the tail the previous two submissions did not succeed!
+so, I fixed that and the code succeeded with the following time profiles for test cases
+using lists:reverse(L) 
+Test Case #0:   0.13s Test Case #1:   0.12s Test Case #2:   0.12s Test Case #3:   0.13s Test Case #4:   0.12s Test Case #5:   0.12s Test Case #6:   0.12s Test Case #7:   0.14s Test Case #8:   0.13s Test Case #9:   0.16s Test Case #10:   0.21s
+
+I replaced lists:reverse(L) with my tail reverse function 
+and the timing different with +/- 0.01 s
+Test Case #0:   0.12s Test Case #1:   0.12s Test Case #2:   0.12s Test Case #3:   0.12s Test Case #4:   0.13s Test Case #5:   0.12s Test Case #6:   0.14s Test Case #7:   0.13s Test Case #8:   0.13s Test Case #9:   0.17s Test Case #10:   0.21s
+
+I modified a bit my reverse function to handle 3 heads at a time 
+and the output was (+0.01 s compared to the former one) and (+0.02 s compared with lists:reverse(L)) for each each Test case but not the last one
+
+Test Case #0:   0.12s Test Case #1:   0.13s Test Case #2:   0.13s Test Case #3:   0.12s Test Case #4:   0.13s Test Case #5:   0.13s Test Case #6:   0.12s Test Case #7:   0.13s Test Case #8:   0.14s Test Case #9:   0.18s Test Case #10:   0.21s
+
+
+I removed all the 3-head patterns from str_mngl and also from my reverse implementation 
+and the result was better for both Test Case # 7 and Test Case # 10 by -0.02s  and -0.01 respectively!
+Test Case #0:   0.12s Test Case #1:   0.12s Test Case #2:   0.11s Test Case #3:   0.13s Test Case #4:   0.12s Test Case #5:   0.12s Test Case #6:   0.12s Test Case #7:   0.12s Test Case #8:   0.13s Test Case #9:   0.16s Test Case #10:   0.2s

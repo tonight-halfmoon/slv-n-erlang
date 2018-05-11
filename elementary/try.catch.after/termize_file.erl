@@ -1,0 +1,20 @@
+-module(termize_file).
+-export([start/1]).
+
+start(Name) ->
+    {ok, F} = file:open(Name, [read, binary]),
+    try
+	throw(throw_no_reason),
+	exit(no_reason),
+	{ok, Bin} = file:read(F, 1024*1024),
+	binary_to_term(Bin)
+    catch
+	error:Reason ->
+	    io:fwrite("sad: ~w~n", [Reason]);
+	exit:Reason ->
+	    io:fwrite("bad: ~w~n", [Reason]);
+	throw:Term ->
+	    io:fwrite("I threw it! ~w~n", [Term])
+    after
+	file:close(F)
+    end.

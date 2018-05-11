@@ -1,0 +1,15 @@
+1> timer:tc(Module, Func, [Argument-list]).
+
+Exapmle:
+
+1> timer:tc(fact,fact,[5]).
+{microseconds, output}
+
+
+
+%%
+%  Profiling
+%  {Microseconds, Perms} = timer:tc(integerperms_4, intperms, [19876]), 
+%    io:fwrite("Execution Time: ~w microseconds~n", [Microseconds]),
+%    io:fwrite("Execution Time: ~w seconds~n", [(Microseconds*1000000)]),
+%%

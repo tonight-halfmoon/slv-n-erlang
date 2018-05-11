@@ -1,0 +1,41 @@
+
+%% Pid = spawn(Module, FunctionName, ArgumentList)
+
+Instead of evaluating the function, however, and returning the result as in apply, spawn/3 creates a new concurrent process to evaluate the function and returns the Pid (process identifier) of the newly created process.
+
+The call to spawn/3 returns immediately when the new process has been created and does not wait for the given function to evaluate.
+
+Security in an ERLANG system is based on restricting the spread of the Pid of a process.
+
+A process will automatically terminate when the evaluation of the function given in the call to spawn has been completed. The return value from this top-level function is lost.
+
+A process identifier is a valid data object and can be manipulated like any other object. For example, it can be stored in a list or tuple, compared to other identifiers, or sent in message to other processes.
+
+In Erlang the only form of communication between processes is by message passing. A message is sent to another process by the primitive '!' (send):
+
+   Pid ! Message
+
+
+   receive
+	Message1 [when Guard1] ->
+		 Actions1 ;
+	Message2 [when Guard2] ->
+		 Actions2 ;
+	...
+   end
+
+Each process has a mailbox and all messages which are sent to the process are stored in the mailbox in the same order as they arrive.
+
+
+The process evaluating receive will be suspended until a message is matched.
+
+Erlang has a selective receive mechanism, thus no message arriving unexpectedly at a process can block other messages to that process. However, as any messges not matched by receive are left in the mailbox, it is the programmer's responsibility to make sure that the system does not fill up with such messages.
+
+
+Pid ! {self(), abc}
+which send a message that explicitly contains the sender's process identifier. The BIF self() returns the identifier of the calling process. This could be received by:
+
+      receive
+	{Pid, Msg} ->
+	      ...
+      end

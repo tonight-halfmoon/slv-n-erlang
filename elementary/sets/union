@@ -1,0 +1,1 @@
+    %UNION= [sets:to_list(sets:union(sets:from_list(P), sets:from_list(Xs)))|U],

@@ -1,0 +1,12 @@
+%% active() ->
+%%     io:format("self(): ~p~n", [self()]),
+%%     receive 
+%% 	{'EXIT', FromPid, Reason} ->
+%% 	    io:format("received 'EXIT' from Pid: ~p with message: ~p~n", [FromPid, Reason]);
+%% 	M ->
+%% 	    io:format("received: ~p~n", [M])
+%%     after 6000 ->
+%%            exit(timeout)
+%%     end,
+%%     active().
+

@@ -1,0 +1,2 @@
+unicode:characters_to_list(File, unicode).
+unicode:characters_to_list([65], unicode). % => "A"

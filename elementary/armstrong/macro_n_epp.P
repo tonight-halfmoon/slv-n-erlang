@@ -1,0 +1,12 @@
+-file("macro_n_epp.erl", 1).
+
+-module(macro_n_epp).
+
+-export([what/0]).
+
+what() ->
+    9,
+    thisisareplacementofmacro1.
+
+
+

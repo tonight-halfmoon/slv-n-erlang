@@ -1,0 +1,37 @@
+
+To run the unit test on a module
+> eunit:test(Module).
+
+%% with extra tests module 
+
+> eunit:test([add, add_tests], [verbose]).
+
+
+exapmle:
+
+1> eunit:test(integerperms_4).
+
+to add test cases to erlang source module
+-include_lib("eunit/include/eunit.hrl").
+
+some_funtion_test() ->
+ ?assertEqual(1,1).
+
+
+%%% you have add.erl which defines 'add' module
+%%% and ypou have add_tests.erl which defines tests for 'add' module, then
+
+eunit:test([add, add_tests], [{report,{eunit_surefire,[{dir,"."}]}}]).
+eunit:test({inparallel, add, [verbose]}).
+
+%% with Option verbose
+eunit:test([add, add_tests], [{report,{eunit_surefire,[{dir,"."}]}}, verbose]).
+%%% or
+eunit:test(add, [verbose]).
+
+
+%%% in parallel
+eunit:test([{inparallel, add}, add_tests], [{report,{eunit_surefire,[{dir,"."}]}}, verbose]).
+
+
+  {"", ?_assertEqual(fun() -> eunit:any() end, add(eunit:any(),eunit:any()))},

@@ -1,0 +1,3 @@
+-define(server, resource_alloc).
+-define(handler, handler).
+-define(stats, stats_provider).

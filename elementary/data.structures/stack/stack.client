@@ -1,0 +1,8 @@
+#!/usr/bin/env escript
+
+%%% Expects only integers 
+%%% TODO consume different data types
+main([A,B]) ->
+    Elm = list_to_integer(A),
+    Tokens = lists:map(fun (X) -> list_to_integer(X) end, string:tokens(B, "[],")),
+    io:format("~w~n", [client:use_push(Elm, Tokens)]).
