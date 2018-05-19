@@ -34,7 +34,7 @@ Execute `erl -make`
 
 ## Application on Asynchronous Communication
 
-It is shown with the last Test Case of module [`ait.erl`](./integration.test/ait.erl) how a GenRs client could request GenRS server and then receive the response from a RabbitMQ queue.
+It is shown with the last Test Case of module [`ait.erl`](./integration.test/test/ait.erl) how a GenRs client could request GenRS server and then receive the response from a RabbitMQ queue.
 
 ## Application to Concurrency
 
