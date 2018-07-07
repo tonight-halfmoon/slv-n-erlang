@@ -1,20 +1,54 @@
 -module(server_tests).
 -include_lib("eunit/include/eunit.hrl").
--import(server, [start/0, sum_areas/2]).
+-import(server, [start/0, stop/1,
+		 sum_areas/2,
+		 async_sum_areas/2]).
 
 start_test() ->
-    {ok, ServerPid} = start(),
+    {ok, Pid} = start(),
 
-    ?assertMatch(Pid when is_pid(Pid), ServerPid),
-    ?assertEqual(true, is_process_alive(ServerPid)).
+    ?assert(is_process_alive(Pid)),
+
+    {ok, stopped} = stop(Pid).
+
+sum_areas_test() ->
+    Shapes = [{circle, 3}, {rectangle, 3, 4}],
+    {ok, Pid} = start(),
+
+    {ok, Sum} = sum_areas(Shapes, Pid),
+
+    ?assertEqual(40.27433388230814, Sum),
+
+    {ok, stopped} = stop(Pid).
+
+stop_test() ->
+    {ok, Pid} = start(),
+    ?assert(is_process_alive(Pid)),
+
+    {ok, stopped} = stop(Pid),
+    receive after 1 -> ok end,
+
+    ?assertNot(is_process_alive(Pid)).
 
 asynchronous_sum_areas_test() ->
     Shapes = [{circle, 3}, {rectangle, 3, 4}],
     {ok, Pid} = start(),
 
-    sum_areas(Shapes, Pid),
+    {ok, noreply} = async_sum_areas(Shapes, Pid),
 
     receive
-	M ->
-	    ?assertEqual({ok, 40.27433388230814}, M)
-    end.
+	{ok, Sum} ->
+	    ?assertEqual(40.27433388230814, Sum)
+    end,
+
+    {ok, stopped} = stop(Pid).
+
+sum_areas_unknown_shapes_test() ->
+    Shapes = [{ellipse, 3, 4}],
+    {ok, Pid} = start(),
+    
+    M = sum_areas(Shapes, Pid),
+
+    ?assertMatch({error, {function_clause, _Detail}}, M),
+
+    {ok, stopped} = stop(Pid).

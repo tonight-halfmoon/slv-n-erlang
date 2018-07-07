@@ -1,25 +1,32 @@
 -module(server).
--export([start/0, sum_areas/2, stop/1,
-	 loop/1, async_client/3]).
+-export([start/0, stop/1, sum_areas/2, async_sum_areas/2]).
+-export([loop/1, cast/3]).
 
 start() ->
     Pid = spawn(?MODULE, loop, [fun geometry:areas/1]),
     {ok, Pid}.
 
 sum_areas(Shapes, ServerPid) ->
-    Pid = spawn(?MODULE, async_client, [self(), {sum_areas, Shapes}, ServerPid]),
-    {ok, Pid}.
+    ServerPid ! {self(), {sum_areas, Shapes}},
+    receive
+	M ->
+	    M
+    end.
 
-stop(ServerPid) ->
-    ServerPid ! stop,
+async_sum_areas(Shapes, ServerPid) ->
+    spawn(?MODULE, cast, [self(), {sum_areas, Shapes}, ServerPid]),
+    {ok, noreply}.
+
+stop(Pid) ->
+    Pid ! stop,
     {ok, stopped}.
 
-loop(F) ->
+loop(Callback) ->
     receive
-	{request, Client, {sum_areas, Shapes}} ->
-	    Result = eval(F, Shapes),
-	    Client ! {reply, self(), Result},
-	    loop(F);
+	{From, {sum_areas, Shapes}} ->
+	    Result = eval(Callback, Shapes),
+	    From ! Result,
+	    loop(Callback);
 	stop ->
 	    ok
     end.
@@ -28,14 +35,14 @@ eval(Fun, Args) ->
     case catch Fun(Args) of
 	{'EXIT', Why} ->
 	    {error, Why};
-	Result ->
-	    {ok, Result}
+	Output ->
+	    {ok, Output}
     end.
 
-async_client(ClientPid, Request, ServerPid) ->
-    ServerPid ! {request, self(), Request},
+cast(ClientPid, Request, ServerPid) ->
+    ServerPid ! {self(), Request},
     receive
-	{reply, ServerPid, Result} ->
-	    ClientPid ! Result,
+	M ->
+	    ClientPid ! M,
 	    exit(normal)
     end.
