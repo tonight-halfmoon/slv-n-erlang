@@ -42,11 +42,11 @@ sum_areas_test() ->
     Shapes = [{circle, 3}],
     {ok, _Pid} = start(),
 
-    Reply = sum_areas(Shapes),
+    {ok, Sum} = sum_areas(Shapes),
 
     {ok, stopped} = stop(),
 
-    ?assertEqual({ok, 28.274333882308138}, Reply).
+    ?assertEqual(28.274333882308138, Sum).
 
 sum_areas_unknown_shapes_test() ->
     Shapes = [{ellipse, 3, 6}],
