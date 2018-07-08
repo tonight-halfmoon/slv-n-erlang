@@ -10,8 +10,8 @@ start_test() ->
     {ok, stopped, _state} = stop(ServerPid).
 
 sum_areas_test() ->
-    {ok, Pid} = start(),
     Shapes = [{circle, 3}, {rectangle, 4, 6}],
+    {ok, Pid} = start(),
 
     Result = sum_areas(Shapes, Pid),
 
@@ -29,8 +29,8 @@ stop_test() ->
     {error, already_stopped} = stop(Pid).
 
 sum_areas_unknown_shapes_test() ->
-    {ok, Pid} = start(),
     Shapes = [{ellipse, 3, 3}],
+    {ok, Pid} = start(),
 
     Result = sum_areas(Shapes, Pid),
 
@@ -38,7 +38,7 @@ sum_areas_unknown_shapes_test() ->
 
     {ok, stopped, _Error} = stop(Pid).
 
-server_send_last_shapes_areas_sum_to_client_when_stop_test() ->
+server_return_its_state_when_stop_test() ->
     Shapes = [{circle, 0.873}, {square, 0.293}],
     ExpectedState = {{ok, 2.4801478674877355}, Shapes},
     {ok, Pid} = start(), 
