@@ -39,8 +39,8 @@ stop_test() ->
     {error, already_stopped} = stop().
 
 sum_areas_test() ->
-    {ok, _Pid} = start(),
     Shapes = [{circle, 3}],
+    {ok, _Pid} = start(),
 
     Reply = sum_areas(Shapes),
 
@@ -49,9 +49,8 @@ sum_areas_test() ->
     ?assertEqual({ok, 28.274333882308138}, Reply).
 
 sum_areas_unknown_shapes_test() ->
-    {ok, _Pid} = start(),
-
     Shapes = [{ellipse, 3, 6}],
+    {ok, _Pid} = start(),
 
     Reply = sum_areas(Shapes),
 
@@ -61,13 +60,14 @@ sum_areas_unknown_shapes_test() ->
 		  {function_clause, _Detail}}, Reply).
 
 timeout_test() ->
-    {ok, _Pid} = start(),
     Shapes = [{circle, 3}],
+    {ok, _Pid} = start(),
+
     stop(),
 
     Reply = case catch sum_areas(Shapes) of
 		M ->
 		    M
 	    end,
-    
+
     ?assertEqual({'EXIT', timeout}, Reply).
