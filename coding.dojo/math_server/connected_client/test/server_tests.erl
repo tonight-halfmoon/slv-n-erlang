@@ -42,8 +42,9 @@ stop_test() ->
     {error, already_stopped} = stop().
 
 sum_areas_test() ->
-    {ok, _Pid} = start(),
     Shapes = [{circle, 0.3}],
+    {ok, _Pid} = start(),
+
     Client = spawn(fun() ->
 			   receive
 			       {reply, {sum_areas, ok, Sum}} ->
@@ -68,8 +69,9 @@ sum_areas_test() ->
     {error, already_stopped} = stop().
 
 sum_areas_unknown_shapes_test() ->
-    {ok, _Pid} = start(),
     Shapes = [{ellipse, 3, 6}],
+    {ok, _Pid} = start(),
+
     Client = spawn(fun() -> receive
 				Reply ->
 				    ?assertMatch({reply, {sum_areas, {error, {function_clause, _Detail}}}}, Reply)
@@ -88,8 +90,9 @@ sum_areas_unknown_shapes_test() ->
     {ok, stopped} = stop().
 
 timeout_test() ->
-    {ok, _Pid} = start(),
     Shapes = [{circle, 3}],
+    {ok, _Pid} = start(),
+
     stop(),
     Client = spawn(fun() -> receive Reply -> ?assertEqual({'EXIT', timeout}, Reply) after 4 -> exit(timeout) end end),
 
