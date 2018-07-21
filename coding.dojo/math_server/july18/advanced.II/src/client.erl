@@ -24,8 +24,8 @@ sum_areas(Shapes) ->
     end.
 
 async_sum_areas(Shapes) ->
-    TrueClientPid = self(),
-    spawn(fun() -> ?Client ! {sum_areas, Shapes, TrueClientPid} end),
+    TrueClient = self(),
+    spawn(fun() -> ?Client ! {sum_areas, Shapes, TrueClient} end),
     {ok, noreply}.
 
 init(InitialState) ->
