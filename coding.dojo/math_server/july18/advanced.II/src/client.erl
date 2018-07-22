@@ -11,7 +11,7 @@ connect() ->
     {ok, Pid}.
 
 disconnect() ->
-    ?Client ! {stop, self()},
+    ?Client ! {disconnect, self()},
     {ok, noreply}.
 
 sum_areas(Shapes) ->
@@ -40,7 +40,7 @@ loop(TrueClient) ->
        {'DOWN', _MonitorRef, _Type, _Object, Info} ->
 	   io:format("Server down for ~p~n", [Info]),
 	   exit(server_down);
-       {diconnect, _From} ->
+       {disconnect, _From} ->
 	   exit(stop);
 	M ->
 	   io:format("Client recevied unknown message: ~p~n", [M]),
