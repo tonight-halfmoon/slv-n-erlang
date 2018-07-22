@@ -41,7 +41,7 @@ loop(TrueClient) ->
 	   io:format("Server down for ~p~n", [Info]),
 	   exit(server_down);
        {disconnect, _From} ->
-	   exit(stop);
+	   exit(disconnect);
 	M ->
 	   io:format("Client recevied unknown message: ~p~n", [M]),
 	   loop(TrueClient)
