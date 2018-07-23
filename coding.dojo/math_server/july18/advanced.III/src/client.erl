@@ -1,18 +1,24 @@
 -module(client).
 -export([sum_areas/1, async_sum_areas/1]).
--export([start/0]).
--export([connect/0, disconnect/0]).
+-export([start/0, start/1]).
+-export([connect/0, connect/1, disconnect/0]).
 -export([init/1]).
 -include("server.hrl").
 -include("client.hrl").
 
 start() ->
+    start(?Client).
+
+start(Name) ->
     Pid = spawn(?MODULE, init, [self()]),
-    register(?Client, Pid),
+    register(Name, Pid),
     {ok, Pid}.
 
 connect() ->
-    ?Client ! {connect, self()},
+    connect(?Client).
+
+connect(Name) ->
+    Name ! {connect, self()},
     {ok, noreply}.
 
 disconnect() ->
@@ -22,10 +28,10 @@ disconnect() ->
 sum_areas(Shapes) ->
     ?Client ! {sum_areas, Shapes, self()},
     receive
-		Reply ->
-	    	Reply
+	Reply ->
+	    Reply
     after 500 ->
-		exit(timeout)
+	    exit(timeout)
     end.
 
 async_sum_areas(Shapes) ->
@@ -34,31 +40,30 @@ async_sum_areas(Shapes) ->
     {ok, noreply}.
 
 init(InitialState) ->
-%   monitor(process, whereis(?Server)),
     loop(InitialState).
 
-loop(TrueClient) ->
+loop(_State) ->
     receive
-       {sum_areas, Shapes, From} ->
-           	?Server ! {sum_areas, Shapes, From},
-	   		loop(From);
-       {'DOWN', _MonitorRef, _Type, _Object, Info} ->
-	   		io:format("Server down for ~p~n", [Info]),
-	   		exit(server_down);
-       {connect, _From} ->
-	   		?Server ! {connect, self()},
-           	loop(self());
-       {disconnect, _From} ->
-			?Server ! {disconnect, self()},
-			loop(self());
-	   {reply, From, connected} ->
-	   		io:format("Client ~p is connected to server ~p~n", [self(), From]),
-	   		loop(self());
-		{reply, _From, disconnected} ->
-			io:format("Client ~p is disconnected~n", [self()]),
-			exit(disconnected);	
-       M ->
-	   		io:format("Client recevied unknown message: ~p~n", [M]),
-	   		loop(TrueClient)
+	{sum_areas, Shapes, From} ->
+	    ?Server ! {sum_areas, Shapes, From},
+	    loop(From);
+	{'DOWN', _MonitorRef, _Type, _Object, Info} ->
+	    io:format("Server down for ~p~n", [Info]),
+	    exit(server_down);
+	{connect, _From} ->
+	    ?Server ! {connect, self()},
+	    loop(self());
+	{disconnect, _From} ->
+	    ?Server ! {disconnect, self()},
+	    loop(self());
+	{reply, From, connected} ->
+	    io:format("Client ~p is connected to server ~p~n", [self(), From]),
+	    loop(self());
+	{reply, _From, disconnected} ->
+	    io:format("Client ~p is disconnected~n", [self()]),
+	    exit(disconnected);
+	Reply ->
+	    io:format("~p~n", [Reply]),
+	    io:format("client's process exiting...~n", []),
+	    exit(exhausted)
     end.
-
