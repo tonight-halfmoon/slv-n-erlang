@@ -1,11 +1,14 @@
 -module(server).
--export([start/0, stop/0]).
--export([stats/0]).
+-export([start/0, start/1, stop/0]).
+-export([allocated/0]).
 -export([init/1]).
 -include("server.hrl").
 
 start() ->
-    Pid = spawn(?MODULE, init, [fun geometry:areas/1]),
+    start(available_resources()).
+
+start(Args) ->
+    Pid = spawn(?MODULE, init, [{Args, fun geometry:areas/1}]),
     register(?Server, Pid),
     {ok, noreply}.
 
@@ -13,20 +16,19 @@ stop() ->
     ?Server ! {stop, self()},
     {ok, noreply}.
 
-stats() ->
+allocated() ->
     ?Server ! {request, self(), stats},
     receive
 	Reply ->
 	    Reply
     end.
 
-init(Args) ->
+init({InitialState, Callback}) ->
     process_flag(trap_exit, true),
-    InitialState = initialise_resources(),
-    loop(InitialState, Args).
+    loop(InitialState, Callback).
 
-initialise_resources() ->
-    [{4, undefined}, {9, undefined}].%, {14, undefined}, {5,undefined}].
+available_resources() ->
+    [{'0x8736', undefined}, {'0x34a', undefined}].%, {'0x4114', undefined}, {'0x1235',undefined}].
 
 loop(State, Callback) ->
     receive
@@ -57,7 +59,7 @@ loop(State, Callback) ->
 	    ClientPid ! {reply, ?Server, disconnected},
 	    loop(NewState, Callback);
 	{request, From, stats} ->
-	    From ! {reply, State},
+	    From ! {reply,?Server, State},
 	    loop(State, Callback)
     end.
 
@@ -76,7 +78,7 @@ disconnect_client(Resources, ClientPid) ->
     deallocate(Resources, ClientPid).
 
 deallocate_all() ->
-    initialise_resources().
+    available_resources().
 
 allocate(Resources, Pid) ->
     Result = case lists:keyfind(Pid, 2, Resources) of
