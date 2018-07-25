@@ -1,7 +1,7 @@
 -module(client).
 -export([sum_areas/1, async_sum_areas/1]).
 -export([start/0, start/1]).
--export([connect/0, connect/1, disconnect/0]).
+-export([connect/0, connect/1, disconnect/0, disconnect/1]).
 -export([init/1]).
 -include("server.hrl").
 -include("client.hrl").
@@ -10,7 +10,7 @@ start() ->
     start(?Client).
 
 start(Name) ->
-    Pid = spawn(?MODULE, init, [self()]),
+    Pid = spawn(?MODULE, init, [{}]),
     register(Name, Pid),
     {ok, Pid}.
 
@@ -22,7 +22,10 @@ connect(Name) ->
     {ok, noreply}.
 
 disconnect() ->
-    ?Client ! {disconnect, self()},
+    disconnect(?Client).
+
+disconnect(Name) ->
+    Name ! {disconnect, self()},
     {ok, noreply}.
 
 sum_areas(Shapes) ->
@@ -42,28 +45,29 @@ async_sum_areas(Shapes) ->
 init(InitialState) ->
     loop(InitialState).
 
-loop(_State) ->
+loop(State) ->
     receive
-	{sum_areas, Shapes, From} ->
-	    ?Server ! {sum_areas, Shapes, From},
-	    loop(From);
-	{'DOWN', _MonitorRef, _Type, _Object, Info} ->
-	    io:format("Server down for ~p~n", [Info]),
-	    exit(server_down);
 	{connect, _From} ->
 	    ?Server ! {connect, self()},
-	    loop(self());
+	    loop(State);
 	{disconnect, _From} ->
 	    ?Server ! {disconnect, self()},
-	    loop(self());
-	{reply, From, connected} ->
-	    io:format("Client ~p is connected to server ~p~n", [self(), From]),
-	    loop(self());
-	{reply, _From, disconnected} ->
-	    io:format("Client ~p is disconnected~n", [self()]),
-	    exit(disconnected);
+	    loop(State);
+	{sum_areas, Shapes, From} ->
+	    ?Server ! {sum_areas, Shapes, From},
+	    loop(State);
+	{reply, ?Server, {ok, Topic, Info}} ->
+	    io:format("Client '~p' ~p. Successfully ~p.~n", [self(), Topic, Info]),
+	    loop(State);
+	{reply, ?Server, {ok, disconnected}} ->
+	    io:format("Client '~p' is disconnected.~n", [self()]),
+	    io:format("Client's process is exiting...~n", []),
+	    exit(disconnect);
+	{reply, ?Server, {error, Topic, Info}} ->
+	    io:format("Client cannot ~p for ~p. Client process terminates...~n", [Topic, Info]),
+	    exit(Info);
 	Reply ->
-	    io:format("~p~n", [Reply]),
+	    io:format("Client '~p' recieved '~p'.~n", [self(), Reply]),
 	    io:format("client's process exiting...~n", []),
 	    exit(exhausted)
     end.
