@@ -32,9 +32,9 @@ sum_areas_unknown_shapes_test() ->
     {ok, _Pid} = start(),
     Shapes = [{ellipse, 3, 4}],
 
-    M = sum_areas(Shapes),
+    Reply = sum_areas(Shapes),
 
-    ?assertMatch({reply, {error, {function_clause, _Detail}}}, M),
+    ?assertMatch({reply, {error, {function_clause, _Detail}}}, Reply),
 
     {ok, noreply} = stop().
 
@@ -45,9 +45,8 @@ async_sum_areas_unknown_shapes_test() ->
     {ok, noreply} = async_sum_areas(Shapes),
 
     receive
-	M ->
-	    ?assertMatch({reply, {error, {function_clause, _Detail}}}, M)
+	Result ->
+	    ?assertMatch({reply, {error, {function_clause, _Detail}}}, Result)
     end,
 
     {ok, noreply} = stop().
-
