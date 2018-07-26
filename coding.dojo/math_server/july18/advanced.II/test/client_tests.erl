@@ -1,44 +1,54 @@
 -module(client_tests).
 -include_lib("eunit/include/eunit.hrl").
--import(server, [start/0, stop/0]).
--import(client, [sum_areas/1, async_sum_areas/1]).
--import(client, [connect/0, disconnect/0]).
 -include("client.hrl").
 
-connect_test() ->
-    {ok, Pid} = connect(),
+start_test() ->
+    {ok, Pid} = client:start(),
 
     ?assertEqual(Pid, whereis(?Client)),
     ?assert(is_process_alive(whereis(?Client))),
 
-    {ok, noreply} = disconnect().
+    {ok, noreply} = client:stop().
 
-disconnect_test() ->
-    {ok, Pid} = connect(),
+stop_test() ->
+    {ok, Pid} = client:start(),
+    ?assertEqual(Pid, whereis(?Client)),
 
-    {ok, noreply} = disconnect(),
+    {ok, noreply} = client:stop(),
     receive after 1 -> ok end,
 
     ?assertNot(is_process_alive(Pid)),   
     ?assertEqual(undefined, (whereis(?Client))).
 
-sum_areas_test() ->
-    {ok, noreply} = start(),
-    Shapes = [{circle, 3}, {rectangle, 3, 4}],
-    {ok, _Pid} = connect(),
+when_server_get_down_client_terminate_test() ->
+    {ok, noreply} = server:start(),
+    {ok, Pid} = client:start(),
+    receive after 1 ->
+		    ok end,
+    {ok, noreply} = server:stop(),
+    receive after 3 ->
+		    ok end,
 
-    {reply, {ok, Sum}} = sum_areas(Shapes),
+    ?assertNot(is_process_alive(Pid)).
+
+sum_areas_test() ->
+    {ok, noreply} = server:start(),
+    Shapes = [{circle, 3}, {rectangle, 3, 4}],
+    {ok, _Pid} = client:start(),
+
+    {reply, {ok, Sum}} = client:sum_areas(Shapes),
 
     ?assertEqual(40.27433388230814, Sum),
 
-    {ok, noreply} = stop().
+    {ok, noreply} = client:stop(),
+    {ok, noreply} = server:stop().
 
 async_sum_areas_test() ->
-    {ok, noreply} = start(),
+    {ok, noreply} = server:start(),
     Shapes = [{circle, 3}, {rectangle, 3, 4}],
-    {ok, _Pid} = connect(),
+    {ok, _Pid} = client:start(),
 
-    {ok, noreply} = async_sum_areas(Shapes),
+    {ok, noreply} = client:async_sum_areas(Shapes),
 
     receive
 	{reply, {ok, Sum}} ->
@@ -47,30 +57,29 @@ async_sum_areas_test() ->
 	    exit(timeout)
     end,
 
-    {ok, noreply} = stop().
+    {ok, noreply} = server:stop().
 
 sum_areas_unknown_shapes_test() ->
-    {ok, noreply} = start(),
+    {ok, noreply} = server:start(),
     Shapes = [{ellipse, 3, 4}],
-    {ok, _Pid} = connect(),
+    {ok, _Pid} = client:start(),
 
-    M = sum_areas(Shapes),
+    Reply = client:sum_areas(Shapes),
 
-    ?assertMatch({reply, {error, {function_clause, _Detail}}}, M),
+    ?assertMatch({reply, {error, {function_clause, _Detail}}}, Reply),
 
-    {ok, noreply} = stop().
+    {ok, noreply} = server:stop().
 
 async_sum_areas_unknown_shapes_test() ->
-    {ok, noreply} = start(),
+    {ok, noreply} = server:start(),
     Shapes = [{ellipse, 3 ,4}],
-    {ok, _Pid} = connect(),
+    {ok, _Pid} = client:start(),
 
-    {ok, noreply} = async_sum_areas(Shapes),
+    {ok, noreply} = client:async_sum_areas(Shapes),
 
     receive
-	M ->
-	    ?assertMatch({reply, {error, {function_clause, _Detail}}}, M)
+	Result ->
+	    ?assertMatch({reply, {error, {function_clause, _Detail}}}, Result)
     end,
 
-    {ok, noreply} = stop().
-
+    {ok, noreply} = server:stop().

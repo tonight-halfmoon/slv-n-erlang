@@ -1,16 +1,16 @@
 -module(client).
+-export([start/0, stop/0]).
 -export([sum_areas/1, async_sum_areas/1]).
--export([connect/0, disconnect/0]).
 -export([init/1]).
 -include("server.hrl").
 -include("client.hrl").
 
-connect() ->
+start() ->
     Pid = spawn(?MODULE, init, [self()]),
     register(?Client, Pid),
     {ok, Pid}.
 
-disconnect() ->
+stop() ->
     ?Client ! {disconnect, self()},
     {ok, noreply}.
 
@@ -46,4 +46,3 @@ loop(TrueClient) ->
 	   io:format("Client recevied unknown message: ~p~n", [M]),
 	   loop(TrueClient)
     end.	
-
