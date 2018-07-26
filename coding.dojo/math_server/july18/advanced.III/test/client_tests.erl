@@ -90,9 +90,9 @@ sum_areas_unknown_shapes_test() ->
     receive after 1 -> ok end,
     Shapes = [{ellipse, 3, 4}],
 
-    M = sum_areas(Shapes),
+    Reply = sum_areas(Shapes),
 
-    ?assertMatch({reply, {error, {function_clause, _Detail}}}, M),
+    ?assertMatch({reply, {error, {function_clause, _Detail}}}, Reply),
 
     {ok, noreply} = server:stop().
 
@@ -106,8 +106,8 @@ async_sum_areas_unknown_shapes_test() ->
     {ok, noreply} = async_sum_areas(Shapes),
 
     receive
-	M ->
-	    ?assertMatch({reply, {error, {function_clause, _Detail}}}, M)
+	Reply ->
+	    ?assertMatch({reply, {error, {function_clause, _Detail}}}, Reply)
     end,
 
     {ok, noreply} = server:stop().

@@ -20,14 +20,14 @@ stop_test() ->
     ?assertEqual(undefined, whereis(?Server)).
 
 allocate_resource_when_client_connect_test() ->
-    AvailableResources = [{'0x05', undefind}, {'0xa', undefined}],
+    AvailableResources = [{'0x05', undefind}, { Resource2 = '0xa', undefined}],
     {ok, noreply} = server:start(AvailableResources),
     {ok, Pid} = client:start(),
 
     {ok, noreply} = client:connect(),
     receive after 1 -> ok end,
 
-    ?assertMatch({reply, ?Server, [_Other, {'0xa', Pid}]} when is_pid(Pid), server:check_resources()),
+    ?assertMatch({reply, ?Server, [_Other, {Resource2, Pid}]} when is_pid(Pid), server:check_resources()),
 
     {ok, noreply} = server:stop().
 
