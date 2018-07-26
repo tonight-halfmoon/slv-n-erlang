@@ -64,10 +64,11 @@ loop(State) ->
 	    io:format("Client's process is exiting...~n", []),
 	    exit(disconnect);
 	{reply, ?Server, {error, Topic, Info}} ->
-	    io:format("Client cannot ~p for ~p. Client process terminates...~n", [Topic, Info]),
+	    io:format("Client '~p' cannot ~p for ~p~n.", [self(), Topic, Info]),
+	    io:format("Client process is terminating...~n", []),
 	    exit(Info);
 	Reply ->
 	    io:format("Client '~p' recieved '~p'.~n", [self(), Reply]),
-	    io:format("client's process exiting...~n", []),
+	    io:format("client's process is exiting...~n", []),
 	    exit(exhausted)
     end.
