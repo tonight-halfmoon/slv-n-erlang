@@ -1,4 +1,6 @@
-## In this example we demonstrate the capability for many clients to connect to the server. We also show how a server can be notified once a client's process exists. 
+## Asynchronous Client API against Math Server - Connected, Linked Clients
+
+### In this example we demonstrate the capability for many clients to connect to the server. We also show how a server can be notified once a client's process exists. 
 
 ´´´
 For example, suppose clients are comsuming/locking resources in the server. In order to freeup the allocated resource by a client once the client terminates, then a link has been set between the server and each connected client at connect time. For demonstration purposes, we limit the server to have only two resource allocations. Therefore, only two clients can connect to the example server. Absolutely, one could play around wit hthis example and make it capable to handle more clients. Note, this limitation has nothing to do with Erlang Runtime System. This is only for learning purposes.
