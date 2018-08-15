@@ -1,0 +1,2 @@
+# A Supervised Math Server - A Minimal Supervisor with Connected Clients
+With this example we demonstrate the capability of a supervisor which is responsible to keep the server always available. The supervisor job is to restart the server when necessary. To let the supervisor to tackle this job, the server will be started and stopped by the supervisor. This example is an inception to OTP Supervision Hierarchy.
