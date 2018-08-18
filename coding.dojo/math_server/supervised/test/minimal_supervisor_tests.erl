@@ -11,11 +11,11 @@ start_children_test() ->
 
     ?assert(is_process_alive(ServerPid)),
 
-    {reply, _Pid, {ok, children_terminated}} = dj_supervisor:stop().
+    {reply, _Pid, {ok, children_terminated}} = minimal_supervisor:stop().
 
 stop_children_test() ->
     ChildSpecList = [{server, start_link, []}, {asd, asd, []}],
-    dj_supervisor:start_link(ChildSpecList),
+    minimal_supervisor:start_link(ChildSpecList),
     receive after 1 -> ok end,
     ?assert(is_process_alive(whereis(?Server))),
 
