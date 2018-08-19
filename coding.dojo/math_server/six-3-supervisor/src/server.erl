@@ -1,5 +1,5 @@
 -module(server).
--export([start_link/0, start_link/1]).
+-export([start_link/0, start_link/1, stk/1]).
 -export([check_resources/0]).
 -export([init/1]).
 

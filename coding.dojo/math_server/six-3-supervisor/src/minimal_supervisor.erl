@@ -12,11 +12,14 @@
 
 %% API
 -export([start_link/1, stop/0]).
+%-export([stop_child/1]).
 
 %% Supervisor callbacks
 -export([init/1]).
 
 -include("minimal_supervisor.hrl").
+
+-define(Threshold, 5).
 
 %%%===================================================================
 %%% API functions
@@ -30,8 +33,9 @@
 %% @end
 %%--------------------------------------------------------------------
 start_link(ChildSpecList) ->
-    Pid = spawn_link(?MODULE, init, [ChildSpecList]),
+    Pid = spawn_link(?MODULE, init, [[]]),
     register(?Supervisor, Pid),
+    Pid ! {start_children, ChildSpecList},
     {ok, Pid}.
 
 stop() ->
@@ -60,10 +64,9 @@ stop() ->
 %%                     {error, Reason}
 %% @end
 %%--------------------------------------------------------------------
-init(ChildSpecList) ->
+init([]) ->
     process_flag(trap_exit, true),
-    ChildProcList = start_chidlren(ChildSpecList),
-    loop(ChildProcList).
+    loop([]).
 
 %%%===================================================================
 %%% Internal functions
@@ -75,64 +78,67 @@ loop(ChildList) ->
 	    NewChildList = restart_child(Pid, ChildList, normal),
 	    loop(NewChildList);
 	{'EXIT', Pid, killed} ->
+	    io:format("restarting child killed"),
 	    NewChildList = restart_child(Pid, ChildList, killed),
 	    loop(NewChildList);
 	{'EXIT', Pid, Reason} ->
 	    NewChildList = restart_child(Pid, ChildList, Reason),
 	    loop(NewChildList);
 	{stop, From} ->
-	    From ! {reply, self(), terminate_children(ChildList)}
+	    From ! {reply, self(), terminate_children(ChildList)};
+	{start_children, ChildSpecList} ->
+	    start_children(ChildSpecList),
+	    loop(ChildList);
+	{ok, ChildPid, ChildSpec} ->
+	    io:format("Child for Spec '~p' is started.~n", [ChildSpec]),
+	    NewChildList = [{ChildPid, ChildSpec}|ChildList],
+	    loop(NewChildList);
+	{error, child_not_started, ChildSpec} ->
+	    io:format("Child for spec ~p cannot be started.~n", [ChildSpec]),
+	    loop(ChildList);
+	{start_child, ChildSpec} ->
+	    start_child(ChildSpec, ?Threshold, 0),
+	    loop(ChildList)
     after 6000 ->
 	    exit(timeout)
     end.
 
-start_chidlren(ChildSpecList) ->
-    start_children(ChildSpecList, []).
+start_children([]) ->
+    [];
+start_children([ChildSpec|T]) ->
+    self() ! {start_child, ChildSpec},
+    start_children(T).
 
-start_children([], ChildList) ->
-    ChildList;
-start_children([{Type, ChildSpec}|T], ChildList) ->
-    case start_child(ChildSpec, 5) of
-	{ok, Pid} ->
-	    io:format("Child for Spec '~p' is started.~n", [ChildSpec]),
-	    start_children(T, [{Pid, {Type, ChildSpec}}|ChildList]);
-	{error, child_not_started} ->
-	    start_children(T, ChildList)
-    end.
-
-start_child({M, F, Args}) ->
+start_child({_Type, {M, F, Args}} = ChildSpec) ->
     try M:F(Args) of
 	{ok, Pid} ->
-	    {ok, Pid}
+	    {ok, Pid, ChildSpec}
     catch
 	_E:_Detail ->
-	    {error, child_not_started}
+	    {error, child_not_started, ChildSpec}
     end.
 
-start_child(ChildSpec, Threshold) ->
-    start_child(ChildSpec, Threshold + 1, 1).
-
-start_child(_ChildSpec, Threshold, Threshold) ->
-    {error, child_not_started};
+start_child(ChildSpec, Threshold, Threshold) ->
+    ?Supervisor ! {error, child_not_started, ChildSpec};
 start_child(ChildSpec, Threshold, Acc) ->
     case start_child(ChildSpec) of
-	{ok, Pid} ->
-	    {ok, Pid};
-	{error, child_not_started} ->
-	    io:format("~p. A child with Spec '~p' has not started yet. Supervisor is trying to start the child again.~n", [Acc, ChildSpec]),
-	    receive after 120 -> ok end,
+	{ok, Pid, ChildSpec} ->
+	    ?Supervisor ! {ok, Pid, ChildSpec};
+	{error, child_not_started, ChildSpec} ->
+	    io:format("~p. Child for Spec '~p' was not started. Supervisor is trying again.~n", [Acc + 1, ChildSpec]),
+	    receive after 1200 -> ok end,
 	    start_child(ChildSpec, Threshold, Acc + 1)
     end.
 
 restart_child(Pid, ChildList, normal) ->
     case lists:keyfind(Pid, 1, ChildList) of
-	{Pid, {transient, _ChildSpec}} ->
+	{Pid, {transient, _ChildModule}} ->
 	    ChildList;
-	{Pid, {permanent, ChildSpec}} ->
+	{Pid, {permanent, _ChildModule} = ChildSpec} ->
 	    case start_child(ChildSpec) of
 		{ok, NewPid} ->
-		    [{NewPid, {permanent, ChildSpec}}|lists:keydelete(Pid, 1, ChildList)];
-		{error, child_not_started} ->
+		    [{NewPid, ChildSpec}|lists:keydelete(Pid, 1, ChildList)];
+		{error, child_not_started, ChildSpec} ->
 		    lists:keydelete(Pid, 1, ChildList)
 	    end;
 	false ->
@@ -140,11 +146,11 @@ restart_child(Pid, ChildList, normal) ->
     end;
 restart_child(Pid, ChildList, _Reason) ->
     case lists:keyfind(Pid, 1, ChildList) of
-	{Pid, {Type, ChildSpec}} ->
+	{Pid, ChildSpec} ->
 	      case start_child(ChildSpec) of
-		{ok, NewPid} ->
-		    [{NewPid, {Type, ChildSpec}}|lists:keydelete(Pid, 1, ChildList)];
-		{error, child_not_started} ->
+		{ok, NewPid, ChildSpec} ->
+		    [{NewPid, ChildSpec}|lists:keydelete(Pid, 1, ChildList)];
+		{error, child_not_started, ChildSpec} ->
 		    lists:keydelete(Pid, 1, ChildList)
 	    end;
 	false ->
