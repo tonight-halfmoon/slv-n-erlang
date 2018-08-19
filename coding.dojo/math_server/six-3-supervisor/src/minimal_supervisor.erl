@@ -21,6 +21,8 @@
 
 -define(Threshold, 5).
 
+-define(StartChildTimeout, 6000).
+
 %%%===================================================================
 %%% API functions
 %%%===================================================================
@@ -33,7 +35,7 @@
 %% @end
 %%--------------------------------------------------------------------
 start_link(ChildSpecList) ->
-    Pid = spawn_link(?MODULE, init, [[]]),
+    Pid = spawn_link(?MODULE, init, [{?StartChildTimeout, []}]),
     register(?Supervisor, Pid),
     Pid ! {start_children, ChildSpecList},
     {ok, Pid}.
@@ -64,47 +66,50 @@ stop() ->
 %%                     {error, Reason}
 %% @end
 %%--------------------------------------------------------------------
-init([]) ->
+init(InitialState) ->
     process_flag(trap_exit, true),
-    loop([]).
+    loop(InitialState).
 
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
 
-loop(ChildList) ->
+loop({Timeout, ChildList}) ->
     receive
 	{'EXIT', Pid, normal} ->
 	    NewChildList = restart_child(Pid, ChildList, normal),
-	    loop(NewChildList);
+	    loop({Timeout, NewChildList});
 	{'EXIT', Pid, killed} ->
 	    io:format("restarting child killed"),
 	    NewChildList = restart_child(Pid, ChildList, killed),
-	    loop(NewChildList);
+	    loop({Timeout, NewChildList});
 	{'EXIT', Pid, Reason} ->
 	    NewChildList = restart_child(Pid, ChildList, Reason),
-	    loop(NewChildList);
+	    loop({Timeout, NewChildList});
 	{stop, From} ->
 	    From ! {reply, self(), terminate_children(ChildList)};
 	{start_children, ChildSpecList} ->
 	    start_children(ChildSpecList),
-	    loop(ChildList);
+	    loop({Timeout, ChildList});
 	{ok, ChildPid, ChildSpec} ->
 	    io:format("Child for Spec '~p' is started.~n", [ChildSpec]),
 	    NewChildList = [{ChildPid, ChildSpec}|ChildList],
-	    loop(NewChildList);
+	    loop({Timeout, NewChildList});
 	{error, child_not_started, ChildSpec} ->
 	    io:format("Child for spec ~p cannot be started.~n", [ChildSpec]),
-	    loop(ChildList);
+	    loop({Timeout, ChildList});
 	{start_child, ChildSpec} ->
 	    start_child(ChildSpec, ?Threshold, 0),
-	    loop(ChildList)
-    after 6000 ->
+	    loop({Timeout, ChildList});
+	{timeout, NewTimeout} ->
+	    loop({NewTimeout, ChildList})
+    after Timeout ->
 	    exit(timeout)
     end.
 
 start_children([]) ->
-    [];
+    %receive after ?StartChildTimeout -> ok end,
+    ?Supervisor ! {timeout, infinity};
 start_children([ChildSpec|T]) ->
     self() ! {start_child, ChildSpec},
     start_children(T).
@@ -126,7 +131,7 @@ start_child(ChildSpec, Threshold, Acc) ->
 	    ?Supervisor ! {ok, Pid, ChildSpec};
 	{error, child_not_started, ChildSpec} ->
 	    io:format("~p. Child for Spec '~p' was not started. Supervisor is trying again.~n", [Acc + 1, ChildSpec]),
-	    receive after 1200 -> ok end,
+	    receive after round(?StartChildTimeout / ?Threshold) -> ok end,
 	    start_child(ChildSpec, Threshold, Acc + 1)
     end.
 
