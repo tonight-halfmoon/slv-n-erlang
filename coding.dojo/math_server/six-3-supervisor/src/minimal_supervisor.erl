@@ -108,7 +108,6 @@ loop({Timeout, ChildList}) ->
     end.
 
 start_children([]) ->
-    %receive after ?StartChildTimeout -> ok end,
     ?Supervisor ! {timeout, infinity};
 start_children([ChildSpec|T]) ->
     self() ! {start_child, ChildSpec},
