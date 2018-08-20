@@ -12,7 +12,7 @@
 
 %% API
 -export([start_link/1, stop/0]).
-%-export([stop_child/1]).
+%-export([start_child/1, stop_child/1]).
 
 %% Supervisor callbacks
 -export([init/1]).
@@ -22,6 +22,8 @@
 -define(Threshold, 5).
 
 -define(StartChildTimeout, 6000).
+
+-record(child_state, {pid, id, spec}).
 
 %%%===================================================================
 %%% API functions
@@ -91,9 +93,9 @@ loop({Timeout, ChildList}) ->
 	{start_children, ChildSpecList} ->
 	    start_children(ChildSpecList),
 	    loop({Timeout, ChildList});
-	{ok, ChildPid, ChildSpec} ->
-	    io:format("Child for Spec '~p' is started.~n", [ChildSpec]),
-	    NewChildList = [{ChildPid, ChildSpec}|ChildList],
+	{ok, child_started, Child} ->
+	    io:format("Child for Spec '~p' is started.~n", [Child#child_state.spec]),
+	    NewChildList = [Child|ChildList],
 	    loop({Timeout, NewChildList});
 	{error, child_not_started, ChildSpec} ->
 	    io:format("Child for spec ~p cannot be started.~n", [ChildSpec]),
@@ -127,7 +129,7 @@ start_child(ChildSpec, Threshold, Threshold) ->
 start_child(ChildSpec, Threshold, Acc) ->
     case start_child(ChildSpec) of
 	{ok, Pid, ChildSpec} ->
-	    ?Supervisor ! {ok, Pid, ChildSpec};
+	    ?Supervisor ! {ok, child_started, #child_state{pid= Pid, id= erlang:system_time(millisecond), spec = ChildSpec}};
 	{error, child_not_started, ChildSpec} ->
 	    io:format("~p. Child for Spec '~p' was not started. Supervisor is trying again.~n", [Acc + 1, ChildSpec]),
 	    receive after round(?StartChildTimeout / ?Threshold) -> ok end,
@@ -135,13 +137,13 @@ start_child(ChildSpec, Threshold, Acc) ->
     end.
 
 restart_child(Pid, ChildList, normal) ->
-    case lists:keyfind(Pid, 1, ChildList) of
-	{Pid, {transient, _ChildModule}} ->
+    case lists:keyfind(Pid, #child_state.pid, ChildList) of
+	#child_state{pid=Pid, id= _Id, spec= {transient, _ChildModule}} ->
 	    ChildList;
-	{Pid, {permanent, _ChildModule} = ChildSpec} ->
+	#child_state{pid=_Pid, id=_Id, spec={permanent, _ChildModule} = ChildSpec} = Child ->
 	    case start_child(ChildSpec) of
 		{ok, NewPid} ->
-		    [{NewPid, ChildSpec}|lists:keydelete(Pid, 1, ChildList)];
+		    [Child#child_state{pid=NewPid}|lists:keydelete(Pid, #child_state.pid, ChildList)];
 		{error, child_not_started, ChildSpec} ->
 		    lists:keydelete(Pid, 1, ChildList)
 	    end;
@@ -149,11 +151,11 @@ restart_child(Pid, ChildList, normal) ->
 	    ChildList
     end;
 restart_child(Pid, ChildList, _Reason) ->
-    case lists:keyfind(Pid, 1, ChildList) of
-	{Pid, ChildSpec} ->
+    case lists:keyfind(Pid, #child_state.pid, ChildList) of
+	#child_state{pid = _Pid, id = _Id, spec = ChildSpec} = Child ->
 	      case start_child(ChildSpec) of
 		{ok, NewPid, ChildSpec} ->
-		    [{NewPid, ChildSpec}|lists:keydelete(Pid, 1, ChildList)];
+		    [Child#child_state{pid=NewPid}|lists:keydelete(Pid, #child_state.pid, ChildList)];
 		{error, child_not_started, ChildSpec} ->
 		    lists:keydelete(Pid, 1, ChildList)
 	    end;
@@ -163,6 +165,6 @@ restart_child(Pid, ChildList, _Reason) ->
 
 terminate_children([]) ->
     {ok, children_terminated};
-terminate_children([{Pid, _ChildSpec}|T]) ->
+terminate_children([#child_state{pid=Pid, id=_Id, spec=_ChildSpec}|T]) ->
     exit(Pid, supervisor_terminate_children),
     terminate_children(T).
