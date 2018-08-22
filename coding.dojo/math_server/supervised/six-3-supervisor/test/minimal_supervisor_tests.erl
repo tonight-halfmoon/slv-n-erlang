@@ -87,6 +87,7 @@ stop_child_supervisor_able_to_stop_child_given_id_test_() ->
 	fun() ->
 		minimal_supervisor:start_link([]),
 		{reply, ?Supervisor, {ok, ChildId, ChildPid}} = minimal_supervisor:start_child({transient, {server, start_link, []}}),
+		receive after 3 -> ok end,
 		?assert(is_process_alive(ChildPid)),
 		%Result = minimal_supervisor:stop_child(ChildId),
 		%{Result, ChildPid}
@@ -96,6 +97,7 @@ stop_child_supervisor_able_to_stop_child_given_id_test_() ->
 	%fun({{reply, ?Supervisor, {ok, child_stopped, _ChildSpec}}, ChildPid}) ->
 	fun({ChildId, ChildPid}) ->
 		minimal_supervisor:stop_child(ChildId),
+		receive after 3 -> ok end,
 		?_assertNot(is_process_alive(ChildPid))
 	end
       }
