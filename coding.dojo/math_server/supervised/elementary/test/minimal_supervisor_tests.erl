@@ -5,7 +5,7 @@
 
 start_children_test() ->
     ChildSpecList = [{server, start_link, []}, {asd,d,[]}],
-    {ok, _Pid} = dj_supervisor:start_link(ChildSpecList),
+    {ok, _Pid} = minimal_supervisor:start_link(ChildSpecList),
     receive after 1 -> ok end,
     ServerPid = whereis(?Server),
 
