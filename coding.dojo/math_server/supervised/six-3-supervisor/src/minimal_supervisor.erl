@@ -22,8 +22,6 @@
 
 -define(Threshold, 5).
 
--define(TimeoutOriginalValue, 6000).
-
 -record(child_state, {pid, id, spec}).
 
 %%%===================================================================

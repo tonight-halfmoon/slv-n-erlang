@@ -1,1 +1,2 @@
 -define(Supervisor, 'supervisor_aug18').
+-define(TimeoutOriginalValue, 6000).

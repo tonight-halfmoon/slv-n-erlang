@@ -17,7 +17,6 @@ start_child_given_child_spec_when_supervisor_tries_to_start_child_then_child_sta
 	      minimal_supervisor:start_link([]),
 	      receive after 1 -> ok end,
 	      {reply, ?Supervisor, {ok, child_started, {child_state, ChildPid, ChildId, ?ServerChildTransientSpec}}} = minimal_supervisor:start_child(?ServerChildTransientSpec),
-	      receive after 3 -> ok end,
 	      {ChildId, ChildPid}
       end,
       fun ?MODULE:after_each/1,
@@ -31,17 +30,20 @@ start_child_given_child_spec_when_supervisor_tries_to_start_child_then_child_sta
 
 start_child_the_supervisor_is_able_to_start_children_even_once_the_supervisor_has_started_test_() ->
     {
-      "Start Child; When Child spec is provided and the supervisor has started, then the supervisor starts the child and returns a unique id",
+      "Start Child; Given child spec, when the supervisor has started, then the supervisor starts the child and returns a unique id",
       {
 	setup,
 	fun() ->
 		minimal_supervisor:start_link([]),
-		receive after 3 -> ok end
+		receive after 1 -> ok end
 	end,
 	fun ?MODULE:after_each/1,
 	fun(_) ->
-		Result = minimal_supervisor:start_child({transient, {server, start_link, []}}),
-		[?_assertMatch({reply, ?Supervisor, {ok, Id, _ChildPid}} when not is_pid(Id), Result)]
+		Result = minimal_supervisor:start_child(?ServerChildTransientSpec),
+
+		[
+		 ?_assertMatch({reply, ?Supervisor, {ok, child_started, {child_state, ChildPid, _ChildId, ?ServerChildTransientSpec}}} when is_pid(ChildPid), Result)
+		]
 	end
       }
     }.
@@ -55,7 +57,6 @@ stop_child_given_child_id_when_supervisor_tries_to_stop_child_then_child_stopped
 	      minimal_supervisor:start_link([]),
 	      receive after 1 -> ok end,
 	      {reply, ?Supervisor, {ok, child_started, {child_state, ChildPid, ChildId, ?ServerChildPermanentSpec}}} = minimal_supervisor:start_child(?ServerChildPermanentSpec),
-	      receive after 3 -> ok end,
 	      ?assert(is_process_alive(ChildPid)),
 	      {ChildId, ChildPid}
       end,
@@ -104,7 +105,6 @@ stop_child_given_child_id_when_supervisor_stops_the_child_then_the_child_is_dele
       fun() ->
 	      minimal_supervisor:start_link([]),
 	      {reply, ?Supervisor, {ok, child_started, {child_state, ChildPid, ChildId, ?ServerChildPermanentSpec}}} = minimal_supervisor:start_child(?ServerChildPermanentSpec),
-	      receive after 3 -> ok end,
 	      ?assert(is_process_alive(ChildPid)),
 	      {ChildId, ChildPid}
       end,
@@ -129,7 +129,6 @@ exit_child_with_reason_killed_given_child_id_when_a_permanent_child_exits_as_kil
       fun () ->
 	      minimal_supervisor:start_link([]),
 	      {reply, ?Supervisor, {ok, child_started, {child_state, ChildPid, ChildId, ?ServerChildPermanentSpec}}} = minimal_supervisor:start_child(?ServerChildPermanentSpec),
-	      receive after 3 -> ok end,
 	      ?assert(is_process_alive(ChildPid)),
 	      {ok, child_found, ChildId, ChildPid} = minimal_supervisor:keyfind(pid, ChildId),
 	      {ChildId, ChildPid}
@@ -156,7 +155,6 @@ exit_child_with_reason_killed_given_child_id_when_a_transient_child_exits_as_kil
       fun () ->
 	      minimal_supervisor:start_link([]),
 	      {reply, ?Supervisor, {ok, child_started, {child_state, ChildPid, ChildId, ?ServerChildTransientSpec}}} = minimal_supervisor:start_child(?ServerChildTransientSpec),
-	      receive after 3 -> ok end,
 	      ?assert(is_process_alive(ChildPid)),
 	      {ok, child_found, ChildId, ChildPid} = minimal_supervisor:keyfind(pid, ChildId),
 	      {ChildId, ChildPid}
@@ -221,12 +219,12 @@ exit_child_with_reason_killed_given_child_id_when_a_transient_child_exits_as_kil
     %% }.
 
 start_children_given_unavailable_child_spec_module_when_supervisor_tries_to_start_the_child_then_the_supervisor_tries_5_times_per_minute_test_() ->
-    {"Start Children; When the Supervisor tries to start a child whose module is not available, then the Supervisor restarts the child a maximum of 5 times per minute",
+    {"Start Children; Given unavailable module of child spec, When the Supervisor tries to start then child, then the Supervisor restarts the child a maximum of 5 times per minute",
      {
        setup,
        fun() ->
 	       minimal_supervisor:start_link([{transient, {unavailable_module, f, []}}]),
-	       receive after 6003 -> ok end
+	       receive after ?TimeoutOriginalValue -> ok end
        end,
        fun ?MODULE:after_each/1,
        fun(_Actual) ->
@@ -243,7 +241,6 @@ stop_child_given_child_id_when_supervisor_tries_to_stop_the_child_then_the_child
 	fun() ->
 		minimal_supervisor:start_link([]),
 		{reply, ?Supervisor, {ok, child_started, {child_state, ChildPid, ChildId, _ChildSpec}}} = minimal_supervisor:start_child({transient, {server, start_link, []}}),
-		receive after 3 -> ok end,
 		?assert(is_process_alive(ChildPid)),
 		%Result = minimal_supervisor:stop_child(ChildId),
 		%{Result, ChildPid}
