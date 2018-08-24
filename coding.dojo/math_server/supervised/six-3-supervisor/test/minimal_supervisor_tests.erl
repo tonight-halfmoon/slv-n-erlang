@@ -3,14 +3,16 @@
 -include("server.hrl").
 -include("minimal_supervisor.hrl").
 
--export([setup_transient_children/1, after_each/1]).
+-export([after_each/1]).
 
 restart_children_when_transient_child_has_terminated_normally_test_() ->
     {"Restart; When a child is transient and it terminates normally, then it is not restarted",
      {
        setup,
        fun () ->
-	       setup_transient_children(1),
+	       ChildSpecList = [{transient, {server, start_link, []}}],
+	       minimal_supervisor:start_link(ChildSpecList),
+	       receive after 3 -> ok end,
 	       ServerPid1 = whereis(?Server),
 	       exit(ServerPid1, normal),
 	       receive after 3 -> ok end,
@@ -31,10 +33,12 @@ restart_children_when_transient_child_has_terminated_abnormally_test_() ->
      {
        setup,
        fun () ->
-	       setup_transient_children(1),
+	       ChildSpecList = [{transient, {server, start_link, []}}],
+	       minimal_supervisor:start_link(ChildSpecList),
+	       receive after 3 -> ok end,
 	       ServerPid1 = whereis(?Server),
 	       exit(ServerPid1, kill),
-	       receive after 300 -> ok end,
+	       receive after 3 -> ok end,
 	       ServerPid2 = whereis(?Server),
 	       {ServerPid1, ServerPid2}
        end,
@@ -86,7 +90,7 @@ stop_child_supervisor_able_to_stop_child_given_id_test_() ->
 	setup,
 	fun() ->
 		minimal_supervisor:start_link([]),
-		{reply, ?Supervisor, {ok, ChildId, ChildPid}} = minimal_supervisor:start_child({transient, {server, start_link, []}}),
+		{reply, ?Supervisor, {ok, child_started, {child_state, ChildPid, ChildId, _ChildSpec}}} = minimal_supervisor:start_child({transient, {server, start_link, []}}),
 		receive after 3 -> ok end,
 		?assert(is_process_alive(ChildPid)),
 		%Result = minimal_supervisor:stop_child(ChildId),
@@ -102,11 +106,6 @@ stop_child_supervisor_able_to_stop_child_given_id_test_() ->
 	end
       }
     }.
-
-setup_transient_children(_HowMany) ->
-    ChildSpecList = [{transient, {server, start_link, []}}],
-    minimal_supervisor:start_link(ChildSpecList),
-    receive after 300 -> ok end.
 
 after_each(_Args) ->
     minimal_supervisor:stop().

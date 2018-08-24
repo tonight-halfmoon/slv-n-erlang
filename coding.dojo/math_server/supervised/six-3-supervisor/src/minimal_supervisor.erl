@@ -13,6 +13,7 @@
 %% API
 -export([start_link/1, stop/0]).
 -export([start_child/1, stop_child/1]).
+-export([keyfind/2]).
 
 %% Supervisor callbacks
 -export([init/1]).
@@ -21,7 +22,7 @@
 
 -define(Threshold, 5).
 
--define(StartChildTimeout, 6000).
+-define(TimeoutOriginalValue, 6000).
 
 -record(child_state, {pid, id, spec}).
 
@@ -37,37 +38,75 @@
 %% @end
 %%--------------------------------------------------------------------
 start_link(ChildSpecList) ->
-    Pid = spawn_link(?MODULE, init, [{?StartChildTimeout, []}]),
+    Pid = spawn_link(?MODULE, init, [{?TimeoutOriginalValue, []}]),
     register(?Supervisor, Pid),
     Pid ! {start_children, ChildSpecList},
     {ok, Pid}.
 
+%%--------------------------------------------------------------------
+%% @doc
+%% Stops the supervisor
+%% @end
+%%--------------------------------------------------------------------
 stop() ->
-    ?Supervisor ! {stop, self()},
-    receive
-    	Reply ->
-    	    Reply
-    after 300 ->
-    	    exit(timeout)
-    end.
+    call(stop, [], 300).
+    %% ?Supervisor ! {stop, self()},
+    %% receive
+    %% 	Reply ->
+    %% 	    Reply
+    %% after 300 ->
+    %% 	    exit(timeout)
+    %% end.
 
+%%--------------------------------------------------------------------
+%% @doc
+%% Starts a child
+%% @end
+%%--------------------------------------------------------------------
 start_child(Spec) ->
-    ?Supervisor ! {start_child, self(), Spec},
-    receive
-	Reply ->
-	    Reply
-    after ?StartChildTimeout ->
-	    exit(timeout)
-    end.
+    call(start_child, Spec,  round(?TimeoutOriginalValue * 1.2)).
 
+%    ?Supervisor ! {start_child, self(), Spec},
+    %% receive
+    %% 	Reply ->
+    %% 	    Reply
+    %% after round(?TimeoutOriginalValue * 1.2) ->
+    %% 	    exit(timeout)
+    %% end.
+
+%%--------------------------------------------------------------------
+%% @doc
+%% Stops a child
+%% @end
+%%--------------------------------------------------------------------
 stop_child(Id) ->
-    ?Supervisor ! {stop_child, self(), Id},
-    receive
-	Reply ->
-	    Reply
-    after 300 ->
-	    exit(timeout)
-    end.
+    call(stop_child, Id, 300).
+
+    %% ?Supervisor ! {stop_child, self(), Id},
+    %% receive
+    %% 	Reply ->
+    %% 	    Reply
+    %% after 300 ->
+    %% 	    exit(timeout)
+    %% end.
+
+
+%%--------------------------------------------------------------------
+%% @doc
+%% Finds Id of a child given key Pid |
+%% Finds Spec of a child given key Id 
+%% @end
+%%--------------------------------------------------------------------
+keyfind(Target, Key) ->
+    call(key_find, {Target, Key}, 300).
+
+    %% ?Supervisor ! keyfind_internal(Target, Key),
+    %% receive
+    %% 	Reply ->
+    %% 	    Reply
+    %% after 300 ->
+    %% 	    exit(timeout)
+    %% end.
 
 %%%===================================================================
 %%% Supervisor callbacks
@@ -76,131 +115,168 @@ stop_child(Id) ->
 %%--------------------------------------------------------------------
 %% @private
 %% @doc
-%% Whenever a supervisor is started using supervisor:start_link/[2,3],
+%% Whenever a supervisor is started using supervisor:start_link/1,
 %% this function is called by the new process to find out about
 %% restart strategy, maximum restart intensity, and child
 %% specifications.
-%%
-%% @spec init(Args) -> {ok, {SupFlags, [ChildSpec]}} |
-%%                     ignore |
-%%                     {error, Reason}
 %% @end
 %%--------------------------------------------------------------------
-init(InitialState) ->
+init(Args) ->
     process_flag(trap_exit, true),
-    loop(InitialState).
+    loop(Args).
 
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
 
-loop({Timeout, ChildList}) ->
+loop({TimeoutValue, ChildList} = State) ->
     receive
-	{'EXIT', Pid, normal} ->
-	    NewChildList = restart_child(Pid, ChildList, normal),
-	    loop({Timeout, NewChildList});
-	{'EXIT', Pid, killed} ->
-	    io:format("restarting child killed.~n"),
-	    NewChildList = restart_child(Pid, ChildList, killed),
-	    loop({Timeout, NewChildList});
+	{'EXIT', _Pid, supervisor_apply_child_sto} ->
+	    loop(State);
 	{'EXIT', Pid, Reason} ->
 	    NewChildList = restart_child(Pid, ChildList, Reason),
-	    loop({Timeout, NewChildList});
-	{stop, From} ->
+	    loop({TimeoutValue, NewChildList});
+	{stop, From, _Args} ->
 	    From ! {reply, self(), terminate_children(ChildList)};
 	{start_children, ChildSpecList} ->
 	    start_children(ChildSpecList),
-	    loop({Timeout, ChildList});
-	{ok, child_started, Child, From} ->
-	    io:format("Child for Spec '~p' is started.~n", [Child#child_state.spec]),
-	    From ! {reply, ?Supervisor, {ok, Child#child_state.id, Child#child_state.pid}},
-	    NewChildList = [Child|ChildList],
-	    loop({Timeout, NewChildList});
-	{error, child_not_started, ChildSpec, From} ->
-	    io:format("Child for spec ~p cannot be started.~n", [ChildSpec]),
-	    From ! {reply, ?Supervisor, {error, child_not_started, ChildSpec}},
-	    loop({Timeout, ChildList});
+	    loop(State);
 	{start_child, From, ChildSpec} ->
-	    start_child(ChildSpec, ?Threshold, 0, From),
-	    loop({Timeout, ChildList});
+	    ?Supervisor ! start_child(ChildSpec, ?Threshold, 0, From),
+	    loop(State);
+	{{ok, child_started, #child_state{pid=_ChildPid, id=_Id, spec=_ChildSpec} = Child} = Result, From} ->
+	    NewChildList = [Child|ChildList],
+	    From ! {reply, ?Supervisor, Result},
+	    loop({TimeoutValue, NewChildList});
+	{reply, ?Supervisor, {ok, child_started, _Child}} ->
+	    loop(State);
+	{{error, child_not_started, _ChildSpec} = Result, From} ->
+	    From ! {reply, ?Supervisor, Result},
+	    loop(State);
+	{reply, ?Supervisor, {error, child_not_started, _ChildSpec}} ->
+	    loop(State);
 	{stop_child, From, ChildId} ->
-	    {NewChildList, ChildStopResult} = stop_child_internal(ChildId, ChildList),
-	    From ! {reply, ?Supervisor, ChildStopResult},
-	    loop({Timeout, NewChildList});
-	{timeout, NewTimeout} ->
-	    loop({NewTimeout, ChildList})
-    after Timeout ->
+	    ?Supervisor ! {stop_child(ChildId, ChildList), From},
+	    loop(State);
+	{{ok, child_stopped, ChildId, _ChildSpec} = Result, From} ->
+	    NewChildList = lists:keydelete(ChildId, #child_state.id, ChildList),
+	    From ! {reply, ?Supervisor, Result},
+	    loop({TimeoutValue, NewChildList});
+	{{error, child_not_found, _ChildId} = Result, From} ->
+	    From ! {reply, ?Supervisor, Result},
+	    loop(State);
+	{keyfind, {Target, Key}, From} ->
+	    From ! keyfind(Target, Key, ChildList),
+	    loop(State);
+	{timeout, NewTimeoutValue} ->
+	    loop({NewTimeoutValue, ChildList})
+    after TimeoutValue ->
+	    exit(timeout)
+    end.
+
+call(Protocol, Args, TimeoutValue) ->
+    ?Supervisor ! {Protocol, self(), Args},
+    receive
+	Reply ->
+	    Reply
+    after TimeoutValue ->
 	    exit(timeout)
     end.
 
 start_children([]) ->
     ?Supervisor ! {timeout, infinity};
 start_children([ChildSpec|T]) ->
-    self() ! {start_child, ?Supervisor, ChildSpec},
+    ?Supervisor ! {start_child, ?Supervisor, ChildSpec},
     start_children(T).
 
-start_child_internal({_Type, {M, F, Args}} = ChildSpec) ->
+start_child(ChildSpec, RestartThreshold, RestartThreshold, From) ->
+     {{error, child_not_started, ChildSpec}, From};
+start_child({_Type, {M, F, Args}} = ChildSpec, RestartThreshold, Acc, From) ->
+    case apply_start_child_spec(M, F, Args) of
+	{ok, Pid} ->
+	    {{ok, child_started, #child_state{pid= Pid, id= erlang:system_time(millisecond), spec = ChildSpec}}, From};
+	{error, _E, _Detail} ->
+	    io:format("~p. last attempt to start child ~p has failed. Supervisor is trying again...~n", [Acc + 1, ChildSpec]),
+	    receive after round(?TimeoutOriginalValue / ?Threshold + 1) -> ok end,
+	    start_child(ChildSpec, RestartThreshold, Acc + 1, From)
+    end.
+
+apply_start_child_spec(M, F, Args) ->
     try M:F(Args) of
 	{ok, Pid} ->
-	    {ok, Pid, ChildSpec}
+	    {ok, Pid}
     catch
-	_E:_Detail ->
-	    {error, child_not_started, ChildSpec}
+	E:Detail ->
+	    {error, E, Detail}
     end.
 
-start_child(ChildSpec, Threshold, Threshold, From) ->
-    ?Supervisor ! {error, child_not_started, ChildSpec, From};
-start_child(ChildSpec, Threshold, Acc, From) ->
-    case start_child_internal(ChildSpec) of
-	{ok, Pid, ChildSpec} ->
-	    ?Supervisor ! {ok, child_started, #child_state{pid= Pid, id= erlang:system_time(millisecond), spec = ChildSpec}, From};
-	{error, child_not_started, ChildSpec} ->
-	    io:format("~p. Child for Spec '~p' was not started. Supervisor is trying again.~n", [Acc + 1, ChildSpec]),
-	    receive after round(?StartChildTimeout / ?Threshold) -> ok end,
-	    start_child(ChildSpec, Threshold, Acc + 1, From)
-    end.
+terminate_children([]) ->
+    {ok, stopped};
+terminate_children([#child_state{pid=Pid, id=_Id, spec=_Spec}|T]) ->
+    apply_child_stop(Pid),
+    terminate_children(T).
 
-stop_child_internal(Id, ChildList) ->
+stop_child(Id, ChildList) ->
     case lists:keyfind(Id, #child_state.id, ChildList) of
 	#child_state{pid=Pid, id= Id, spec = ChildSpec} ->
-	    terminate_child(Pid),
-	    {lists:keydelete(Id, #child_state.id, ChildList), {ok, child_stopped, ChildSpec}};
+	    apply_child_stop(Pid),
+	    {ok, child_stopped, Id, ChildSpec};
 	false ->
-	    {ChildList, {error, child_not_found, Id}}
+	    {error, child_not_found, Id}
     end.
 
 restart_child(Pid, ChildList, normal) ->
     case lists:keyfind(Pid, #child_state.pid, ChildList) of
 	#child_state{pid=Pid, id= _Id, spec= {transient, _ChildModule}} ->
 	    ChildList;
-	#child_state{pid=_Pid, id=_Id, spec={permanent, _ChildModule} = ChildSpec} = Child ->
-	    case start_child_internal(ChildSpec) of
+	#child_state{pid=_Pid, id=_Id, spec={permanent, {M, F, Args}}} = Child ->
+	    case apply_start_child_spec(M, F, Args) of
 		{ok, NewPid} ->
 		    [Child#child_state{pid=NewPid}|lists:keydelete(Pid, #child_state.pid, ChildList)];
-		{error, child_not_started, ChildSpec} ->
-		    lists:keydelete(Pid, 1, ChildList)
+		{error, _E, _Detail} ->
+		    lists:keydelete(Pid, #child_state.pid, ChildList)
 	    end;
 	false ->
 	    ChildList
     end;
 restart_child(Pid, ChildList, _Reason) ->
     case lists:keyfind(Pid, #child_state.pid, ChildList) of
-	#child_state{pid = _Pid, id = _Id, spec = ChildSpec} = Child ->
-	      case start_child_internal(ChildSpec) of
-		{ok, NewPid, ChildSpec} ->
+	#child_state{pid = _Pid, id = _Id, spec = {_Type, {M, F, Args}}} = Child ->
+	    case apply_start_child_spec(M, F, Args) of
+		{ok, NewPid} ->
 		    [Child#child_state{pid=NewPid}|lists:keydelete(Pid, #child_state.pid, ChildList)];
-		{error, child_not_started, ChildSpec} ->
-		    lists:keydelete(Pid, 1, ChildList)
+		{error, _E, _Detail} ->
+		    lists:keydelete(Pid, #child_state.pid, ChildList)
 	    end;
 	false ->
 	    ChildList
     end.
 
-terminate_children([]) ->
-    {ok, children_terminated};
-terminate_children([#child_state{pid=Pid, id=_Id, spec=_ChildSpec}|T]) ->
-    terminate_child(Pid),
-    terminate_children(T).
+apply_child_stop(Pid) ->
+    exit(Pid, supervisor_apply_child_stop).
 
-terminate_child(Pid) ->
-    exit(Pid, supervisor_terminate_children).
+keyfind(_Target, Key, []) ->
+    {error, child_not_found, Key};
+keyfind(id, Pid, ChildList) ->
+    case lists:keyfind(Pid, #child_state.pid, ChildList) of
+	#child_state{pid=Pid, id=Id, spec = _Spec} ->
+	    {ok, child_found, Id, Pid};
+	false ->
+	    {error, child_not_found, Pid}
+    end;
+keyfind(spec, ChildId, ChildList) ->
+    case lists:keyfind(ChildId, #child_state.id, ChildList) of
+	#child_state{pid=_ChildPid, id=ChildId, spec= Spec} ->
+	    {ok, child_found, ChildId, Spec};
+	false ->
+	    {error, child_not_found, ChildId}
+    end;
+keyfind(pid, ChildId, ChildList) ->
+    case lists:keyfind(ChildId, #child_state.id, ChildList) of
+	#child_state{pid=Pid, id=ChildId, spec=_Spec} ->
+	    {ok, child_found, ChildId, Pid};
+	false ->
+	    {error, child_not_found, ChildId}
+    end;
+keyfind(_Target, Key, _ChildList) ->
+    {error, not_supported_key, Key}.
