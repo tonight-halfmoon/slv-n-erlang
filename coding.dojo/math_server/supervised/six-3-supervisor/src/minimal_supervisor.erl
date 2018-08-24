@@ -40,8 +40,8 @@
 start_link(ChildSpecList) ->
     Pid = spawn_link(?MODULE, init, [{?TimeoutOriginalValue, []}]),
     register(?Supervisor, Pid),
-    Pid ! {start_children, ChildSpecList},
-    {ok, Pid}.
+    ?Supervisor ! {start_children, ChildSpecList},
+    {ok, supervisor_started}.
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -98,7 +98,7 @@ stop_child(Id) ->
 %% @end
 %%--------------------------------------------------------------------
 keyfind(Target, Key) ->
-    call(key_find, {Target, Key}, 300).
+    call(keyfind, {Target, Key}, 300).
 
     %% ?Supervisor ! keyfind_internal(Target, Key),
     %% receive
@@ -165,7 +165,7 @@ loop({TimeoutValue, ChildList} = State) ->
 	{{error, child_not_found, _ChildId} = Result, From} ->
 	    From ! {reply, ?Supervisor, Result},
 	    loop(State);
-	{keyfind, {Target, Key}, From} ->
+	{keyfind, From, {Target, Key}} ->
 	    From ! keyfind(Target, Key, ChildList),
 	    loop(State);
 	{timeout, NewTimeoutValue} ->
