@@ -173,14 +173,27 @@ loop({TimeoutValue, ChildList} = State) ->
     end.
 
 call(Protocol, Args, TimeoutValue) ->
-    ?Supervisor ! {Protocol, self(), Args},
-    receive
-	Reply ->
-	    Reply
-    after TimeoutValue ->
-	    exit(timeout)
+    case is_alive(?Supervisor) of
+	{error, supervisor_proc_not_alive} ->
+	    {error, supervisor_not_running};
+	{ok, ?Supervisor, _SupervisorPid} ->
+	    ?Supervisor ! {Protocol, self(), Args},
+	    receive
+		Reply ->
+		    Reply
+	    after TimeoutValue ->
+		    exit(timeout)
+	    end
     end.
 
+is_alive(SupervisorName) ->
+   case whereis(SupervisorName) of
+       undefined ->
+	   {error, supervisor_proc_not_alive};
+       Pid when is_pid(Pid) ->
+	   {ok, ?Supervisor, Pid}
+   end.
+	   
 start_children([]) ->
     ?Supervisor ! {timeout, infinity};
 start_children([ChildSpec|T]) ->
