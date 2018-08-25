@@ -5,8 +5,8 @@
 
 -include("server.hrl").
 
-stk(ChildSpecList) ->
-    start_link(ChildSpecList).
+stk(Args) ->
+    start_link(Args).
 
 start_link() ->
     start_link(available_resources()).
@@ -31,8 +31,18 @@ init({InitialState, Callback}) ->
 
 loop(State, Callback) ->
     receive
-	{'EXIT', _From, Reason} ->
-	    io:format("Server received 'EXIT'. Reason: ~p.~n", [Reason]);
+	{'EXIT', _From, normal} ->
+	    {ok, self(), stopped_normally};
+	{'EXIT', From, kill} ->
+	    {ok, self(), killed_by, From};
+	{'EXIT', From, _Reason} ->
+	    case disconnect_client(State, From) of
+		{State, {error, not_allocated} = Result} ->
+		    From ! {reply, self(), Result};
+		{NewState, {ok, disconnected} = Result} ->
+		    From ! {reply, self(), Result},
+		    loop(NewState, Callback)
+	    end;
         {stop, _From} ->
 	    deallocate_all();
 	{connect, From, Client} ->
@@ -43,9 +53,9 @@ loop(State, Callback) ->
 	    {NewState, Reply} = disconnect_client(State, Client),
 	    From ! {reply, ?Server, Reply},
 	    loop(NewState, Callback);
-	{sum_areas, Shapes, Pid} ->
+	{sum_areas, Shapes, From} ->
 	    Result = eval(Callback, Shapes),
-	    Pid ! {reply, ?Server, Result},
+	    From ! {reply, ?Server, Result},
 	    loop(State, Callback);
 	{request, From, check_resources} ->
 	    From ! {reply, ?Server, State},

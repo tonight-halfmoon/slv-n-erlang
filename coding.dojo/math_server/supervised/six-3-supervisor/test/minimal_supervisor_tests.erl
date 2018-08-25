@@ -173,23 +173,20 @@ exit_child_with_reason_killed_given_child_id_when_a_transient_child_exits_as_kil
     }.
 
 %% restart_children_when_transient_child_terminated_normally_then_child_is_not_restarted_test_() ->
-%%     {"Restart Children; Given a transient child, when the child terminates normally, then it is not restarted",
+%%     {"Restart Children; Given a transient child, when the child terminates normally, then the supervisor does not restart the child",
 %%      {
 %%        setup,
 %%        fun() ->
-%% 	       ChildSpecList = [{transient, {server, start_link, []}}],
-%% 	       minimal_supervisor:start_link(ChildSpecList),
-%% 	       receive after 3 -> ok end,
-%% 	       ServerPid1 = whereis(?Server),
-%% 	       exit(ServerPid1, normal),
-%% 	       receive after 1 -> ok end,
-%% 	       ServerPid2 = whereis(?Server),
-%% 	       {ServerPid1, ServerPid2}
+%% 	       minimal_supervisor:start_link([?ServerChildTransientSpec])
 %%        end,
 %%        fun ?MODULE:after_each/1,
-%%        fun({ServerPid1, undefined}) ->
+%%        fun(_) ->
+%% 	       ChildPid = whereis(?Server),
+%% 	       exit(ChildPid, normal),
+%% 	       receive after 1 -> ok end,
+%% 	       undefined = whereis(?Server),
 %% 	       [
-%% 		?_assertNot(is_process_alive(ServerPid1))
+%% 		?_assertNot(is_process_alive(ChildPid))
 %% 	       ]
 %%        end
 %%      }
