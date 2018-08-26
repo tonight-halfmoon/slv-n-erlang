@@ -15,12 +15,13 @@ start_child_given_child_spec_when_supervisor_tries_to_start_child_then_child_sta
       setup,
       fun() ->
 	      minimal_supervisor:start_link([]),
-	      receive after 1 -> ok end,
-	      {reply, ?Supervisor, {ok, child_started, {child_state, ChildPid, ChildId, ?ServerChildTransientSpec}}} = minimal_supervisor:start_child(?ServerChildTransientSpec),
-	      {ChildId, ChildPid}
+	      receive after 3 -> ok end
       end,
       fun ?MODULE:after_each/1,
-      fun({_ChildId, ChildPid}) ->
+      fun(_) ->
+	      {reply, ?Supervisor, {ok, child_started, {child_state, ChildPid, _ChildId, ?ServerChildTransientSpec}}} = minimal_supervisor:start_child(?ServerChildTransientSpec),
+	      receive after 3 -> ok end,
+
 	      [
 	       ?_assert(is_process_alive(ChildPid))
 	      ]
@@ -34,12 +35,12 @@ start_child_the_supervisor_is_able_to_start_children_even_once_the_supervisor_ha
       {
 	setup,
 	fun() ->
-		minimal_supervisor:start_link([]),
-		receive after 1 -> ok end
+		minimal_supervisor:start_link([])
 	end,
 	fun ?MODULE:after_each/1,
 	fun(_) ->
 		Result = minimal_supervisor:start_child(?ServerChildTransientSpec),
+		receive after 3 -> ok end,
 
 		[
 		 ?_assertMatch({reply, ?Supervisor, {ok, child_started, {child_state, ChildPid, _ChildId, ?ServerChildTransientSpec}}} when is_pid(ChildPid), Result)
@@ -55,8 +56,8 @@ stop_child_given_child_id_when_supervisor_tries_to_stop_the_child_then_child_sto
       setup,
       fun() ->
 	      minimal_supervisor:start_link([]),
-	      receive after 1 -> ok end,
 	      {reply, ?Supervisor, {ok, child_started, {child_state, ChildPid, ChildId, ?ServerChildPermanentSpec}}} = minimal_supervisor:start_child(?ServerChildPermanentSpec),
+	      receive after 3 -> ok end,
 	      ?assert(is_process_alive(ChildPid)),
 	      {ChildId, ChildPid}
       end,
@@ -105,6 +106,7 @@ stop_child_given_child_id_when_supervisor_stops_the_child_then_the_child_is_stop
       fun() ->
 	      minimal_supervisor:start_link([]),
 	      {reply, ?Supervisor, {ok, child_started, {child_state, ChildPid, ChildId, ?ServerChildPermanentSpec}}} = minimal_supervisor:start_child(?ServerChildPermanentSpec),
+	      receive after 3 -> ok end,
 	      ?assert(is_process_alive(ChildPid)),
 	      {ChildId, ChildPid}
       end,
@@ -221,8 +223,7 @@ restart_children_given_transient_child_when_the_child_terminated_abnormally_then
      {
        setup,
        fun () ->
-    	       ChildSpecList = [?ServerChildTransientSpec],
-    	       minimal_supervisor:start_link(ChildSpecList),
+    	       minimal_supervisor:start_link([?ServerChildTransientSpec]),
     	       receive after 3 -> ok end,
     	       whereis(?Server)
        end,
