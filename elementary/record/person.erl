@@ -1,7 +1,12 @@
 -module(person).
--export([new/2]).
 
--record(person, {name, age}).
+-export([ahmad/0]).
+-export([new/3]).
 
-new(Name, Age) ->
-    #person{name=Name, age=Age}.
+-record(person, {name, age, phone}).
+
+new(Name, Age, Phone) ->
+    #person{name=Name, age=Age, phone=Phone}.
+
+ahmad() ->
+    #person{name="Ahmad"}.
