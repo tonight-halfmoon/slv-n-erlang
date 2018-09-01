@@ -45,8 +45,8 @@ loop(State, Callback) ->
 	    end;
         {stop, _From} ->
 	    deallocate_all();
-	{connect, From, Client} ->
-	    {NewState, Reply} = connect_client(State, Client),
+	{connect, From, ClientPid} ->
+	    {NewState, Reply} = connect_client(State, ClientPid),
 	    From ! {reply, ?Server, Reply},
 	    loop(NewState, Callback);
 	{disconnect, From, Client} ->
