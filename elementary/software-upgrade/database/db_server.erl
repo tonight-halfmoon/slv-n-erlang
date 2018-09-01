@@ -39,7 +39,7 @@ loop(Db) ->
 	    loop(db:delete(Key, Db));
 	{upgrade, Data} ->
 	    NewDb = db:convert(Data, Db),
-	    db_server:loop(NewDb);
+	    ?MODULE:loop(NewDb);
 	stop ->
 	    db:destroy(Db)
     end.

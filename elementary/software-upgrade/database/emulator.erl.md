@@ -21,26 +21,38 @@ up_to_date
  {native,false},
  {md5,<<247,254,50,145,135,241,141,3,151,42,225,212,229,
         13,207,17>>}]
-3> pwd().
+3> db_server:start().
+true
+4> db_server:write(francesco, san_francisco).
+{write,francesco,san_francisco}
+5> db_server:write(alison, london).
+{write,alison,london}
+6> db_server:read(alison).
+{ok,london}
+7> db_server:read(martin).
+{error,instance}
+8> pwd().
 /usr/home/rosemary/erlang/slv-n-erlang/elementary/software-upgrade/database
 ok
-4> code:add_patha("/usr/home/rosemary/erlang/slv-n-erlang/elementary/software-upgrade/patches").
-true
-5> code:load_file(db).
-{module,db}
-6> c("/usr/home/rosemary/erlang/slv-n-erlang/elementary/software-upgrade/patches/db.erl").
+9> c("/usr/home/rosemary/erlang/slv-n-erlang/elementary/software-upgrade/patches/db.erl).
+9> c("/usr/home/rosemary/erlang/slv-n-erlang/elementary/software-upgrade/patches/db.erl").
+9> c("/usr/home/rosemary/erlang/slv-n-erlang/elementary/software-upgrade/patches/db.erl).
+* 2: syntax error before: '.'
+9> c("/usr/home/rosemary/erlang/slv-n-erlang/elementary/software-upgrade/patches/db.erl").
 {ok,db}
-7> code:load_file(db).
+10> code:add_patha("/usr/home/rosemary/erlang/slv-n-erlang/elementary/software-upgrade/patches").
+true
+11> code:load_file(db).
 {error,not_purged}
-8> 
-=ERROR REPORT==== 1-Sep-2018::14:36:59 ===
+12> 
+=ERROR REPORT==== 1-Sep-2018::15:09:14 ===
 Loading of /usr/home/rosemary/erlang/slv-n-erlang/elementary/software-upgrade/database/db.beam failed: not_purged
 
-8> code:soft_purge(db).
+12> code:soft_purge(db).
 true
-9> code:load_file(db).
+13> code:load_file(db).
 {module,db}
-10> db:module_info().
+14> db:module_info().
 [{module,db},
  {exports,[{convert,2},
            {new,0},
@@ -57,4 +69,12 @@ true
  {native,false},
  {md5,<<175,196,13,22,240,18,28,147,168,163,93,238,135,
         246,18,148>>}]
-11> 
+15> db_server:upgrade(dict).
+{upgrade,dict}
+16> db_server:write(martin, cairo).
+{write,martin,cairo}
+17> db_server:read(francesco).
+{ok,san_francisco}
+18> db_server:read(martin).
+{ok,cairo}
+19> 
