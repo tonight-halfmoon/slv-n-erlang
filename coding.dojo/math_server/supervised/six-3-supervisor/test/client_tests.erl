@@ -9,10 +9,10 @@
 sum_areas_test() ->
     ChildSpecList = [{transient, {server, start_link, []}}],
     minimal_supervisor:start_link(ChildSpecList),
-    receive after 1 -> ok end,
+    receive after 3 -> ok end,
     client:start(),
-    receive after 1 -> ok end,
     client:connect(),
+    receive after 3 -> ok end,
     Shapes = [{circle, 3}, {rectangle, 3, 4}],
 
     {reply, ?Server, {ok, Sum}} = sum_areas(Shapes),
@@ -26,10 +26,10 @@ sum_areas_test() ->
 async_sum_areas_test() ->
     ChildSpecList = [{transient, {server, start_link, []}}],
     minimal_supervisor:start_link(ChildSpecList),
-    receive after 1 -> ok end,
+    receive after 3 -> ok end,
     client:start(),
     client:connect(),
-    receive after 1 -> ok end,
+    receive after 3 -> ok end,
     Shapes = [{circle, 3}, {rectangle, 3, 4}],
 
     {ok, noreply} = async_sum_areas(Shapes),
@@ -48,10 +48,10 @@ async_sum_areas_test() ->
 sum_areas_unknown_shapes_test() ->
     ChildSpecList = [{trasnient, {server, start_link, []}}],
     minimal_supervisor:start_link(ChildSpecList),
-    receive after 1 -> ok end,
+    receive after 3 -> ok end,
     client:start(),
     client:connect(),
-    receive after 1 -> ok end,
+    receive after 3 -> ok end,
     Shapes = [{ellipse, 3, 4}],
 
     Reply = sum_areas(Shapes),
@@ -66,9 +66,10 @@ sum_areas_unknown_shapes_test() ->
 async_sum_areas_unknown_shapes_test() ->
     ChildSpecList = [{transient, {server, start_link, []}}],
     minimal_supervisor:start_link(ChildSpecList),
-    receive after 1 -> ok end,
+    receive after 3 -> ok end,
     client:start(),
     client:connect(),
+    receive after 3 -> ok end,
     Shapes = [{ellipse, 3 ,4}],
 
     {ok, noreply} = async_sum_areas(Shapes),
