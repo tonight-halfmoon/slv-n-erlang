@@ -3,9 +3,11 @@
 -export([fb/1]).
 
 fb(N) ->
-    case isMultipleOf(N, 3) of
-	true ->
+    case {isMultipleOf(N, 3), isMultipleOf(N, 5)} of
+	{true, false} ->
 	    'Fizz';
+	{false, true} ->
+	    'Buzz';
 	_ ->
 	    N
     end.
