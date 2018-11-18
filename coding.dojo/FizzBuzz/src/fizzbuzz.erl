@@ -14,5 +14,5 @@ fb(N) ->
 	    N
     end.
 
-isMultipleOf(N, X) ->
+isMultipleOf(N, X) when 0 < N ->
     0 == N rem X.

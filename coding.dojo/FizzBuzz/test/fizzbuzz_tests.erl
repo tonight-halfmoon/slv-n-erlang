@@ -27,3 +27,9 @@ fb_return_FizzBuzz_test_() ->
       "fb when number is multiple of 3 and 5, then return 'FizzBuzz'",
       ?_assertEqual('FizzBuzz', fb(15))
     }.
+
+fb_throw_exception_test_() ->
+  {
+    "fb when number is less than 1, then throw exception",
+    ?_assertException(error, function_clause, fb(0))
+  }.
