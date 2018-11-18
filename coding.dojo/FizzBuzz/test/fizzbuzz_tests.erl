@@ -21,3 +21,9 @@ fb_return_buzz_test_() ->
       "fb when number is multiple of 5, then return 'Buzz'",
       ?_assertEqual('Buzz', fb(5))
     }.
+
+fb_return_FizzBuzz_test_() ->
+    {
+      "fb when number is multiple of 3 and 5, then return 'FizzBuzz'",
+      ?_assertEqual('FizzBuzz', fb(15))
+    }.

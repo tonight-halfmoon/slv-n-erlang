@@ -8,6 +8,8 @@ fb(N) ->
 	    'Fizz';
 	{false, true} ->
 	    'Buzz';
+	{true, true} ->
+	    'FizzBuzz';
 	_ ->
 	    N
     end.
