@@ -1,0 +1,3 @@
+M-p: previous command in histroy
+M-n: next command in history
+C-c C-z: Erlang Emulator
