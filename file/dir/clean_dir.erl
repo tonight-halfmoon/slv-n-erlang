@@ -1,5 +1,5 @@
 -module(clean_dir).
--export([clean]).
+-export([clean/1]).
 
 clean(Dir) ->
     FileList = filelib:wildcard("*.*", Dir),
