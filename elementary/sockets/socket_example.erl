@@ -1,6 +1,6 @@
 -module(socket_example).
 -export([nano_get_url/0]).
-%% Why programming with sockets fun? Because it allows applications to interact with othjer machines on the Internet, which has far more potentialthan just performing local operations.
+%% Why programming with sockets fun? Because it allows applications to interact with other machines on the Internet, which has far more potential than just performing local operations.
 
 %% In this chapter, we'll see how to program client and servers using TCP and UDP sockets.
 %% We'll go through the different forms of servers that are possible (parallel, sequential, blocking, and nonblocking) and see how to program traggic-shaping applications that can control the flow of data to the application.
