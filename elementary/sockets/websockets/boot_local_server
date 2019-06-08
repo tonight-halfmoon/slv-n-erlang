@@ -1,0 +1,3 @@
+#!/bin/sh
+erlc local_server.erl && \
+    erl -boot start_clean -noshell -smp +S 1 -s local_server start >> local_server.log &

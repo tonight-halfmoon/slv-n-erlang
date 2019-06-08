@@ -30,6 +30,7 @@ start(F, State0) ->
     par_connect(Listen, F, State0).
 
 par_connect(Listen, F, State0) ->
+    io:format("Got connect request from client Listen: ~p; F: ~p; State0: ~p.~n", [Listen, F, State0]),
     {ok, Socket} = gen_tcp:accept(Listen),
     spawn(fun() -> par_connect(Listen, F, State0) end),
     wait(Socket, F, State0).
