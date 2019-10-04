@@ -1,0 +1,5 @@
+{release,
+	{"MYSYSTEM", "FIRST"},
+	{erts, "10.4.4"},
+	[{kernel, ""}]
+}
